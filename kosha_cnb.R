@@ -18,7 +18,7 @@ bigcnb <- read.csv("cnb_dump_15july2021.csv", na=c("",".","NA"))
 
 # separate into individual tasks ----
 adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16)], bigcnb[,grepl("ADT36_A.", colnames(bigcnb), fixed = TRUE)])
-adt60 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
+adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
 
 cpfA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPF_A.", colnames(bigcnb), fixed = TRUE)])
 cpfdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPFD_A.", colnames(bigcnb), fixed = TRUE)])
@@ -98,11 +98,14 @@ spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,
 # Making plots ----
 # * ADT36 ----
 adt36 <- adt36[rowSums(is.na(adt36[,9:ncol(adt36)])) < (ncol(adt36)-9),]
+adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
 TC <- adt36$ADT36_A.ADT36A_CR
 PC <- 100*TC/36
 SP <- adt36$ADT36_A.ADT36A_RTCR
 
-# basic accuracy and speed plots
+# basic accuracy and speed plots (flash vs non-flash)
+flash <- adt36[which(adt36$test_sessions_v.dotest < as.Date("2021-01-13")),]
+noflash <- adt36[which(adt36$test_sessions_v.dotest >= as.Date("2021-01-13")),]  # this line and the line above are only temporary. unfortunately, it's not as clear cut
 
 
 # age and sex differences
