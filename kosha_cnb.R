@@ -107,6 +107,35 @@ SP <- adt36$ADT36_A.ADT36A_RTCR
 flash <- adt36[which(adt36$test_sessions_v.dotest < as.Date("2021-01-13")),]
 noflash <- adt36[which(adt36$test_sessions_v.dotest >= as.Date("2021-01-13")),]  # this line and the line above are only temporary. unfortunately, it's not as clear cut
 
+fnfPC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=PC)) +
+  geom_line(color="dark blue") +
+  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Percent Correct",
+       title = "Participants Accuracy by Percentage on the ADT36 Over Time") + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+fnfPC
+
+fnfTC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=TC)) +
+  geom_line(color="dark blue") +
+  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Total Correct",
+       title = "Participants Accuracy on the ADT36 Over Time") + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+fnfTC
+
+fnfSP <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=SP)) +
+  geom_line(color="dark blue") +
+  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Speed",
+       title = "Participants Speed on the ADT36 Over Time") + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+fnfSP
 
 # age and sex differences
 
