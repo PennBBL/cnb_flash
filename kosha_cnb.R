@@ -17,10 +17,9 @@ library(binr)
 # load data ----
 bigcnb <- read.csv("cnb_dump_15july2021.csv", na=c("",".","NA"))
 
-flash <- as.data.frame(matrix(0, nrow = nrow(bigcnb), ncol=1))
-flash[which(adt36$test_sessions_v.dotest < as.Date("2021-01-01")),] <- 1
-bigcnb <- cbind(bigcnb, flash)
-names(bigcnb)[1674] <- "flash"
+bigcnb$flash <- 0
+bigcnb$flash[which(bigcnb$test_sessions_v.dotest < as.Date("2021-01-01"))] <- 1
+
 
 # separate into individual tasks ----
 adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT36_A.", colnames(bigcnb), fixed = TRUE)])
@@ -154,11 +153,9 @@ fnfSP
 
 
 # age and sex differences
-adt36 <- adt36[order(adt36$test_sessions_v.age),]
-
 age <- na.exclude(adt36$test_sessions_v.age)
 groups <- bins(age, 7, minpts = 30)$binct
-# agegroup <- c(rep(NA,nrow(adt36)))
+
 for (i in 1:nrow(adt36)) {
   if (adt36$test_sessions_v.age[i] %in% 8:9) {
     adt36$agegroup[i] <- "8-9"
@@ -181,27 +178,100 @@ for (i in 1:nrow(adt36)) {
   else if (adt36$test_sessions_v.age[i] >= 21) {
     adt36$agegroup[i] <- "21+"
   }
-  else {
-    pass
-  }
 }
 
 # adt36 <- cbind(adt36, agegroup)
 adt36 <- adt36[,c(1:3,55,4:54)]
 
-male <- corrected[which(adt36$test_sessions_v.gender == "M"),]
-female <- corrected[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
+male <- adt36[which(adt36$test_sessions_v.gender == "M"),]
+female <- adt36[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
 
+mdates <- sort(unique(male$test_sessions_v.dotest))
+fdates <- sort(unique(female$test_sessions_v.dotest))
 
-sex8to9PC <- ggplot(adt36[which(adt36$agegroup == "0-18"),], aes(x=test_sessions_v.dotest)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
-  # geom_line(color="dark blue") +
-  # geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+cmale <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
+names(cmale) <- c("dates", "tc", "pc", "sp")
+cmale[,1] <- mdates
+
+for (i in 1:length(mdates)) {
+  cmale[i,2] <- mean(TC[which(male$test_sessions_v.dotest == cmale[i,1])])
+  cmale[i,3] <- mean(PC[which(male$test_sessions_v.dotest == cmale[i,1])])
+  cmale[i,4] <- mean(SP[which(male$test_sessions_v.dotest == cmale[i,1])])
+}
+
+cfemale <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
+names(cfemale) <- c("dates", "tc", "pc", "sp")
+cfemale[,1] <- fdates
+
+for (i in 1:length(fdates)) {
+  cfemale[i,2] <- mean(TC[which(female$test_sessions_v.dotest == cfemale[i,1])])
+  cfemale[i,3] <- mean(PC[which(female$test_sessions_v.dotest == cfemale[i,1])])
+  cfemale[i,4] <- mean(SP[which(female$test_sessions_v.dotest == cfemale[i,1])])
+}
+
+age89TC <- ggplot(corrected[which(adt36$agegroup == "8-9"),], aes(x=dates[])) +     
+  geom_line(aes(y=cmale[which(adt36$agegroup == "8-9"),2]), color="blue") +
+  geom_line(aes(y=cfemale[which(adt36$agegroup == "8-9"),2]), color="purple") +
+  # scale_x_continuous(breaks = seq(dates[1],max())) +
+  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
   labs(x="Date of Test",
-       y="Percent Correct",
-       title = "ADT36 Accuracy of Participants (ages 0-18) Over Time") +
+       y="Score (out of 36)",
+       title = "ADT36 Accuracy of Participants (ages 8-9) Over Time") +
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
-sex8to9PC
+age89TC
+
+age89SP <- ggplot(corrected[which(adt36$agegroup == "8-9"),], aes(x=dates)) +     
+  geom_line(aes(y=male[which(adt36$agegroup == "8-9"),4]), color="blue") +
+  geom_line(aes(y=female[which(adt36$agegroup == "8-9"),4]), color="purple") +
+  labs(x="Date of Test",
+       y="Speed",
+       title = "ADT36 Speed of Participants (ages 8-9) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+age89SP
+
+age1011TC <- ggplot(corrected[which(adt36$agegroup == "10-11"),], aes(x=dates)) +     
+  geom_line(aes(y=male[which(adt36$agegroup == "10-11"),2]), color="blue") +
+  geom_line(aes(y=female[which(adt36$agegroup == "10-11"),2]), color="purple") +
+  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title = "ADT36 Accuracy of Participants (ages 10-11) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+age1011TC
+
+age1011SP <- ggplot(corrected[which(adt36$agegroup == "10-11"),], aes(x=dates)) +     
+  geom_line(aes(y=male[which(adt36$agegroup == "10-11"),4]), color="blue") +
+  geom_line(aes(y=female[which(adt36$agegroup == "10-11"),4]), color="purple") +
+  labs(x="Date of Test",
+       y="Speed",
+       title = "ADT36 Speed of Participants (ages 10-11) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+age1011SP
+
+age1213TC <- ggplot(corrected[which(adt36$agegroup == "12-13"),], aes(x=dates)) +     
+  geom_line(aes(y=male[which(adt36$agegroup == "12-13"),2]), color="blue") +
+  geom_line(aes(y=female[which(adt36$agegroup == "12-13"),2]), color="purple") +
+  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title = "ADT36 Accuracy of Participants (ages 12-13) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+age1213TC
+
+age1213SP <- ggplot(corrected[which(adt36$agegroup == "12-13"),], aes(x=dates)) +     
+  geom_line(aes(y=male[which(adt36$agegroup == "12-13"),4]), color="blue") +
+  geom_line(aes(y=female[which(adt36$agegroup == "12-13"),4]), color="purple") +
+  labs(x="Date of Test",
+       y="Speed",
+       title = "ADT36 Speed of Participants (ages 12-13) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+age1213SP
 
 
 # site differences
