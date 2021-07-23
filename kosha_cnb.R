@@ -107,7 +107,7 @@ SP <- adt36$ADT36_A.ADT36A_RTCR
 flash <- adt36[which(adt36$test_sessions_v.dotest < as.Date("2021-01-13")),]
 noflash <- adt36[which(adt36$test_sessions_v.dotest >= as.Date("2021-01-13")),]  # this line and the line above are only temporary. unfortunately, it's not as clear cut
 
-fnfPC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=PC)) +
+fnfPC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
   geom_line(color="dark blue") +
   geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
   labs(x="Date of Test",
@@ -137,7 +137,43 @@ fnfSP <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=SP)) +
 
 fnfSP
 
+
+
 # age and sex differences
+adt36 <- adt36[order(adt36$test_sessions_v.age),]
+
+agegroup <- c(rep(NA,nrow(adt36)))
+for (i in 1:nrow(adt36)) {
+  if (adt36$test_sessions_v.age[i] <= 18) {
+    agegroup[i] <- "0-18"
+  }
+  else if (18 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 25) {
+    agegroup[i] <- "19-25"
+  }
+  else if (25 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 35) {
+    agegroup[i] <- "26-35"
+  }
+  else if (35 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 45) {
+    agegroup[i] <- "36-45"
+  }
+  else if (45 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 55) {
+    agegroup[i] <- "46-55"
+  }
+  else if (55 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 65) {
+    agegroup[i] <- "56-65"
+  }
+  else if (65 < adt36$test_sessions_v.age[i]) {
+    agegroup[i] <- "65+"
+  }
+}
+adt36 <- cbind(adt36, agegroup)
+adt36 <- adt36[,c(1:3,54,4:53)]
+
+male <- adt36[which(adt36$test_sessions_v.gender == "M"),]
+female <- adt36[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
+
+
+
 
 
 # site differences
