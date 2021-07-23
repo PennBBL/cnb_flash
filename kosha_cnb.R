@@ -10,7 +10,8 @@
 # load packages ----
 library(ggplot2)
 library(psych)
-
+library(dplyr)
+library(binr)
 
 
 # load data ----
@@ -155,39 +156,44 @@ fnfSP
 # age and sex differences
 adt36 <- adt36[order(adt36$test_sessions_v.age),]
 
-agegroup <- c(rep(NA,nrow(adt36)))
+age <- na.exclude(adt36$test_sessions_v.age)
+groups <- bins(age, 7, minpts = 30)$binct
+# agegroup <- c(rep(NA,nrow(adt36)))
 for (i in 1:nrow(adt36)) {
-  if (adt36$test_sessions_v.age[i] <= 18) {
-    agegroup[i] <- "0-18"
+  if (adt36$test_sessions_v.age[i] %in% 8:9) {
+    adt36$agegroup[i] <- "8-9"
   }
-  else if (18 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 25) {
-    agegroup[i] <- "19-25"
+  else if (adt36$test_sessions_v.age[i] %in% 10:11) {
+    adt36$agegroup[i] <- "10-11"
   }
-  else if (25 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 35) {
-    agegroup[i] <- "26-35"
+  else if (adt36$test_sessions_v.age[i] %in% 12:13) {
+    adt36$agegroup[i] <- "12-13"
   }
-  else if (35 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 45) {
-    agegroup[i] <- "36-45"
+  else if (adt36$test_sessions_v.age[i] %in% 14:15) {
+    adt36$agegroup[i] <- "14-15"
   }
-  else if (45 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 55) {
-    agegroup[i] <- "46-55"
+  else if (adt36$test_sessions_v.age[i] %in% 16:17) {
+    adt36$agegroup[i] <- "16-17"
   }
-  else if (55 < adt36$test_sessions_v.age[i] & adt36$test_sessions_v.age[i] <= 65) {
-    agegroup[i] <- "56-65"
+  else if (adt36$test_sessions_v.age[i] %in% 18:20) {
+    adt36$agegroup[i] <- "18-20"
   }
-  else if (65 < adt36$test_sessions_v.age[i]) {
-    agegroup[i] <- "65+"
+  else if (adt36$test_sessions_v.age[i] >= 21) {
+    adt36$agegroup[i] <- "21+"
+  }
+  else {
+    pass
   }
 }
 
-adt36 <- cbind(adt36, agegroup)
-adt36 <- adt36[,c(1:3,54,4:53)]
+# adt36 <- cbind(adt36, agegroup)
+adt36 <- adt36[,c(1:3,55,4:54)]
 
 male <- corrected[which(adt36$test_sessions_v.gender == "M"),]
 female <- corrected[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
 
 
-sex018PC <- ggplot(adt36[which(adt36$agegroup == "0-18"),], aes(x=test_sessions_v.dotest)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
+sex8to9PC <- ggplot(adt36[which(adt36$agegroup == "0-18"),], aes(x=test_sessions_v.dotest)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
   # geom_line(color="dark blue") +
   # geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
   labs(x="Date of Test",
@@ -195,7 +201,7 @@ sex018PC <- ggplot(adt36[which(adt36$agegroup == "0-18"),], aes(x=test_sessions_
        title = "ADT36 Accuracy of Participants (ages 0-18) Over Time") +
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
-sex018PC
+sex8to9PC
 
 
 # site differences
