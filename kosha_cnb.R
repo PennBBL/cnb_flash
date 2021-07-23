@@ -12,6 +12,7 @@ library(ggplot2)
 library(psych)
 library(dplyr)
 library(binr)
+library(arules)
 
 
 # load data ----
@@ -185,7 +186,6 @@ for (i in 1:nrow(adt36)) {
 adt36 <- adt36[,c(1:3,55,4:54)]
 
 
-# urgggg this whole part under here needs to be fixed
 male <- adt36[which(adt36$test_sessions_v.gender == "M"),c(3:4,6,12:14)]
 female <- adt36[which(adt36$test_sessions_v.gender == "F"),c(3:4,6,12:14)] # there are 309 NA for gender and age
 
@@ -218,11 +218,21 @@ for (i in 1:length(fdates)) {
   cfemale[i,4] <- mean(fSP[which(female$test_sessions_v.dotest == cfemale[i,1])])
 }
 
-age89TC <- ggplot(corrected[which(adt36$agegroup == "8-9"),], aes(x=dates[])) +     
-  geom_line(aes(y=cmale[which(adt36$agegroup == "8-9"),2]), color="blue") +
-  geom_line(aes(y=cfemale[which(adt36$agegroup == "8-9"),2]), color="purple") +
-  # scale_x_continuous(breaks = seq(dates[1],max())) +
-  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+# still fixing the plotting part
+# my understanding is that I need to merge the male and female datasets so that the sizes match
+m <- as.data.frame(mdates)
+f <- as.data.frame(fdates)
+names(m)<- "dates"
+names(f)<- "dates"
+mergedates <- unique(rbind(m,f))
+fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
+names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
+fandm[,1] <- mergedates
+
+
+age89TC <- ggplot(, aes(x=)) +     
+  geom_line(aes(y=), color="blue") +
+  geom_line(aes(y=), color="purple") +
   labs(x="Date of Test",
        y="Score (out of 36)",
        title = "ADT36 Accuracy of Participants (ages 8-9) Over Time") +
