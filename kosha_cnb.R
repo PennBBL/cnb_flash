@@ -1,9 +1,9 @@
 # This script is for the project Kosha talked to me about on 7/20/21, looking at 
 # how participants' accuracy and speed measures have changed over time for each
 # task specifically looking for three different things:
-# 1) is there a big difference between flash and non-flash versions
-# 2) age and sex differences
-# 3) site differences
+#       1) is there a big difference between flash and non-flash versions
+#       2) age and sex differences
+#       3) site differences
 # 
 # 07.22.21 Akira Di Sandro
 
@@ -105,7 +105,8 @@ spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,
 adt36 <- adt36[rowSums(is.na(adt36[,10:ncol(adt36)])) < (ncol(adt36)-10),]
 adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
 TC <- adt36$ADT36_A.ADT36A_CR
-PC <- 100*TC/36
+adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
+PC <- adt36$ADT36_A.ADT36A_PC
 SP <- adt36$ADT36_A.ADT36A_RTCR   # code below fixes these so that there is a mean score per date
 
 # basic accuracy and speed plots (flash vs non-flash)
@@ -183,8 +184,10 @@ for (i in 1:nrow(adt36)) {
 # adt36 <- cbind(adt36, agegroup)
 adt36 <- adt36[,c(1:3,55,4:54)]
 
-male <- adt36[which(adt36$test_sessions_v.gender == "M"),]
-female <- adt36[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
+
+# urgggg this whole part under here needs to be fixed
+male <- adt36[which(adt36$test_sessions_v.gender == "M"),c(3:4,6,12:14)]
+female <- adt36[which(adt36$test_sessions_v.gender == "F"),c(3:4,6,12:14)] # there are 309 NA for gender and age
 
 mdates <- sort(unique(male$test_sessions_v.dotest))
 fdates <- sort(unique(female$test_sessions_v.dotest))
@@ -192,21 +195,27 @@ fdates <- sort(unique(female$test_sessions_v.dotest))
 cmale <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
 names(cmale) <- c("dates", "tc", "pc", "sp")
 cmale[,1] <- mdates
+mTC <- male$ADT36_A.ADT36A_CR
+mPC <- male$ADT36_A.ADT36A_PC
+mSP <- male$ADT36_A.ADT36A_RTCR
 
 for (i in 1:length(mdates)) {
-  cmale[i,2] <- mean(TC[which(male$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,3] <- mean(PC[which(male$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,4] <- mean(SP[which(male$test_sessions_v.dotest == cmale[i,1])])
+  cmale[i,2] <- mean(mTC[which(male$test_sessions_v.dotest == cmale[i,1])])
+  cmale[i,3] <- mean(mPC[which(male$test_sessions_v.dotest == cmale[i,1])])
+  cmale[i,4] <- mean(mSP[which(male$test_sessions_v.dotest == cmale[i,1])])
 }
 
 cfemale <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
 names(cfemale) <- c("dates", "tc", "pc", "sp")
 cfemale[,1] <- fdates
+fTC <- female$ADT36_A.ADT36A_CR
+fPC <- female$ADT36_A.ADT36A_PC
+fSP <- female$ADT36_A.ADT36A_RTCR
 
 for (i in 1:length(fdates)) {
-  cfemale[i,2] <- mean(TC[which(female$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,3] <- mean(PC[which(female$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,4] <- mean(SP[which(female$test_sessions_v.dotest == cfemale[i,1])])
+  cfemale[i,2] <- mean(fTC[which(female$test_sessions_v.dotest == cfemale[i,1])])
+  cfemale[i,3] <- mean(fPC[which(female$test_sessions_v.dotest == cfemale[i,1])])
+  cfemale[i,4] <- mean(fSP[which(female$test_sessions_v.dotest == cfemale[i,1])])
 }
 
 age89TC <- ggplot(corrected[which(adt36$agegroup == "8-9"),], aes(x=dates[])) +     
