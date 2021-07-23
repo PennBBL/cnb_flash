@@ -16,9 +16,14 @@ library(psych)
 # load data ----
 bigcnb <- read.csv("cnb_dump_15july2021.csv", na=c("",".","NA"))
 
+flash <- as.data.frame(matrix(0, nrow = nrow(bigcnb), ncol=1))
+flash[which(adt36$test_sessions_v.dotest < as.Date("2021-01-01")),] <- 1
+bigcnb <- cbind(bigcnb, flash)
+names(bigcnb)[1674] <- "flash"
+
 # separate into individual tasks ----
-adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16)], bigcnb[,grepl("ADT36_A.", colnames(bigcnb), fixed = TRUE)])
-adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
+adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT36_A.", colnames(bigcnb), fixed = TRUE)])
+adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16, 1674)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
 
 cpfA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPF_A.", colnames(bigcnb), fixed = TRUE)])
 cpfdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPFD_A.", colnames(bigcnb), fixed = TRUE)])
@@ -97,42 +102,50 @@ spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,
 
 # Making plots ----
 # * ADT36 ----
-adt36 <- adt36[rowSums(is.na(adt36[,9:ncol(adt36)])) < (ncol(adt36)-9),]
+adt36 <- adt36[rowSums(is.na(adt36[,10:ncol(adt36)])) < (ncol(adt36)-10),]
 adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
 TC <- adt36$ADT36_A.ADT36A_CR
 PC <- 100*TC/36
-SP <- adt36$ADT36_A.ADT36A_RTCR
+SP <- adt36$ADT36_A.ADT36A_RTCR   # code below fixes these so that there is a mean score per date
 
 # basic accuracy and speed plots (flash vs non-flash)
-flash <- adt36[which(adt36$test_sessions_v.dotest < as.Date("2021-01-13")),]
-noflash <- adt36[which(adt36$test_sessions_v.dotest >= as.Date("2021-01-13")),]  # this line and the line above are only temporary. unfortunately, it's not as clear cut
+dates <- sort(unique(adt36$test_sessions_v.dotest))
+corrected <- as.data.frame(matrix(NA, nrow = length(dates), ncol = 4))
+names(corrected) <- c("dates", "tc", "pc", "sp")
+corrected[,1] <- dates
+for (i in 1:length(dates)) {
+  corrected[i,2] <- mean(TC[which(adt36$test_sessions_v.dotest == corrected[i,1])])
+  corrected[i,3] <- mean(PC[which(adt36$test_sessions_v.dotest == corrected[i,1])])
+  corrected[i,4] <- mean(SP[which(adt36$test_sessions_v.dotest == corrected[i,1])])
+}
 
-fnfPC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
+fnfTC <- ggplot(corrected,aes(x=dates, y=tc)) +
   geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
-  labs(x="Date of Test",
-       y="Percent Correct",
-       title = "Participants Accuracy by Percentage on the ADT36 Over Time") + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-fnfPC
-
-fnfTC <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=TC)) +
-  geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
   labs(x="Date of Test",
        y="Total Correct",
-       title = "Participants Accuracy on the ADT36 Over Time") + 
+       title = "ADT36 Accuracy Over Time") + 
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
 fnfTC
 
-fnfSP <- ggplot(adt36, aes(x=test_sessions_v.dotest, y=SP)) +
+fnfPC <- ggplot(corrected, aes(x=dates, y=pc)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
   geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Percent Correct",
+       title = "ADT36 Accuracy by Percentage Over Time") + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+fnfPC
+
+fnfSP <- ggplot(corrected, aes(x=dates, y=sp)) +
+  geom_line(color="dark blue") +
+  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
   labs(x="Date of Test",
        y="Speed",
-       title = "Participants Speed on the ADT36 Over Time") + 
+       title = "ADT36 Speed of Participants Over Time") + 
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
 fnfSP
@@ -166,14 +179,23 @@ for (i in 1:nrow(adt36)) {
     agegroup[i] <- "65+"
   }
 }
+
 adt36 <- cbind(adt36, agegroup)
 adt36 <- adt36[,c(1:3,54,4:53)]
 
-male <- adt36[which(adt36$test_sessions_v.gender == "M"),]
-female <- adt36[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
+male <- corrected[which(adt36$test_sessions_v.gender == "M"),]
+female <- corrected[which(adt36$test_sessions_v.gender == "F"),] # there are 309 NA for gender and age
 
 
+sex018PC <- ggplot(adt36[which(adt36$agegroup == "0-18"),], aes(x=test_sessions_v.dotest)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
+  # geom_line(color="dark blue") +
+  # geom_vline(xintercept = as.Date("2021-01-13"), color = "dark red") +
+  labs(x="Date of Test",
+       y="Percent Correct",
+       title = "ADT36 Accuracy of Participants (ages 0-18) Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
+sex018PC
 
 
 # site differences
