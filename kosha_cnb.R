@@ -13,6 +13,7 @@ library(psych)
 library(dplyr)
 library(binr)
 library(arules)
+library(stringr)
 
 
 # load data ----
@@ -186,290 +187,102 @@ adt36 <- adt36[,c(1:3,55,4:54)]
 
 agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
 
-age89m <- adt36[which(adt36$test_sessions_v.gender == "M" & adt36$agegroup == "8-9"),c(3:4,6,12:14)]
-age89f <- adt36[which(adt36$test_sessions_v.gender == "F" & adt36$agegroup == "8-9"),c(3:4,6,12:14)]
-mdates <- sort(unique(age89m$test_sessions_v.dotest))
-fdates <- sort(unique(age89f$test_sessions_v.dotest))
-
-cmale <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
-names(cmale) <- c("dates", "tc", "pc", "sp")
-cmale[,1] <- mdates
-mTC <- age89m$ADT36_A.ADT36A_CR
-mPC <- age89m$ADT36_A.ADT36A_PC
-mSP <- age89m$ADT36_A.ADT36A_RTCR
-
-for (i in 1:length(mdates)) {
-  cmale[i,2] <- mean(mTC[which(age89m$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,3] <- mean(mPC[which(age89m$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,4] <- mean(mSP[which(age89m$test_sessions_v.dotest == cmale[i,1])])
-}
-
-cfemale <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
-names(cfemale) <- c("dates", "tc", "pc", "sp")
-cfemale[,1] <- fdates
-fTC <- age89f$ADT36_A.ADT36A_CR
-fPC <- age89f$ADT36_A.ADT36A_PC
-fSP <- age89f$ADT36_A.ADT36A_RTCR
-
-for (i in 1:length(fdates)) {
-  cfemale[i,2] <- mean(fTC[which(age89f$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,3] <- mean(fPC[which(age89f$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,4] <- mean(fSP[which(age89f$test_sessions_v.dotest == cfemale[i,1])])
-}
-
-m <- as.data.frame(mdates)
-f <- as.data.frame(fdates)
-names(m) <- "dates"
-names(f) <- "dates"
-mergedates <- unique(rbind(m,f))
-fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
-names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
-fandm[,1] <- sort(mergedates[,1])
-
-for (i in 1:nrow(fandm)) {
-  if (any(mTC[which(cmale$dates == fandm[i,1])])) {
-    fandm[i,2] <- mTC[which(cmale$dates == fandm[i,1])]
-    fandm[i,3] <- mPC[which(cmale$dates == fandm[i,1])]
-    fandm[i,4] <- mSP[which(cmale$dates == fandm[i,1])]
-    if (any(mTC[which(cfemale$dates == fandm[i,1])])) {
-      fandm[i,5] <- fTC[which(cfemale$dates == fandm[i,1])]
-      fandm[i,6] <- fPC[which(cfemale$dates == fandm[i,1])]
-      fandm[i,7] <- fSP[which(cfemale$dates == fandm[i,1])]
-    }
-  }
-  else if (any(mTC[which(cfemale$dates == fandm[i,1])])) {
-    fandm[i,5] <- fTC[which(cfemale$dates == fandm[i,1])]
-    fandm[i,6] <- fPC[which(cfemale$dates == fandm[i,1])]
-    fandm[i,7] <- fSP[which(cfemale$dates == fandm[i,1])]
-  }
-}
-
-sexTC <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mTC), color="blue") +
-  geom_line(aes(y=fTC), color="purple") +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", "8-9", "Over Time")) +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexTC
-
-sexPC <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mPC), color="blue") +
-  geom_line(aes(y=fPC), color="purple") +
-  labs(x="Date of Test",
-       y="Score (out of 100%)",
-       title = "Sex Differences in ADT36 Accuracy (percentage) of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexPC
-
-sexSP <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mSP), color="blue") +
-  geom_line(aes(y=fSP), color="purple") +
-  labs(x="Date of Test",
-       y="Speed (ms)",
-       title = "Sex Differences in ADT36 Speed (ms) of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexSP
-
-
-
 for (age in agegroups) {
   m <- adt36[which(adt36$test_sessions_v.gender == "M" & adt36$agegroup == age),c(3:4,6,12:14)]
   f <- adt36[which(adt36$test_sessions_v.gender == "F" & adt36$agegroup == age),c(3:4,6,12:14)]
-  
   mdates <- sort(unique(m$test_sessions_v.dotest))
   fdates <- sort(unique(f$test_sessions_v.dotest))
   
   male <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
-  names(cmale) <- c("dates", "tc", "pc", "sp")
-  cmale[,1] <- mdates
+  names(male) <- c("dates", "tc", "pc", "sp")
+  male[,1] <- mdates
   mTC <- m$ADT36_A.ADT36A_CR
   mPC <- m$ADT36_A.ADT36A_PC
   mSP <- m$ADT36_A.ADT36A_RTCR
   
   for (i in 1:length(mdates)) {
-    cmale[i,2] <- mean(mTC[which(m$test_sessions_v.dotest == cmale[i,1])])
-    cmale[i,3] <- mean(mPC[which(m$test_sessions_v.dotest == cmale[i,1])])
-    cmale[i,4] <- mean(mSP[which(m$test_sessions_v.dotest == cmale[i,1])])
+    male[i,2] <- mean(mTC[which(m$test_sessions_v.dotest == male[i,1])])
+    male[i,3] <- mean(mPC[which(m$test_sessions_v.dotest == male[i,1])])
+    male[i,4] <- mean(mSP[which(m$test_sessions_v.dotest == male[i,1])])
   }
   
-  cfemale <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
-  names(cfemale) <- c("dates", "tc", "pc", "sp")
-  cfemale[,1] <- fdates
+  female <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
+  names(female) <- c("dates", "tc", "pc", "sp")
+  female[,1] <- fdates
   fTC <- f$ADT36_A.ADT36A_CR
   fPC <- f$ADT36_A.ADT36A_PC
   fSP <- f$ADT36_A.ADT36A_RTCR
   
   for (i in 1:length(fdates)) {
-    cfemale[i,2] <- mean(fTC[which(f$test_sessions_v.dotest == cfemale[i,1])])
-    cfemale[i,3] <- mean(fPC[which(f$test_sessions_v.dotest == cfemale[i,1])])
-    cfemale[i,4] <- mean(fSP[which(f$test_sessions_v.dotest == cfemale[i,1])])
+    female[i,2] <- mean(fTC[which(f$test_sessions_v.dotest == female[i,1])])
+    female[i,3] <- mean(fPC[which(f$test_sessions_v.dotest == female[i,1])])
+    female[i,4] <- mean(fSP[which(f$test_sessions_v.dotest == female[i,1])])
   }
-}
-
-
-
-
-
-
-# old method
-male <- adt36[which(adt36$test_sessions_v.gender == "M"),c(3:4,6,12:14)]
-female <- adt36[which(adt36$test_sessions_v.gender == "F"),c(3:4,6,12:14)] # there are 309 NA for gender and age
-
-mdates <- sort(unique(male$test_sessions_v.dotest))
-fdates <- sort(unique(female$test_sessions_v.dotest))
-
-cmale <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
-names(cmale) <- c("dates", "tc", "pc", "sp")
-cmale[,1] <- mdates
-mTC <- male$ADT36_A.ADT36A_CR
-mPC <- male$ADT36_A.ADT36A_PC
-mSP <- male$ADT36_A.ADT36A_RTCR
-
-for (i in 1:length(mdates)) {
-  cmale[i,2] <- mean(mTC[which(male$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,3] <- mean(mPC[which(male$test_sessions_v.dotest == cmale[i,1])])
-  cmale[i,4] <- mean(mSP[which(male$test_sessions_v.dotest == cmale[i,1])])
-}
-
-cfemale <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
-names(cfemale) <- c("dates", "tc", "pc", "sp")
-cfemale[,1] <- fdates
-fTC <- female$ADT36_A.ADT36A_CR
-fPC <- female$ADT36_A.ADT36A_PC
-fSP <- female$ADT36_A.ADT36A_RTCR
-
-for (i in 1:length(fdates)) {
-  cfemale[i,2] <- mean(fTC[which(female$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,3] <- mean(fPC[which(female$test_sessions_v.dotest == cfemale[i,1])])
-  cfemale[i,4] <- mean(fSP[which(female$test_sessions_v.dotest == cfemale[i,1])])
-}
-
-# merge data to graph from one data set
-m <- as.data.frame(mdates)
-f <- as.data.frame(fdates)
-names(m)<- "dates"
-names(f)<- "dates"
-mergedates <- unique(rbind(m,f))
-fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
-names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
-fandm[,1] <- sort(mergedates[,1])
-
-for (i in 1:nrow(fandm)) {
-  if (any(mTC[which(cmale$dates == fandm[i,1])])) {
-    fandm[i,2] <- mTC[which(cmale$dates == fandm[i,1])]
-    fandm[i,3] <- mPC[which(cmale$dates == fandm[i,1])]
-    fandm[i,4] <- mSP[which(cmale$dates == fandm[i,1])]
-    if (any(fTC[which(cfemale$dates == fandm[i,1])])) {
-      fandm[i,5] <- fTC[which(cfemale$dates == fandm[i,1])]
-      fandm[i,6] <- fPC[which(cfemale$dates == fandm[i,1])]
-      fandm[i,7] <- fSP[which(cfemale$dates == fandm[i,1])]
+  
+  mtemp <- as.data.frame(mdates)
+  ftemp <- as.data.frame(fdates)
+  names(mtemp) <- "dates"
+  names(ftemp) <- "dates"
+  mergedates <- unique(rbind(mtemp,ftemp))
+  fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
+  names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
+  fandm[,1] <- sort(mergedates[,1])
+  
+  for (i in 1:nrow(fandm)) {
+    if (any(mTC[which(male$dates == fandm[i,1])])) {
+      fandm[i,2] <- mTC[which(male$dates == fandm[i,1])]
+      fandm[i,3] <- mPC[which(male$dates == fandm[i,1])]
+      fandm[i,4] <- mSP[which(male$dates == fandm[i,1])]
+      if (any(fTC[which(female$dates == fandm[i,1])])) {
+        fandm[i,5] <- fTC[which(female$dates == fandm[i,1])]
+        fandm[i,6] <- fPC[which(female$dates == fandm[i,1])]
+        fandm[i,7] <- fSP[which(female$dates == fandm[i,1])]
+      }
+    }
+    else if (any(fTC[which(female$dates == fandm[i,1])])) {
+      fandm[i,5] <- fTC[which(female$dates == fandm[i,1])]
+      fandm[i,6] <- fPC[which(female$dates == fandm[i,1])]
+      fandm[i,7] <- fSP[which(female$dates == fandm[i,1])]
     }
   }
-  else if (any(fTC[which(cfemale$dates == fandm[i,1])])) {
-    fandm[i,5] <- fTC[which(cfemale$dates == fandm[i,1])]
-    fandm[i,6] <- fPC[which(cfemale$dates == fandm[i,1])]
-    fandm[i,7] <- fSP[which(cfemale$dates == fandm[i,1])]
-  }
+  
+  sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
+    geom_line(aes(y=mTC), color="blue") +
+    geom_line(aes(y=fTC), color="purple") +
+    labs(x="Date of Test",
+         y="Score (out of 36)",
+         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time")) +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  age <- str_replace_all(age, "[^[:alnum:]]", "")
+  assign(paste0("sexTC", age), sexTC)
+  
+  sexPC <- ggplot(fandm, aes(x=dates)) +     
+    geom_line(aes(y=mPC), color="blue") +
+    geom_line(aes(y=fPC), color="purple") +
+    labs(x="Date of Test",
+         y="Score (out of 100%)",
+         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time")) +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  assign(paste0("sexPC", age), sexPC)
+  
+  sexSP <- ggplot(fandm, aes(x=dates)) +     
+    geom_line(aes(y=mSP), color="blue") +
+    geom_line(aes(y=fSP), color="purple") +
+    labs(x="Date of Test",
+         y="Speed (ms)",
+         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time")) +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  assign(paste0("sexSP", age), sexSP)
 }
 
-# general graphs
-
-sexTC <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mTC), color="blue") +
-  geom_line(aes(y=fTC), color="purple") +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title = "Sex Differences in ADT36 Accuracy of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexTC
-
-sexPC <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mPC), color="blue") +
-  geom_line(aes(y=fPC), color="purple") +
-  labs(x="Date of Test",
-       y="Score (out of 100%)",
-       title = "Sex Differences in ADT36 Accuracy (percentage) of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexPC
-
-sexSP <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mSP), color="blue") +
-  geom_line(aes(y=fSP), color="purple") +
-  labs(x="Date of Test",
-       y="Speed (ms)",
-       title = "Sex Differences in ADT36 Speed (ms) of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sexSP
 
 
-age89TC <- ggplot(fandm, aes(x=dates)) +     
-  geom_line(aes(y=mSP[]), color="blue") +
-  geom_line(aes(y=fSP), color="purple") +
-  labs(x="Date of Test",
-       y="Speed (ms)",
-       title = "Sex Differences in ADT36 Speed (ms) of Participants Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
-age89TC
 
-age89SP <- ggplot(corrected[which(adt36$agegroup == "8-9"),], aes(x=dates)) +     
-  geom_line(aes(y=male[which(adt36$agegroup == "8-9"),4]), color="blue") +
-  geom_line(aes(y=female[which(adt36$agegroup == "8-9"),4]), color="purple") +
-  labs(x="Date of Test",
-       y="Speed",
-       title = "ADT36 Speed of Participants (ages 8-9) Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
-age89SP
-
-age1011TC <- ggplot(corrected[which(adt36$agegroup == "10-11"),], aes(x=dates)) +     
-  geom_line(aes(y=male[which(adt36$agegroup == "10-11"),2]), color="blue") +
-  geom_line(aes(y=female[which(adt36$agegroup == "10-11"),2]), color="purple") +
-  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title = "ADT36 Accuracy of Participants (ages 10-11) Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-age1011TC
-
-age1011SP <- ggplot(corrected[which(adt36$agegroup == "10-11"),], aes(x=dates)) +     
-  geom_line(aes(y=male[which(adt36$agegroup == "10-11"),4]), color="blue") +
-  geom_line(aes(y=female[which(adt36$agegroup == "10-11"),4]), color="purple") +
-  labs(x="Date of Test",
-       y="Speed",
-       title = "ADT36 Speed of Participants (ages 10-11) Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-age1011SP
-
-age1213TC <- ggplot(corrected[which(adt36$agegroup == "12-13"),], aes(x=dates)) +     
-  geom_line(aes(y=male[which(adt36$agegroup == "12-13"),2]), color="blue") +
-  geom_line(aes(y=female[which(adt36$agegroup == "12-13"),2]), color="purple") +
-  # geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title = "ADT36 Accuracy of Participants (ages 12-13) Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-age1213TC
-
-age1213SP <- ggplot(corrected[which(adt36$agegroup == "12-13"),], aes(x=dates)) +     
-  geom_line(aes(y=male[which(adt36$agegroup == "12-13"),4]), color="blue") +
-  geom_line(aes(y=female[which(adt36$agegroup == "12-13"),4]), color="purple") +
-  labs(x="Date of Test",
-       y="Speed",
-       title = "ADT36 Speed of Participants (ages 12-13) Over Time") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-age1213SP
 
 
 # site differences
