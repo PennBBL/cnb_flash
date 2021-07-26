@@ -182,10 +182,18 @@ for (i in 1:nrow(adt36)) {
   }
 }
 
-# adt36 <- cbind(adt36, agegroup)
 adt36 <- adt36[,c(1:3,55,4:54)]
 
+agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
 
+
+
+
+
+
+
+
+# old method
 male <- adt36[which(adt36$test_sessions_v.gender == "M"),c(3:4,6,12:14)]
 female <- adt36[which(adt36$test_sessions_v.gender == "F"),c(3:4,6,12:14)] # there are 309 NA for gender and age
 
@@ -218,8 +226,7 @@ for (i in 1:length(fdates)) {
   cfemale[i,4] <- mean(fSP[which(female$test_sessions_v.dotest == cfemale[i,1])])
 }
 
-# still fixing the plotting part
-# my understanding is that I need to merge the male and female datasets so that the sizes match
+# merge data to graph from one data set
 m <- as.data.frame(mdates)
 f <- as.data.frame(fdates)
 names(m)<- "dates"
@@ -227,15 +234,60 @@ names(f)<- "dates"
 mergedates <- unique(rbind(m,f))
 fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
 names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
-fandm[,1] <- mergedates
+fandm[,1] <- sort(mergedates[,1])
 
+for (i in 1:nrow(fandm)) {
+  if (any(mTC[which(cmale$dates == fandm[i,1])])) {
+    fandm[i,2] <- mTC[which(cmale$dates == fandm[i,1])]
+    fandm[i,3] <- mPC[which(cmale$dates == fandm[i,1])]
+    fandm[i,4] <- mSP[which(cmale$dates == fandm[i,1])]
+    if (any(fTC[which(cfemale$dates == fandm[i,1])])) {
+      fandm[i,5] <- fTC[which(cfemale$dates == fandm[i,1])]
+      fandm[i,6] <- fPC[which(cfemale$dates == fandm[i,1])]
+      fandm[i,7] <- fSP[which(cfemale$dates == fandm[i,1])]
+    }
+  }
+}
 
-age89TC <- ggplot(, aes(x=)) +     
-  geom_line(aes(y=), color="blue") +
-  geom_line(aes(y=), color="purple") +
+# general graphs
+
+sexTC <- ggplot(fandm, aes(x=dates)) +     
+  geom_line(aes(y=mTC), color="blue") +
+  geom_line(aes(y=fTC), color="purple") +
   labs(x="Date of Test",
        y="Score (out of 36)",
-       title = "ADT36 Accuracy of Participants (ages 8-9) Over Time") +
+       title = "Sex Differences in ADT36 Accuracy of Participants Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sexTC
+
+sexPC <- ggplot(fandm, aes(x=dates)) +     
+  geom_line(aes(y=mPC), color="blue") +
+  geom_line(aes(y=fPC), color="purple") +
+  labs(x="Date of Test",
+       y="Score (out of 100%)",
+       title = "Sex Differences in ADT36 Accuracy (percentage) of Participants Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sexPC
+
+sexSP <- ggplot(fandm, aes(x=dates)) +     
+  geom_line(aes(y=mSP), color="blue") +
+  geom_line(aes(y=fSP), color="purple") +
+  labs(x="Date of Test",
+       y="Speed (ms)",
+       title = "Sex Differences in ADT36 Speed (ms) of Participants Over Time") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sexSP
+
+
+age89TC <- ggplot(fandm, aes(x=dates)) +     
+  geom_line(aes(y=mSP[]), color="blue") +
+  geom_line(aes(y=fSP), color="purple") +
+  labs(x="Date of Test",
+       y="Speed (ms)",
+       title = "Sex Differences in ADT36 Speed (ms) of Participants Over Time") +
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
 age89TC
