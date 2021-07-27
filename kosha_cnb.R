@@ -313,10 +313,50 @@ sitescatSP <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_RTCR)
 
 sitescatSP
 
+# now try doing it with line plots
+sitelineTC <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_line(aes(color=test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sitelineTC
 
 
-sdata$ADT36_A.ADT36A_RTCR
+test <- ggplot(sdata[which(sdata$test_sessions.siteid == "GOGRANT"),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_smooth() +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+test
+
+test2 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[16]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_smooth() +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+# ImmuSili (sites[16]) doesn't plot anything because there's only one data point
 
 
+# this doesn't work for now
+test1 <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_smooth(aes(linetype = test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+
+
+
+
+# sample code from ggplot2 practice
+ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
 
 
