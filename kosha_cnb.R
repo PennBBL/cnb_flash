@@ -254,8 +254,8 @@ for (age in agegroups) {
          title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time")) +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
-  age <- str_replace_all(age, "[^[:alnum:]]", "")
-  assign(paste0("sexTC", age), sexTC)
+  var <- str_replace_all(age, "[^[:alnum:]]", "")
+  assign(paste0("sexTC", var), sexTC)
   
   sexPC <- ggplot(fandm, aes(x=dates)) +     
     geom_line(aes(y=mPC), color="blue") +
@@ -265,7 +265,7 @@ for (age in agegroups) {
          title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time")) +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
-  assign(paste0("sexPC", age), sexPC)
+  assign(paste0("sexPC", var), sexPC)
   
   sexSP <- ggplot(fandm, aes(x=dates)) +     
     geom_line(aes(y=mSP), color="blue") +
@@ -275,12 +275,8 @@ for (age in agegroups) {
          title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time")) +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
-  assign(paste0("sexSP", age), sexSP)
+  assign(paste0("sexSP", var), sexSP)
 }
-
-
-
-
 
 
 
@@ -288,11 +284,38 @@ for (age in agegroups) {
 # site differences
 sites <- sort(unique(adt36$test_sessions.siteid))
 sitemeans <- as.data.frame(matrix(NA,nrow = length(sites),ncol = 2))
+sdata <- adt36[,c(1,3:7,12:14)]
+
+sitescatTC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_CR)) +
+  geom_point(aes(color=test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sitescatTC
+
+sitescatPC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_PC)) +
+  geom_point(aes(color=test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Score (as percentage)",
+       title="ADT36 Accuracy (percentage) Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sitescatPC
+
+sitescatSP <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_RTCR)) +
+  geom_point(aes(color=test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Speed",
+       title="ADT36 Speed Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+sitescatSP
 
 
 
-
-
+sdata$ADT36_A.ADT36A_RTCR
 
 
 
