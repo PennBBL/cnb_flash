@@ -247,32 +247,35 @@ for (age in agegroups) {
   }
   
   sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
-    geom_line(aes(y=mTC), color="blue") +
-    geom_line(aes(y=fTC), color="purple") +
+    geom_line(aes(y=mTC, color="Male")) +
+    geom_line(aes(y=fTC, color="Female")) +
     labs(x="Date of Test",
          y="Score (out of 36)",
-         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time")) +
+         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"),
+         color = "Legend") +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
   var <- str_replace_all(age, "[^[:alnum:]]", "")
   assign(paste0("sexTC", var), sexTC)
   
   sexPC <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mPC), color="blue") +
-    geom_line(aes(y=fPC), color="purple") +
+    geom_line(aes(y=mPC, color="Male")) +
+    geom_line(aes(y=fPC, color="Female")) +
     labs(x="Date of Test",
          y="Score (out of 100%)",
-         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time")) +
+         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time"),
+         color = "Legend") +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
   assign(paste0("sexPC", var), sexPC)
   
   sexSP <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mSP), color="blue") +
-    geom_line(aes(y=fSP), color="purple") +
+    geom_line(aes(y=mSP, color="Male")) +
+    geom_line(aes(y=fSP, color="Female")) +
     labs(x="Date of Test",
          y="Speed (ms)",
-         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time")) +
+         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time"),
+         color = "Legend") +
     theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
   
   assign(paste0("sexSP", var), sexSP)
@@ -328,19 +331,47 @@ test <- ggplot(sdata[which(sdata$test_sessions.siteid == "GOGRANT"),], aes(test_
   geom_smooth() +
   labs(x="Date of Test",
        y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
+       title="ADT36 Accuracy Over Time (GOGRANT)") +
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
 test
 
-test2 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[16]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_smooth() +
+
+
+test4 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[12:13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR[!is.na(ADT36_A.ADT36A_CR)])) +
+  geom_point(aes(color = test_sessions.siteid)) +
+  geom_smooth(aes(color = test_sessions.siteid)) +
   labs(x="Date of Test",
        y="Score (out of 36)",
        title="ADT36 Accuracy Over Time Separated by Site") +
   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
+
+# nothing gets printed out from this
+test2 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[3:12]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_smooth(aes(color = test_sessions.siteid)) +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site") +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
+
+test3 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+  geom_smooth() +
+  labs(x="Date of Test",
+       y="Score (out of 36)",
+       title="ADT36 Accuracy Over Time Separated by Site",
+       subtitle = sites[4]) +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+
 # ImmuSili (sites[16]) doesn't plot anything because there's only one data point
+# site[1] has 7 points, [2] 8, [3] 237, [4] 25, [5] 16, [6] 42
+bleh <- as.data.frame(matrix(0, nrow = 22,ncol=2))
+for (i in 1:22) {
+  bleh[i,1] <- sites[i]
+  bleh[i,2] <- nrow(sdata[which(sdata$test_sessions.siteid==sites[i]),])
+}
+# from this loop above I found that [1] 22QIBBC has 7, [2] 7TITMAT has 8, and [16] ImmuSili has 1 point(s) which means they have to be excluded from graph
 
 
 # this doesn't work for now
