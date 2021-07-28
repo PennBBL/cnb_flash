@@ -382,81 +382,22 @@ age1820 <- adt36[which(adt36$agegroup == "18-20"), c(2,7,12:14)]
 age21 <- adt36[which(adt36$agegroup == "21+"), c(2,7,12:14)]
 
 
-mmean89TC <- mean(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
-mmean89SP <- mean(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
-fmean89TC <- mean(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
-fmean89SP <- mean(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+agesexTC <- adt36 %>%
+  group_by(agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR))
+agesexTC <- agesexTC[-7,]
 
-msd89TC <- sd(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
-msd89SP <- sd(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
-fsd89TC <- sd(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
-fsd89SP <- sd(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+agesexSP <- adt36 %>%
+  group_by(agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR))
+agesexSP <- agesexSP[-7,]
 
+agesex_mean_sd <- cbind(agesexTC,agesexSP[,3:4])
+names(agesex_mean_sd)[2:6] <- c("gender", "mean_TC", "sd_TC", "mean_SP", "sd_SP")
+agesex_mean_sd <- agesex_mean_sd[c(13:14,1:12),]
+agesex_mean_sd <- agesex_mean_sd[order(agesex_mean_sd$gender),]
 
-mmean1011TC <- mean(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
-mmean1011SP <- mean(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
-fmean1011TC <- mean(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
-fmean1011SP <- mean(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
-
-msd1011TC <- sd(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
-msd1011SP <- sd(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
-fsd1011TC <- sd(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
-fsd1011SP <- sd(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
-
-
-mmean1213TC <- mean(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
-mmean1213SP <- mean(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
-fmean1213TC <- mean(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
-fmean1213SP <- mean(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
-
-msd1213TC <- sd(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
-msd1213SP <- sd(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
-fsd1213TC <- sd(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
-fsd1213SP <- sd(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
-
-
-mmean1415TC <- mean(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
-mmean1415SP <- mean(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
-fmean1415TC <- mean(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
-fmean1415SP <- mean(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
-
-msd1415TC <- sd(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
-msd1415SP <- sd(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
-fsd1415TC <- sd(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
-fsd1415SP <- sd(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
-
-
-mmean1617TC <- mean(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
-mmean1617SP <- mean(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
-fmean1617TC <- mean(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
-fmean1617SP <- mean(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
-
-msd1617TC <- sd(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
-msd1617SP <- sd(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
-fsd1617TC <- sd(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
-fsd1617SP <- sd(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
-
-
-mmean1820TC <- mean(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
-mmean1820SP <- mean(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
-fmean1820TC <- mean(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
-fmean1820SP <- mean(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
-
-msd1820TC <- sd(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
-msd1820SP <- sd(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
-fsd1820TC <- sd(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
-fsd1820SP <- sd(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
-
-
-mmean21TC <- mean(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
-mmean21SP <- mean(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
-fmean21TC <- mean(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
-fmean21SP <- mean(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
-
-msd21TC <- sd(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
-msd21SP <- sd(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
-fsd21TC <- sd(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
-fsd21SP <- sd(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
+write.csv(agesex_mean_sd, "myresults/agesex_mean_sd.csv",na="")
 
 
 
