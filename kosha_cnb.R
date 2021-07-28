@@ -14,6 +14,7 @@ library(dplyr)
 library(binr)
 library(arules)
 library(stringr)
+library(visreg)
 
 
 # load data ----
@@ -25,7 +26,7 @@ bigcnb$flash[which(bigcnb$test_sessions_v.dotest < as.Date("2021-01-01"))] <- 1
 
 # separate into individual tasks ----
 adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT36_A.", colnames(bigcnb), fixed = TRUE)])
-adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16, 1674)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
+adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
 
 cpfA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPF_A.", colnames(bigcnb), fixed = TRUE)])
 cpfdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPFD_A.", colnames(bigcnb), fixed = TRUE)])
@@ -114,7 +115,7 @@ SP <- adt36$ADT36_A.ADT36A_RTCR   # code below fixes these so that there is a me
 # basic accuracy and speed plots (flash vs non-flash)
 dates <- sort(unique(adt36$test_sessions_v.dotest))
 corrected <- as.data.frame(matrix(NA, nrow = length(dates), ncol = 4))
-names(corrected) <- c("dates", "tc", "pc", "sp")
+names(corrected) <- c("Dates", "TC", "PC", "SP")
 corrected[,1] <- dates
 for (i in 1:length(dates)) {
   corrected[i,2] <- mean(TC[which(adt36$test_sessions_v.dotest == corrected[i,1])])
@@ -122,7 +123,7 @@ for (i in 1:length(dates)) {
   corrected[i,4] <- mean(SP[which(adt36$test_sessions_v.dotest == corrected[i,1])])
 }
 
-fnfTC <- ggplot(corrected,aes(x=dates, y=tc)) +
+fnfTC <- ggplot(corrected,aes(x=Dates, y=TC)) +
   geom_line(color="dark blue") +
   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
   labs(x="Date of Test",
@@ -132,7 +133,7 @@ fnfTC <- ggplot(corrected,aes(x=dates, y=tc)) +
 
 fnfTC
 
-fnfPC <- ggplot(corrected, aes(x=dates, y=pc)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
+fnfPC <- ggplot(corrected, aes(x=Dates, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
   geom_line(color="dark blue") +
   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
   labs(x="Date of Test",
@@ -142,7 +143,7 @@ fnfPC <- ggplot(corrected, aes(x=dates, y=pc)) +     # i'm p sure i still have t
 
 fnfPC
 
-fnfSP <- ggplot(corrected, aes(x=dates, y=sp)) +
+fnfSP <- ggplot(corrected, aes(x=Dates, y=SP)) +
   geom_line(color="dark blue") +
   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
@@ -153,7 +154,15 @@ fnfSP <- ggplot(corrected, aes(x=dates, y=sp)) +
 
 fnfSP
 
+# using visreg
+fit <- lm(TC ~ Dates, data=corrected)
+fnfTC2 <- visreg(fit, "Dates")
 
+fit <- lm(PC ~ Dates, data=corrected)
+fnfPC2 <- visreg(fit, "Dates")
+
+fit <- lm(SP ~ Dates, data=corrected)
+fnfSP2 <- visreg(fit, "Dates")
 
 # age and sex differences
 age <- na.exclude(adt36$test_sessions_v.age)
