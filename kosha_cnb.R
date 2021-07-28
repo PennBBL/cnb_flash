@@ -156,13 +156,42 @@ fnfSP
 
 # using visreg
 fit <- lm(TC ~ Dates, data=corrected)
-fnfTC2 <- visreg(fit, "Dates")
+fnfTC2 <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
 
 fit <- lm(PC ~ Dates, data=corrected)
-fnfPC2 <- visreg(fit, "Dates")
+fnfPC2 <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
 
 fit <- lm(SP ~ Dates, data=corrected)
-fnfSP2 <- visreg(fit, "Dates")
+fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
+
+
+# stats
+flash <- adt36[which(adt36$flash == 1),c(2,11:13)]
+noflash <- adt36[which(adt36$flash == 0),c(2,11:13)]
+
+fmeanTC <- mean(flash$ADT36_A.ADT36A_CR, na.rm=T)
+fmeanPC <- mean(flash$ADT36_A.ADT36A_PC, na.rm=T)
+fmeanSP <- mean(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
+nfmeanTC <- mean(noflash$ADT36_A.ADT36A_CR, na.rm=T)
+nfmeanPC <- mean(noflash$ADT36_A.ADT36A_PC, na.rm=T)
+nfmeanSP <- mean(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+
+fsdTC <- sd(flash$ADT36_A.ADT36A_CR, na.rm=T)
+fsdPC <- sd(flash$ADT36_A.ADT36A_PC, na.rm=T)
+fsdSP <- sd(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
+nfsdTC <- sd(noflash$ADT36_A.ADT36A_CR, na.rm=T)
+nfsdPC <- sd(noflash$ADT36_A.ADT36A_PC, na.rm=T)
+nfsdSP <- sd(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+
+fnf_mean_sd <- as.data.frame(matrix(0,nrow=2,ncol=6))
+names(fnf_mean_sd) <- c("mean_TC", "sd_TC", "mean_PC", "sd_PC", "mean_SP", "sd_SP")
+rownames(fnf_mean_sd) <- c("flash", "noflash")
+fnf_mean_sd[1,] <- c(fmeanTC,fsdTC,fmeanPC,fsdPC,fmeanSP,fsdSP)
+fnf_mean_sd[2,] <- c(nfmeanTC,nfsdTC,nfmeanPC,nfsdPC,nfmeanSP,nfsdSP)
+
+write.csv(fnf_mean_sd,"myresults/fnf_mean_sd.csv",na="")
+
+
 
 # age and sex differences
 age <- na.exclude(adt36$test_sessions_v.age)
@@ -256,6 +285,59 @@ for (age in agegroups) {
   }
   
   sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
+    geom_point(aes(y=mTC, color="Male")) +
+    geom_point(aes(y=fTC, color="Female")) +
+    labs(x="Date of Test",
+         y="Score (out of 36)",
+         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"),
+         color = "Legend") +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  var <- str_replace_all(age, "[^[:alnum:]]", "")
+  assign(paste0("sexTC", var), sexTC)
+  
+  sexPC <- ggplot(fandm, aes(x=dates)) +     
+    geom_line(aes(y=mPC, color="Male")) +
+    geom_line(aes(y=fPC, color="Female")) +
+    labs(x="Date of Test",
+         y="Score (out of 100%)",
+         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time"),
+         color = "Legend") +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  assign(paste0("sexPC", var), sexPC)
+  
+  sexSP <- ggplot(fandm, aes(x=dates)) +     
+    geom_line(aes(y=mSP, color="Male")) +
+    geom_line(aes(y=fSP, color="Female")) +
+    labs(x="Date of Test",
+         y="Speed (ms)",
+         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time"),
+         color = "Legend") +
+    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+  
+  assign(paste0("sexSP", var), sexSP)
+  
+  # visreg plots
+  fit1 <- lm(mTC ~ dates, data=fandm)
+  fit2 <- lm(fTC ~ dates, data=fandm)
+  maleTC <- visreg(fit1, "dates")
+  femaTC <- visreg(fit2, "dates")
+  sexTC2 <- visregList(visreg(fit1, "dates", plot=F),
+                       visreg(fit2, "dates", plot=F), collapse=T)
+  plot(sexTC2, ylab="Score (out of 36)", gg=T)
+  
+  # sample code for multiple plots (plot male and female comparison using this)
+  fit1 <- rq(Ozone ~ Wind + Temp, tau=.25, data=airquality)
+  fit2 <- rq(Ozone ~ Wind + Temp, tau=.5, data=airquality)
+  fit3 <- rq(Ozone ~ Wind + Temp, tau=.75, data=airquality)
+  v <- visregList(visreg(fit1, "Wind", plot=FALSE),
+                  visreg(fit2, "Wind", plot=FALSE),
+                  visreg(fit3, "Wind", plot=FALSE),
+                  labels=c("25%", "50%", "75%"), collapse=TRUE)
+  plot(v, ylab="Ozone", gg=TRUE) + theme_bw()
+  
+  sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
     geom_line(aes(y=mTC, color="Male")) +
     geom_line(aes(y=fTC, color="Female")) +
     labs(x="Date of Test",
@@ -289,6 +371,93 @@ for (age in agegroups) {
   
   assign(paste0("sexSP", var), sexSP)
 }
+
+# stats
+age89 <- adt36[which(adt36$agegroup == "8-9"), c(2,7,12:14)]
+age1011 <- adt36[which(adt36$agegroup == "10-11"), c(2,7,12:14)]
+age1213 <- adt36[which(adt36$agegroup == "12-13"), c(2,7,12:14)]
+age1415 <- adt36[which(adt36$agegroup == "14-15"), c(2,7,12:14)]
+age1617 <- adt36[which(adt36$agegroup == "16-17"), c(2,7,12:14)]
+age1820 <- adt36[which(adt36$agegroup == "18-20"), c(2,7,12:14)]
+age21 <- adt36[which(adt36$agegroup == "21+"), c(2,7,12:14)]
+
+
+mmean89TC <- mean(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
+mmean89SP <- mean(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
+fmean89TC <- mean(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+fmean89SP <- mean(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+
+msd89TC <- sd(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
+msd89SP <- sd(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="M")], na.rm=T)
+fsd89TC <- sd(age89$ADT36_A.ADT36A_CR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+fsd89SP <- sd(age89$ADT36_A.ADT36A_RTCR[which(age89$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean1011TC <- mean(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
+mmean1011SP <- mean(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
+fmean1011TC <- mean(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
+fmean1011SP <- mean(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
+
+msd1011TC <- sd(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
+msd1011SP <- sd(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="M")], na.rm=T)
+fsd1011TC <- sd(age1011$ADT36_A.ADT36A_CR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
+fsd1011SP <- sd(age1011$ADT36_A.ADT36A_RTCR[which(age1011$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean1213TC <- mean(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
+mmean1213SP <- mean(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
+fmean1213TC <- mean(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
+fmean1213SP <- mean(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
+
+msd1213TC <- sd(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
+msd1213SP <- sd(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="M")], na.rm=T)
+fsd1213TC <- sd(age1213$ADT36_A.ADT36A_CR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
+fsd1213SP <- sd(age1213$ADT36_A.ADT36A_RTCR[which(age1213$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean1415TC <- mean(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
+mmean1415SP <- mean(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
+fmean1415TC <- mean(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
+fmean1415SP <- mean(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
+
+msd1415TC <- sd(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
+msd1415SP <- sd(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="M")], na.rm=T)
+fsd1415TC <- sd(age1415$ADT36_A.ADT36A_CR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
+fsd1415SP <- sd(age1415$ADT36_A.ADT36A_RTCR[which(age1415$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean1617TC <- mean(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
+mmean1617SP <- mean(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
+fmean1617TC <- mean(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
+fmean1617SP <- mean(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
+
+msd1617TC <- sd(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
+msd1617SP <- sd(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="M")], na.rm=T)
+fsd1617TC <- sd(age1617$ADT36_A.ADT36A_CR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
+fsd1617SP <- sd(age1617$ADT36_A.ADT36A_RTCR[which(age1617$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean1820TC <- mean(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
+mmean1820SP <- mean(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
+fmean1820TC <- mean(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
+fmean1820SP <- mean(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
+
+msd1820TC <- sd(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
+msd1820SP <- sd(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="M")], na.rm=T)
+fsd1820TC <- sd(age1820$ADT36_A.ADT36A_CR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
+fsd1820SP <- sd(age1820$ADT36_A.ADT36A_RTCR[which(age1820$test_sessions_v.gender =="F")], na.rm=T)
+
+
+mmean21TC <- mean(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
+mmean21SP <- mean(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
+fmean21TC <- mean(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
+fmean21SP <- mean(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
+
+msd21TC <- sd(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
+msd21SP <- sd(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="M")], na.rm=T)
+fsd21TC <- sd(age21$ADT36_A.ADT36A_CR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
+fsd21SP <- sd(age21$ADT36_A.ADT36A_RTCR[which(age21$test_sessions_v.gender =="F")], na.rm=T)
+
 
 
 
@@ -395,8 +564,5 @@ test1 <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
 
 
 
-# sample code from ggplot2 practice
-ggplot(data = mpg) + 
-  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
 
 
