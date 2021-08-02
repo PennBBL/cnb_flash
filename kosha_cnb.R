@@ -228,155 +228,28 @@ adt36 <- adt36[,c(1:3,55,4:54)]
 agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
 
 for (age in agegroups) {
+  print(age)
+  var <- str_replace_all(age, "[^[:alnum:]]", "")
+  
   agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
   names(agecorrected) <- c("BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
   
+  fit <- lm(TotalCorrect ~ Date*Sex, data=agecorrected)
+  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", main = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexTC)
   
+  fit <- lm(PercentCorrect ~ Date*Sex, data=agecorrected)
+  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexPC)
   
-  m <- adt36[which(adt36$test_sessions_v.gender == "M" & adt36$agegroup == age),c(3:4,6,12:14)]
-  f <- adt36[which(adt36$test_sessions_v.gender == "F" & adt36$agegroup == age),c(3:4,6,12:14)]
-  mdates <- sort(unique(m$test_sessions_v.dotest))
-  fdates <- sort(unique(f$test_sessions_v.dotest))
+  fit <- lm(Speed ~ Date*Sex, data=agecorrected)
+  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexSP)
   
-  male <- as.data.frame(matrix(NA, nrow = length(mdates), ncol = 4))
-  names(male) <- c("dates", "tc", "pc", "sp")
-  male[,1] <- mdates
-  mTC <- m$ADT36_A.ADT36A_CR
-  mPC <- m$ADT36_A.ADT36A_PC
-  mSP <- m$ADT36_A.ADT36A_RTCR
-  
-  for (i in 1:length(mdates)) {
-    male[i,2] <- mean(mTC[which(m$test_sessions_v.dotest == male[i,1])])
-    male[i,3] <- mean(mPC[which(m$test_sessions_v.dotest == male[i,1])])
-    male[i,4] <- mean(mSP[which(m$test_sessions_v.dotest == male[i,1])])
-  }
-  
-  female <- as.data.frame(matrix(NA, nrow = length(fdates), ncol = 4))
-  names(female) <- c("dates", "tc", "pc", "sp")
-  female[,1] <- fdates
-  fTC <- f$ADT36_A.ADT36A_CR
-  fPC <- f$ADT36_A.ADT36A_PC
-  fSP <- f$ADT36_A.ADT36A_RTCR
-  
-  for (i in 1:length(fdates)) {
-    female[i,2] <- mean(fTC[which(f$test_sessions_v.dotest == female[i,1])])
-    female[i,3] <- mean(fPC[which(f$test_sessions_v.dotest == female[i,1])])
-    female[i,4] <- mean(fSP[which(f$test_sessions_v.dotest == female[i,1])])
-  }
-  
-  mtemp <- as.data.frame(mdates)
-  ftemp <- as.data.frame(fdates)
-  names(mtemp) <- "dates"
-  names(ftemp) <- "dates"
-  mergedates <- unique(rbind(mtemp,ftemp))
-  fandm <- as.data.frame(matrix(NA, nrow=nrow(mergedates), ncol=7))
-  names(fandm) <- c("dates", "mTC", "mPC", "mSP", "fTC", "fPC", "fSP")
-  fandm[,1] <- sort(mergedates[,1])
-  
-  for (i in 1:nrow(fandm)) {
-    if (any(mTC[which(male$dates == fandm[i,1])])) {
-      fandm[i,2] <- mTC[which(male$dates == fandm[i,1])]
-      fandm[i,3] <- mPC[which(male$dates == fandm[i,1])]
-      fandm[i,4] <- mSP[which(male$dates == fandm[i,1])]
-      if (any(fTC[which(female$dates == fandm[i,1])])) {
-        fandm[i,5] <- fTC[which(female$dates == fandm[i,1])]
-        fandm[i,6] <- fPC[which(female$dates == fandm[i,1])]
-        fandm[i,7] <- fSP[which(female$dates == fandm[i,1])]
-      }
-    }
-    else if (any(fTC[which(female$dates == fandm[i,1])])) {
-      fandm[i,5] <- fTC[which(female$dates == fandm[i,1])]
-      fandm[i,6] <- fPC[which(female$dates == fandm[i,1])]
-      fandm[i,7] <- fSP[which(female$dates == fandm[i,1])]
-    }
-  }
-  
-  sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
-    geom_point(aes(y=mTC, color="Male")) +
-    geom_point(aes(y=fTC, color="Female")) +
-    labs(x="Date of Test",
-         y="Score (out of 36)",
-         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  var <- str_replace_all(age, "[^[:alnum:]]", "")
-  assign(paste0("sexTC", var), sexTC)
-  
-  sexPC <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mPC, color="Male")) +
-    geom_line(aes(y=fPC, color="Female")) +
-    labs(x="Date of Test",
-         y="Score (out of 100%)",
-         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  assign(paste0("sexPC", var), sexPC)
-  
-  sexSP <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mSP, color="Male")) +
-    geom_line(aes(y=fSP, color="Female")) +
-    labs(x="Date of Test",
-         y="Speed (ms)",
-         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  assign(paste0("sexSP", var), sexSP)
-  
-  # visreg plots
-  fit1 <- lm(TC ~ dates*sex, data=fandm)   # what we talked about during meeting
-  fit2 <- lm(fTC ~ dates, data=fandm)
-  maleTC <- visreg(fit1, "dates", by= sex)   # what we talked about during meeting
-  femaTC <- visreg(fit2, "dates")
-  sexTC2 <- visregList(visreg(fit1, "dates", plot=F),
-                       visreg(fit2, "dates", plot=F), collapse=T)
-  plot(sexTC2, ylab="Score (out of 36)", gg=T)
-  
-  # sample code for multiple plots (plot male and female comparison using this)
-  fit1 <- rq(Ozone ~ Wind + Temp, tau=.25, data=airquality)
-  fit2 <- rq(Ozone ~ Wind + Temp, tau=.5, data=airquality)
-  fit3 <- rq(Ozone ~ Wind + Temp, tau=.75, data=airquality)
-  v <- visregList(visreg(fit1, "Wind", plot=FALSE),
-                  visreg(fit2, "Wind", plot=FALSE),
-                  visreg(fit3, "Wind", plot=FALSE),
-                  labels=c("25%", "50%", "75%"), collapse=TRUE)
-  plot(v, ylab="Ozone", gg=TRUE) + theme_bw()
-  
-  sexTC <- ggplot(fandm, aes(x=dates)) +         # maybe rename these plots
-    geom_line(aes(y=mTC, color="Male")) +
-    geom_line(aes(y=fTC, color="Female")) +
-    labs(x="Date of Test",
-         y="Score (out of 36)",
-         title = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  var <- str_replace_all(age, "[^[:alnum:]]", "")
-  assign(paste0("sexTC", var), sexTC)
-  
-  sexPC <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mPC, color="Male")) +
-    geom_line(aes(y=fPC, color="Female")) +
-    labs(x="Date of Test",
-         y="Score (out of 100%)",
-         title = paste("Sex Differences in ADT36 Accuracy (percentage) of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  assign(paste0("sexPC", var), sexPC)
-  
-  sexSP <- ggplot(fandm, aes(x=dates)) +     
-    geom_line(aes(y=mSP, color="Male")) +
-    geom_line(aes(y=fSP, color="Female")) +
-    labs(x="Date of Test",
-         y="Speed (ms)",
-         title = paste("Sex Differences in ADT36 Speed (ms) of Participants Ages", age, "Over Time"),
-         color = "Legend") +
-    theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-  
-  assign(paste0("sexSP", var), sexSP)
+  # testing to see if plot title and legend overlap (they do rn)
+  # png(filename = "letsseebaby.png", width=1000,height=800)
+  # visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  # dev.off() 
 }
 
 # stats
