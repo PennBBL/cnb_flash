@@ -162,7 +162,8 @@ fit <- lm(PC ~ Dates, data=corrected)
 fnfPC2 <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
 
 fit <- lm(SP ~ Dates, data=corrected)
-fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
+fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time", xvar = b)
+                                                                          # still need to figure "xvar" out 
 
 
 # stats
@@ -319,9 +320,9 @@ for (age in agegroups) {
   assign(paste0("sexSP", var), sexSP)
   
   # visreg plots
-  fit1 <- lm(mTC ~ dates, data=fandm)
+  fit1 <- lm(TC ~ dates*sex, data=fandm)   # what we talked about during meeting
   fit2 <- lm(fTC ~ dates, data=fandm)
-  maleTC <- visreg(fit1, "dates")
+  maleTC <- visreg(fit1, "dates", by= sex)   # what we talked about during meeting
   femaTC <- visreg(fit2, "dates")
   sexTC2 <- visregList(visreg(fit1, "dates", plot=F),
                        visreg(fit2, "dates", plot=F), collapse=T)
