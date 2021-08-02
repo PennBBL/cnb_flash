@@ -123,38 +123,39 @@ for (i in 1:length(dates)) {
   corrected[i,4] <- mean(SP[which(adt36$test_sessions_v.dotest == corrected[i,1])])
 }
 
-fnfTC <- ggplot(corrected,aes(x=Dates, y=TC)) +
-  geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-  labs(x="Date of Test",
-       y="Total Correct",
-       title = "ADT36 Accuracy Over Time") + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# plots not using visreg
+# fnfTC <- ggplot(corrected,aes(x=Dates, y=TC)) +
+#   geom_line(color="dark blue") +
+#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+#   labs(x="Date of Test",
+#        y="Total Correct",
+#        title = "ADT36 Accuracy Over Time") + 
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# fnfTC
+# 
+# fnfPC <- ggplot(corrected, aes(x=Dates, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
+#   geom_line(color="dark blue") +
+#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+#   labs(x="Date of Test",
+#        y="Percent Correct",
+#        title = "ADT36 Accuracy by Percentage Over Time") + 
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# fnfPC
+# 
+# fnfSP <- ggplot(corrected, aes(x=Dates, y=SP)) +
+#   geom_line(color="dark blue") +
+#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
+#   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+#   labs(x="Date of Test",
+#        y="Speed",
+#        title = "ADT36 Speed of Participants Over Time") + 
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# fnfSP
 
-fnfTC
-
-fnfPC <- ggplot(corrected, aes(x=Dates, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
-  geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-  labs(x="Date of Test",
-       y="Percent Correct",
-       title = "ADT36 Accuracy by Percentage Over Time") + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-fnfPC
-
-fnfSP <- ggplot(corrected, aes(x=Dates, y=SP)) +
-  geom_line(color="dark blue") +
-  geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-  labs(x="Date of Test",
-       y="Speed",
-       title = "ADT36 Speed of Participants Over Time") + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-fnfSP
-
-# using visreg
+# using visreg (visreg only plots when running command)
 fit <- lm(TC ~ Dates, data=corrected)
 fnfTC2 <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
 
@@ -227,6 +228,11 @@ adt36 <- adt36[,c(1:3,55,4:54)]
 agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
 
 for (age in agegroups) {
+  agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
+  names(agecorrected) <- c("BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+  
+  
+  
   m <- adt36[which(adt36$test_sessions_v.gender == "M" & adt36$agegroup == age),c(3:4,6,12:14)]
   f <- adt36[which(adt36$test_sessions_v.gender == "F" & adt36$agegroup == age),c(3:4,6,12:14)]
   mdates <- sort(unique(m$test_sessions_v.dotest))
