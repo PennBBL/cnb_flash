@@ -115,17 +115,22 @@ adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
 adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
 
 corrected <- adt36[,c(2,5:6,11:13)]
-names(corrected) <- c("BBLID", "Dates", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+names(corrected) <- c("BBLID", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
 
 # basic accuracy and speed plots (flash vs non-flash)
-fit <- lm(TotalCorrect ~ Dates, data=corrected)
-fnfTC <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
+firstday <- min(corrected$Date)
+numdates <- as.numeric(corrected$Date)
+numdates <- numdates - min(numdates)
+corrected$Date <- numdates
 
-fit <- lm(PercentCorrect ~ Dates, data=corrected)
-fnfPC <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
+fit <- lm(TotalCorrect ~ Date, data=corrected)
+fnfTC <- visreg(fit, "Date", ylab = "Score (out of 36)",xlab = paste("Date (starting at", as.character(firstday), ")"), main= "Accuracy on ADT36 over time")
 
-fit <- lm(Speed ~ Dates, data=corrected)
-fnfSP <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
+fit <- lm(PercentCorrect ~ Date, data=corrected)
+fnfPC <- visreg(fit, "Date", ylab = "Score (as percentage)",xlab = paste("Date (starting at", as.character(firstday), ")"), main= "Accuracy (percentage) on ADT36 over time")
+
+fit <- lm(Speed ~ Date, data=corrected)
+fnfSP <- visreg(fit, "Date", ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main= "Speed on ADT36 over time")
 # still need to figure "xvar" out 
 
 
@@ -189,17 +194,21 @@ for (age in agegroups) {
   
   agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
   names(agecorrected) <- c("BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+  firstday <- min(agecorrected$Date)
+  numdates <- as.numeric(agecorrected$Date)
+  numdates <- numdates - min(numdates)
+  agecorrected$Date <- numdates
   
   fit <- lm(TotalCorrect ~ Date*Sex, data=agecorrected)
-  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", main = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"))
+  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"))
   assign(paste0("sexTC", var), agesexTC)
   
   fit <- lm(PercentCorrect ~ Date*Sex, data=agecorrected)
-  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Accuracy (as percentage) of Participants Ages", age, "Over Time"))
   assign(paste0("sexTC", var), agesexPC)
   
   fit <- lm(Speed ~ Date*Sex, data=agecorrected)
-  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants Ages", age, "Over Time"))
+  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Speed of Participants Ages", age, "Over Time"))
   assign(paste0("sexTC", var), agesexSP)
   
   # testing to see if plot title and legend overlap (they do rn)
@@ -238,17 +247,21 @@ sites <- sites[which(sites != "LiBI")]
 for (site in sites) {
   sitecorrected <- adt36[which(adt36$test_sessions.siteid == site),c(1:4,6:7,12:14)]
   names(sitecorrected) <- c("SiteID", "BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed") 
+  firstday <- min(sitecorrected$Date)
+  numdates <- as.numeric(sitecorrected$Date)
+  numdates <- numdates - min(numdates)
+  sitecorrected$Date <- numdates
   
   fit <- lm(TotalCorrect ~ Date*Sex, data=sitecorrected)
-  sitesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", gg=T, main = paste("Sex Differences in ADT36 Accuracy of Participants at the", site, " site Over Time"))
+  sitesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Accuracy of Participants at the", site, "site Over Time"))
   assign(paste0(site, "_TC"), sitesexTC)
   
   fit <- lm(PercentCorrect ~ Date*Sex, data=sitecorrected)
-  sitesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, gg=TRUE, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants at the", site, "site Over Time"))
+  sitesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Accuracy (as percentage) of Participants at the", site, "site Over Time"))
   assign(paste0(site, "_PC"), sitesexPC)
   
   fit <- lm(Speed ~ Date*Sex, data=sitecorrected)
-  sitesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants at the", site, "site Over Time"))
+  sitesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT36 Speed of Participants at the", site, "site Over Time"))
   assign(paste0(site, "_SP"), sitesexSP)
 } 
 
@@ -439,53 +452,62 @@ write.csv(adt60_flash_meanSD,"myresults/adt60_fnf_mean_sd.csv",na="")
 
 
 # age and sex differences
-age <- na.exclude(adt36$test_sessions_v.age)
-groups <- bins(age, 7, minpts = 30)$binct
+age <- na.exclude(adt60$test_sessions_v.age)
+groups <- bins(age, 7, minpts = 10)$binct
 
-for (i in 1:nrow(adt36)) {
-  if (adt36$test_sessions_v.age[i] %in% 8:9) {
-    adt36$agegroup[i] <- "8-9"
+agerange <- adt60 %>%
+  group_by(test_sessions_v.age,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT60_A.ADT60_CA_CR), sd = sd(ADT60_A.ADT60_CA_CR), n = n())
+
+
+for (i in 1:nrow(adt60)) {
+  if (adt60$test_sessions_v.age[i] %in% 14:17) {
+    adt60$agegroup[i] <- "14-17"
   }
-  else if (adt36$test_sessions_v.age[i] %in% 10:11) {
-    adt36$agegroup[i] <- "10-11"
+  else if (adt60$test_sessions_v.age[i] == 18) {
+    adt60$agegroup[i] <- "18"
   }
-  else if (adt36$test_sessions_v.age[i] %in% 12:13) {
-    adt36$agegroup[i] <- "12-13"
+  else if (adt60$test_sessions_v.age[i] == 19) {
+    adt60$agegroup[i] <- "19"
   }
-  else if (adt36$test_sessions_v.age[i] %in% 14:15) {
-    adt36$agegroup[i] <- "14-15"
+  else if (adt60$test_sessions_v.age[i] == 20) {
+    adt60$agegroup[i] <- "20"
   }
-  else if (adt36$test_sessions_v.age[i] %in% 16:17) {
-    adt36$agegroup[i] <- "16-17"
+  else if (adt60$test_sessions_v.age[i] == 21) {
+    adt60$agegroup[i] <- "21"
   }
-  else if (adt36$test_sessions_v.age[i] %in% 18:20) {
-    adt36$agegroup[i] <- "18-20"
+  else if (adt60$test_sessions_v.age[i] %in% 22:23) {
+    adt60$agegroup[i] <- "22-23"
   }
-  else if (adt36$test_sessions_v.age[i] >= 21) {
-    adt36$agegroup[i] <- "21+"
+  else if (adt60$test_sessions_v.age[i] >= 24) {
+    adt60$agegroup[i] <- "24+"
   }
 }
 
-adt36 <- adt36[,c(1:3,55,4:54)]
+adt60 <- adt60[,c(1:3,45,4:14)]
 
-agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
+agegroups <- c("14-17","18","19","20","21","22-23","24+")
 
 for (age in agegroups) {
   var <- str_replace_all(age, "[^[:alnum:]]", "")
   
-  agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
+  agecorrected <- adt60[which(adt60$agegroup == age),c(2:4,6:7,13:15)]
   names(agecorrected) <- c("BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+  firstday <- min(agecorrected$Date)
+  numdates <- as.numeric(agecorrected$Date)
+  numdates <- numdates - min(numdates)
+  agecorrected$Date <- numdates
   
   fit <- lm(TotalCorrect ~ Date*Sex, data=agecorrected)
-  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", main = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"))
+  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 60)", xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in ADT60 Accuracy of Participants Age(s)", age, "Over Time"))
   assign(paste0("sexTC", var), agesexTC)
   
   fit <- lm(PercentCorrect ~ Date*Sex, data=agecorrected)
-  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", xlab = paste("Date (starting at", as.character(firstday), ")"),main = paste("Sex Differences in ADT60 Accuracy (as percentage) of Participants Age(s)", age, "Over Time"))
   assign(paste0("sexTC", var), agesexPC)
   
   fit <- lm(Speed ~ Date*Sex, data=agecorrected)
-  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants Ages", age, "Over Time"))
+  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", xlab = paste("Date (starting at", as.character(firstday), ")"),main = paste("Sex Differences in ADT60 Speed of Participants Age(s)", age, "Over Time"))
   assign(paste0("sexTC", var), agesexSP)
   
   # testing to see if plot title and legend overlap (they do rn)
