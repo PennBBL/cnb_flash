@@ -275,102 +275,105 @@ write.csv(agesex_mean_sd, "myresults/agesex_mean_sd.csv",na="")
 
 
 # site differences
-sites <- sort(unique(adt36$test_sessions.siteid))
-sitemeans <- as.data.frame(matrix(NA,nrow = length(sites),ncol = 2))
-sdata <- adt36[,c(1,3:7,12:14)]
 
-sitescatTC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_CR)) +
-  geom_point(aes(color=test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# old code
+# sites <- sort(unique(adt36$test_sessions.siteid))
+# sitemeans <- as.data.frame(matrix(NA,nrow = length(sites),ncol = 2))
+# sdata <- adt36[,c(1,3:7,12:14)]
+# 
+# sitescatTC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_CR)) +
+#   geom_point(aes(color=test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# sitescatTC
+# 
+# sitescatPC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_PC)) +
+#   geom_point(aes(color=test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (as percentage)",
+#        title="ADT36 Accuracy (percentage) Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# sitescatPC
+# 
+# sitescatSP <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_RTCR)) +
+#   geom_point(aes(color=test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Speed",
+#        title="ADT36 Speed Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# sitescatSP
+# 
+# # now try doing it with line plots
+# sitelineTC <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+#   geom_line(aes(color=test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# sitelineTC
+# 
+# 
+# test <- ggplot(sdata[which(sdata$test_sessions.siteid == "GOGRANT"),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+#   geom_smooth() +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time (GOGRANT)") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# test
+# 
+# 
+# 
+# test4 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[12:13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR[!is.na(ADT36_A.ADT36A_CR)])) +
+#   geom_point(aes(color = test_sessions.siteid)) +
+#   geom_smooth(aes(color = test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# 
+# # nothing gets printed out from this
+# test2 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[3:12]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+#   geom_smooth(aes(color = test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# 
+# test3 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+#   geom_smooth() +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site",
+#        subtitle = sites[4]) +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
+# 
+# # ImmuSili (sites[16]) doesn't plot anything because there's only one data point
+# # site[1] has 7 points, [2] 8, [3] 237, [4] 25, [5] 16, [6] 42
+# bleh <- as.data.frame(matrix(0, nrow = 22,ncol=2))
+# for (i in 1:22) {
+#   bleh[i,1] <- sites[i]
+#   bleh[i,2] <- nrow(sdata[which(sdata$test_sessions.siteid==sites[i]),])
+# }
+# # from this loop above I found that [1] 22QIBBC has 7, [2] 7TITMAT has 8, and [16] ImmuSili has 1 point(s) which means they have to be excluded from graph
+# 
+# 
+# # this doesn't work for now
+# test1 <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
+#   geom_smooth(aes(linetype = test_sessions.siteid)) +
+#   labs(x="Date of Test",
+#        y="Score (out of 36)",
+#        title="ADT36 Accuracy Over Time Separated by Site") +
+#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
-sitescatTC
-
-sitescatPC <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_PC)) +
-  geom_point(aes(color=test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (as percentage)",
-       title="ADT36 Accuracy (percentage) Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sitescatPC
-
-sitescatSP <- ggplot(sdata, aes(x=test_sessions_v.dotest, y=ADT36_A.ADT36A_RTCR)) +
-  geom_point(aes(color=test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Speed",
-       title="ADT36 Speed Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sitescatSP
-
-# now try doing it with line plots
-sitelineTC <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_line(aes(color=test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-sitelineTC
-
-
-test <- ggplot(sdata[which(sdata$test_sessions.siteid == "GOGRANT"),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_smooth() +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time (GOGRANT)") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-test
-
-
-
-test4 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[12:13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR[!is.na(ADT36_A.ADT36A_CR)])) +
-  geom_point(aes(color = test_sessions.siteid)) +
-  geom_smooth(aes(color = test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-
-# nothing gets printed out from this
-test2 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[3:12]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_smooth(aes(color = test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-
-test3 <- ggplot(sdata[which(sdata$test_sessions.siteid == sites[13]),], aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_smooth() +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site",
-       subtitle = sites[4]) +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-
-# ImmuSili (sites[16]) doesn't plot anything because there's only one data point
-# site[1] has 7 points, [2] 8, [3] 237, [4] 25, [5] 16, [6] 42
-bleh <- as.data.frame(matrix(0, nrow = 22,ncol=2))
-for (i in 1:22) {
-  bleh[i,1] <- sites[i]
-  bleh[i,2] <- nrow(sdata[which(sdata$test_sessions.siteid==sites[i]),])
-}
-# from this loop above I found that [1] 22QIBBC has 7, [2] 7TITMAT has 8, and [16] ImmuSili has 1 point(s) which means they have to be excluded from graph
-
-
-# this doesn't work for now
-test1 <- ggplot(sdata, aes(test_sessions_v.dotest, ADT36_A.ADT36A_CR)) +
-  geom_smooth(aes(linetype = test_sessions.siteid)) +
-  labs(x="Date of Test",
-       y="Score (out of 36)",
-       title="ADT36 Accuracy Over Time Separated by Site") +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
 
 # stats analysis for site differences
 siteTC <- adt36 %>%
@@ -397,7 +400,7 @@ names(siteTC_as) <- c("siteID", "agegroup", "gender", "meanTC", "sdTC", "n")
 
 site_mean_sd <- cbind(siteTC[,1:4], siteSP[,3:5])
 
-write.csv(site_mean_sd, "myresults/site_mean_sd.csv",na="")
+write.csv(site_mean_sd, "myresults/site_mean_sd.csv",na="", row.names = FALSE)
 
 
 siteSP_as <- adt36 %>%
@@ -412,7 +415,7 @@ names(siteSP_as) <- c("siteID", "agegroup", "gender", "meanSP", "sdSP", "n")
 
 site_agesex <- cbind(siteTC_as[,1:5], siteSP_as[,4:6])
 
-write.csv(site_agesex, "myresults/siteagesex_mean_sd.csv",na="")
+write.csv(site_agesex, "myresults/siteagesex_mean_sd.csv",na="", row.names = FALSE)
 
 
 
