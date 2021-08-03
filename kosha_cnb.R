@@ -105,7 +105,7 @@ spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,
 
 # Making plots ----
 # * ADT36 ----
-adt36 <- adt36[rowSums(is.na(adt36[,10:ncol(adt36)])) < (ncol(adt36)-10),]
+adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),]
 adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
 TC <- adt36$ADT36_A.ADT36A_CR
 adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
@@ -123,38 +123,6 @@ for (i in 1:length(dates)) {
   corrected[i,4] <- mean(SP[which(adt36$test_sessions_v.dotest == corrected[i,1])])
 }
 
-# plots not using visreg
-# fnfTC <- ggplot(corrected,aes(x=Dates, y=TC)) +
-#   geom_line(color="dark blue") +
-#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-#   labs(x="Date of Test",
-#        y="Total Correct",
-#        title = "ADT36 Accuracy Over Time") + 
-#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-# 
-# fnfTC
-# 
-# fnfPC <- ggplot(corrected, aes(x=Dates, y=PC)) +     # i'm p sure i still have to edit this cause there are multiple participants per days and i need to average out the scores per day before graphing
-#   geom_line(color="dark blue") +
-#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-#   labs(x="Date of Test",
-#        y="Percent Correct",
-#        title = "ADT36 Accuracy by Percentage Over Time") + 
-#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-# 
-# fnfPC
-# 
-# fnfSP <- ggplot(corrected, aes(x=Dates, y=SP)) +
-#   geom_line(color="dark blue") +
-#   geom_vline(xintercept = as.Date("2021-01-01"), color = "dark red") +
-#   theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
-#   labs(x="Date of Test",
-#        y="Speed",
-#        title = "ADT36 Speed of Participants Over Time") + 
-#   theme(plot.margin=unit(c(1,2,1.5,1.2),"cm"))
-# 
-# fnfSP
-
 # using visreg (visreg only plots when running command)
 fit <- lm(TC ~ Dates, data=corrected)
 fnfTC2 <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
@@ -163,7 +131,7 @@ fit <- lm(PC ~ Dates, data=corrected)
 fnfPC2 <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
 
 fit <- lm(SP ~ Dates, data=corrected)
-fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time", xvar = b)
+fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
                                                                           # still need to figure "xvar" out 
 
 
@@ -228,7 +196,6 @@ adt36 <- adt36[,c(1:3,55,4:54)]
 agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
 
 for (age in agegroups) {
-  print(age)
   var <- str_replace_all(age, "[^[:alnum:]]", "")
   
   agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
@@ -275,6 +242,28 @@ write.csv(agesex_mean_sd, "myresults/agesex_mean_sd.csv",na="")
 
 
 # site differences
+sites <- sort(unique(adt36$test_sessions.siteid))
+sites <- sites[which(sites != "ImmuSili")] # exclude LiBI and ImmuSili for missing data
+sites <- sites[which(sites != "LiBI")]
+
+for (site in sites) {
+  sitecorrected <- adt36[which(adt36$test_sessions.siteid == site),c(1:4,6:7,12:14)]
+  names(sitecorrected) <- c("SiteID", "BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed") 
+  
+  fit <- lm(TotalCorrect ~ Date*Sex, data=sitecorrected)
+  sitesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", gg=T, main = paste("Sex Differences in ADT36 Accuracy of Participants at the", site, " site Over Time"))
+  assign(paste0(site, "_TC"), sitesexTC)
+  
+  fit <- lm(PercentCorrect ~ Date*Sex, data=sitecorrected)
+  sitesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, gg=TRUE, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants at the", site, "site Over Time"))
+  assign(paste0(site, "_PC"), sitesexPC)
+  
+  fit <- lm(Speed ~ Date*Sex, data=sitecorrected)
+  sitesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants at the", site, "site Over Time"))
+  assign(paste0(site, "_SP"), sitesexSP)
+} 
+
+# EFR01 looks weird (only one F data point and the line is overestimates, also lots of missing data)
 
 # old code
 # sites <- sort(unique(adt36$test_sessions.siteid))
@@ -418,6 +407,197 @@ site_agesex <- cbind(siteTC_as[,1:5], siteSP_as[,4:6])
 write.csv(site_agesex, "myresults/siteagesex_mean_sd.csv",na="", row.names = FALSE)
 
 
+# * ADT60 ----
+adt60 <- adt60[!is.na(adt60$ADT60_A.ADT60_CR),]
+adt60$test_sessions_v.dotest <- as.Date(adt60$test_sessions_v.dotest)
+adt60$ADT60_A.ADT60_PC <- 100*adt60$ADT60_A.ADT60_CR/60
+
+corrected <- adt60[,c(2,5:6,12:14)]
+names(corrected) <- c("BBLID", "Dates", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+
+# basic accuracy and speed plots (flash vs non-flash)
+fit <- lm(TotalCorrect ~ Dates, data=corrected)
+fnfTC <- visreg(fit, "Dates", ylab = "Score (out of 60)", main= "Accuracy on ADT60 over time")
+
+fit <- lm(PercentCorrect ~ Dates, data=corrected)
+fnfPC <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT60 over time")
+
+fit <- lm(Speed ~ Dates, data=corrected)
+fnfSP <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT60 over time")
+# still need to figure "xvar" out 
+
+
+# stats
+flash <- adt36[which(adt36$flash == 1),c(2,11:13)]
+noflash <- adt36[which(adt36$flash == 0),c(2,11:13)]
+
+fmeanTC <- mean(flash$ADT36_A.ADT36A_CR, na.rm=T)
+fmeanPC <- mean(flash$ADT36_A.ADT36A_PC, na.rm=T)
+fmeanSP <- mean(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
+nfmeanTC <- mean(noflash$ADT36_A.ADT36A_CR, na.rm=T)
+nfmeanPC <- mean(noflash$ADT36_A.ADT36A_PC, na.rm=T)
+nfmeanSP <- mean(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+
+fsdTC <- sd(flash$ADT36_A.ADT36A_CR, na.rm=T)
+fsdPC <- sd(flash$ADT36_A.ADT36A_PC, na.rm=T)
+fsdSP <- sd(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
+nfsdTC <- sd(noflash$ADT36_A.ADT36A_CR, na.rm=T)
+nfsdPC <- sd(noflash$ADT36_A.ADT36A_PC, na.rm=T)
+nfsdSP <- sd(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+
+fnf_mean_sd <- as.data.frame(matrix(0,nrow=2,ncol=6))
+names(fnf_mean_sd) <- c("mean_TC", "sd_TC", "mean_PC", "sd_PC", "mean_SP", "sd_SP")
+rownames(fnf_mean_sd) <- c("flash", "noflash")
+fnf_mean_sd[1,] <- c(fmeanTC,fsdTC,fmeanPC,fsdPC,fmeanSP,fsdSP)
+fnf_mean_sd[2,] <- c(nfmeanTC,nfsdTC,nfmeanPC,nfsdPC,nfmeanSP,nfsdSP)
+
+write.csv(fnf_mean_sd,"myresults/fnf_mean_sd.csv",na="")
+
+
+
+# age and sex differences
+age <- na.exclude(adt36$test_sessions_v.age)
+groups <- bins(age, 7, minpts = 30)$binct
+
+for (i in 1:nrow(adt36)) {
+  if (adt36$test_sessions_v.age[i] %in% 8:9) {
+    adt36$agegroup[i] <- "8-9"
+  }
+  else if (adt36$test_sessions_v.age[i] %in% 10:11) {
+    adt36$agegroup[i] <- "10-11"
+  }
+  else if (adt36$test_sessions_v.age[i] %in% 12:13) {
+    adt36$agegroup[i] <- "12-13"
+  }
+  else if (adt36$test_sessions_v.age[i] %in% 14:15) {
+    adt36$agegroup[i] <- "14-15"
+  }
+  else if (adt36$test_sessions_v.age[i] %in% 16:17) {
+    adt36$agegroup[i] <- "16-17"
+  }
+  else if (adt36$test_sessions_v.age[i] %in% 18:20) {
+    adt36$agegroup[i] <- "18-20"
+  }
+  else if (adt36$test_sessions_v.age[i] >= 21) {
+    adt36$agegroup[i] <- "21+"
+  }
+}
+
+adt36 <- adt36[,c(1:3,55,4:54)]
+
+agegroups <- c("8-9","10-11","12-13","14-15","16-17","18-20","21+")
+
+for (age in agegroups) {
+  var <- str_replace_all(age, "[^[:alnum:]]", "")
+  
+  agecorrected <- adt36[which(adt36$agegroup == age),c(2:4,6:7,12:14)]
+  names(agecorrected) <- c("BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
+  
+  fit <- lm(TotalCorrect ~ Date*Sex, data=agecorrected)
+  agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", main = paste("Sex Differences in ADT36 Accuracy of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexTC)
+  
+  fit <- lm(PercentCorrect ~ Date*Sex, data=agecorrected)
+  agesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexPC)
+  
+  fit <- lm(Speed ~ Date*Sex, data=agecorrected)
+  agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants Ages", age, "Over Time"))
+  assign(paste0("sexTC", var), agesexSP)
+  
+  # testing to see if plot title and legend overlap (they do rn)
+  # png(filename = "letsseebaby.png", width=1000,height=800)
+  # visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants Ages", age, "Over Time"))
+  # dev.off() 
+}
+
+# stats
+agesexTC <- adt36 %>%
+  group_by(agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR))
+agesexTC <- agesexTC[-7,] # 7th row produces NA row for 14-15 range
+
+agesexSP <- adt36 %>%
+  group_by(agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR))
+agesexSP <- agesexSP[-7,]
+
+agesex_mean_sd <- cbind(agesexTC,agesexSP[,3:4])
+names(agesex_mean_sd)[2:6] <- c("gender", "mean_TC", "sd_TC", "mean_SP", "sd_SP")
+agesex_mean_sd <- agesex_mean_sd[c(13:14,1:12),]
+agesex_mean_sd <- agesex_mean_sd[order(agesex_mean_sd$gender),]
+
+write.csv(agesex_mean_sd, "myresults/agesex_mean_sd.csv",na="")
+
+
+
+
+
+# site differences
+sites <- sort(unique(adt36$test_sessions.siteid))
+sites <- sites[which(sites != "ImmuSili")] # exclude LiBI and ImmuSili for missing data
+sites <- sites[which(sites != "LiBI")]
+
+for (site in sites) {
+  sitecorrected <- adt36[which(adt36$test_sessions.siteid == site),c(1:4,6:7,12:14)]
+  names(sitecorrected) <- c("SiteID", "BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed") 
+  
+  fit <- lm(TotalCorrect ~ Date*Sex, data=sitecorrected)
+  sitesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 36)", gg=T, main = paste("Sex Differences in ADT36 Accuracy of Participants at the", site, " site Over Time"))
+  assign(paste0(site, "_TC"), sitesexTC)
+  
+  fit <- lm(PercentCorrect ~ Date*Sex, data=sitecorrected)
+  sitesexPC <- visreg(fit, "Date", by= "Sex", overlay =T, gg=TRUE, ylab = "Score (as percentage)", main = paste("Sex Differences in ADT36 Accuracy (age percentage) of Participants at the", site, "site Over Time"))
+  assign(paste0(site, "_PC"), sitesexPC)
+  
+  fit <- lm(Speed ~ Date*Sex, data=sitecorrected)
+  sitesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", main = paste("Sex Differences in ADT36 Speed of Participants at the", site, "site Over Time"))
+  assign(paste0(site, "_SP"), sitesexSP)
+} 
+
+
+
+# stats analysis for site differences
+siteTC <- adt36 %>%
+  group_by(test_sessions.siteid,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR), n = n())
+siteTC <- siteTC[which(!is.na(siteTC$test_sessions_v.gender)),]   # LiBI has no age or sex data (missing on this table) and ImmuSili only has one (F) data point
+names(siteTC) <- c("siteID", "gender", "meanTC", "sdTC", "n")
+
+siteSP <- adt36 %>%
+  group_by(test_sessions.siteid,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR), n = n())
+siteSP <- siteSP[which(!is.na(siteSP$test_sessions_v.gender)),]
+names(siteSP) <- c("siteID", "gender", "meanSP", "sdSP", "n")
+
+siteTC_as <- adt36 %>%
+  group_by(test_sessions.siteid,agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR), n = n())
+siteTC_as <- siteTC_as[which(!is.na(siteTC_as$test_sessions_v.gender)),]
+siteTC_as <- siteTC_as[order(siteTC_as$test_sessions_v.gender),]
+siteTC_as <- siteTC_as[order(siteTC_as$agegroup),]
+siteTC_as <- siteTC_as[order(siteTC_as$test_sessions.siteid),]
+siteTC_as <- siteTC_as[c(5,1:4,6:8,21:22,9:20,23:91,104:105,92:103,106:114,127:128,115:126,129:137,147:148,138:146,149:154),]
+names(siteTC_as) <- c("siteID", "agegroup", "gender", "meanTC", "sdTC", "n")
+
+site_mean_sd <- cbind(siteTC[,1:4], siteSP[,3:5])
+
+write.csv(site_mean_sd, "myresults/site_mean_sd.csv",na="", row.names = FALSE)
+
+
+siteSP_as <- adt36 %>%
+  group_by(test_sessions.siteid,agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR), n = n())
+siteSP_as <- siteSP_as[which(!is.na(siteSP_as$test_sessions_v.gender)),]
+siteSP_as <- siteSP_as[order(siteSP_as$test_sessions_v.gender),]
+siteSP_as <- siteSP_as[order(siteSP_as$agegroup),]
+siteSP_as <- siteSP_as[order(siteSP_as$test_sessions.siteid),]
+siteSP_as <- siteSP_as[c(5,1:4,6:8,21:22,9:20,23:91,104:105,92:103,106:114,127:128,115:126,129:137,147:148,138:146,149:154),]
+names(siteSP_as) <- c("siteID", "agegroup", "gender", "meanSP", "sdSP", "n")
+
+site_agesex <- cbind(siteTC_as[,1:5], siteSP_as[,4:6])
+
+write.csv(site_agesex, "myresults/siteagesex_mean_sd.csv",na="", row.names = FALSE)
 
 
 
