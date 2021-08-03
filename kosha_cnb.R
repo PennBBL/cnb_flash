@@ -107,59 +107,48 @@ spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,
 # * ADT36 ----
 adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),]
 adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
-TC <- adt36$ADT36_A.ADT36A_CR
 adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
-PC <- adt36$ADT36_A.ADT36A_PC
-SP <- adt36$ADT36_A.ADT36A_RTCR   # code below fixes these so that there is a mean score per date
 
 # basic accuracy and speed plots (flash vs non-flash)
-dates <- sort(unique(adt36$test_sessions_v.dotest))
-corrected <- as.data.frame(matrix(NA, nrow = length(dates), ncol = 4))
-names(corrected) <- c("Dates", "TC", "PC", "SP")
-corrected[,1] <- dates
-for (i in 1:length(dates)) {
-  corrected[i,2] <- mean(TC[which(adt36$test_sessions_v.dotest == corrected[i,1])])
-  corrected[i,3] <- mean(PC[which(adt36$test_sessions_v.dotest == corrected[i,1])])
-  corrected[i,4] <- mean(SP[which(adt36$test_sessions_v.dotest == corrected[i,1])])
-}
+adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),]
+adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
+adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
 
-# using visreg (visreg only plots when running command)
-fit <- lm(TC ~ Dates, data=corrected)
-fnfTC2 <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
+corrected <- adt36[,c(2,5:6,11:13)]
+names(corrected) <- c("BBLID", "Dates", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
 
-fit <- lm(PC ~ Dates, data=corrected)
-fnfPC2 <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
+# basic accuracy and speed plots (flash vs non-flash)
+fit <- lm(TotalCorrect ~ Dates, data=corrected)
+fnfTC <- visreg(fit, "Dates", ylab = "Score (out of 36)", main= "Accuracy on ADT36 over time")
 
-fit <- lm(SP ~ Dates, data=corrected)
-fnfSP2 <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
-                                                                          # still need to figure "xvar" out 
+fit <- lm(PercentCorrect ~ Dates, data=corrected)
+fnfPC <- visreg(fit, "Dates", ylab = "Score (as percentage)", main= "Accuracy (percentage) on ADT36 over time")
+
+fit <- lm(Speed ~ Dates, data=corrected)
+fnfSP <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT36 over time")
+# still need to figure "xvar" out 
 
 
 # stats
-flash <- adt36[which(adt36$flash == 1),c(2,11:13)]
-noflash <- adt36[which(adt36$flash == 0),c(2,11:13)]
+fnfTC <- adt36 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR), n = n())  # much fewer tests administered in non-flash years compared to flash years
 
-fmeanTC <- mean(flash$ADT36_A.ADT36A_CR, na.rm=T)
-fmeanPC <- mean(flash$ADT36_A.ADT36A_PC, na.rm=T)
-fmeanSP <- mean(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
-nfmeanTC <- mean(noflash$ADT36_A.ADT36A_CR, na.rm=T)
-nfmeanPC <- mean(noflash$ADT36_A.ADT36A_PC, na.rm=T)
-nfmeanSP <- mean(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+fnfPC <- adt36 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_PC), sd = sd(ADT36_A.ADT36A_PC), n = n())
 
-fsdTC <- sd(flash$ADT36_A.ADT36A_CR, na.rm=T)
-fsdPC <- sd(flash$ADT36_A.ADT36A_PC, na.rm=T)
-fsdSP <- sd(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
-nfsdTC <- sd(noflash$ADT36_A.ADT36A_CR, na.rm=T)
-nfsdPC <- sd(noflash$ADT36_A.ADT36A_PC, na.rm=T)
-nfsdSP <- sd(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+fnfSP <- adt36 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR), n = n())
 
-fnf_mean_sd <- as.data.frame(matrix(0,nrow=2,ncol=6))
-names(fnf_mean_sd) <- c("mean_TC", "sd_TC", "mean_PC", "sd_PC", "mean_SP", "sd_SP")
-rownames(fnf_mean_sd) <- c("flash", "noflash")
-fnf_mean_sd[1,] <- c(fmeanTC,fsdTC,fmeanPC,fsdPC,fmeanSP,fsdSP)
-fnf_mean_sd[2,] <- c(nfmeanTC,nfsdTC,nfmeanPC,nfsdPC,nfmeanSP,nfsdSP)
+adt36_flash_meanSD <- cbind(fnfTC[-5],fnfPC[3:4])
+adt36_flash_meanSD <- cbind(adt36_flash_meanSD,fnfSP[3:4])
+names(adt36_flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanPC", "sdPC", "meanSP", "sdSP")
 
-write.csv(fnf_mean_sd,"myresults/fnf_mean_sd.csv",na="")
+
+write.csv(adt36_flash_meanSD,"myresults/adt36_fnf_mean_sd.csv",na="")
+
 
 
 
@@ -428,30 +417,24 @@ fnfSP <- visreg(fit, "Dates", ylab = "Speed", main= "Speed on ADT60 over time")
 
 
 # stats
-flash <- adt36[which(adt36$flash == 1),c(2,11:13)]
-noflash <- adt36[which(adt36$flash == 0),c(2,11:13)]
+fnfTC <- adt60 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT60_A.ADT60_CR), sd = sd(ADT60_A.ADT60_CR), n = n())  # this test was only administered between 2009-07-24 and 2010-07-16
 
-fmeanTC <- mean(flash$ADT36_A.ADT36A_CR, na.rm=T)
-fmeanPC <- mean(flash$ADT36_A.ADT36A_PC, na.rm=T)
-fmeanSP <- mean(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
-nfmeanTC <- mean(noflash$ADT36_A.ADT36A_CR, na.rm=T)
-nfmeanPC <- mean(noflash$ADT36_A.ADT36A_PC, na.rm=T)
-nfmeanSP <- mean(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+fnfPC <- adt60 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT60_A.ADT60_PC), sd = sd(ADT60_A.ADT60_PC), n = n())
 
-fsdTC <- sd(flash$ADT36_A.ADT36A_CR, na.rm=T)
-fsdPC <- sd(flash$ADT36_A.ADT36A_PC, na.rm=T)
-fsdSP <- sd(flash$ADT36_A.ADT36A_RTCR, na.rm=T)
-nfsdTC <- sd(noflash$ADT36_A.ADT36A_CR, na.rm=T)
-nfsdPC <- sd(noflash$ADT36_A.ADT36A_PC, na.rm=T)
-nfsdSP <- sd(noflash$ADT36_A.ADT36A_RTCR, na.rm=T)
+fnfSP <- adt60 %>%
+  group_by(flash,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT60_A.ADT60_RTCR), sd = sd(ADT60_A.ADT60_RTCR), n = n())
 
-fnf_mean_sd <- as.data.frame(matrix(0,nrow=2,ncol=6))
-names(fnf_mean_sd) <- c("mean_TC", "sd_TC", "mean_PC", "sd_PC", "mean_SP", "sd_SP")
-rownames(fnf_mean_sd) <- c("flash", "noflash")
-fnf_mean_sd[1,] <- c(fmeanTC,fsdTC,fmeanPC,fsdPC,fmeanSP,fsdSP)
-fnf_mean_sd[2,] <- c(nfmeanTC,nfsdTC,nfmeanPC,nfsdPC,nfmeanSP,nfsdSP)
+adt60_flash_meanSD <- cbind(fnfTC[-5],fnfPC[3:4])
+adt60_flash_meanSD <- cbind(adt60_flash_meanSD,fnfSP[3:4])
+names(adt60_flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanPC", "sdPC", "meanSP", "sdSP")
 
-write.csv(fnf_mean_sd,"myresults/fnf_mean_sd.csv",na="")
+
+write.csv(adt60_flash_meanSD,"myresults/adt60_fnf_mean_sd.csv",na="")
 
 
 
