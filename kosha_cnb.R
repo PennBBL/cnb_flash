@@ -29,77 +29,77 @@ adt36 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT36_A.", colnam
 adt60 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ADT60_A.", colnames(bigcnb), fixed = TRUE)])
 
 cpfA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPF_A.", colnames(bigcnb), fixed = TRUE)])
-cpfdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPFD_A.", colnames(bigcnb), fixed = TRUE)])
-cpfB <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPF_B.", colnames(bigcnb), fixed = TRUE)])
-cpfdB <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPFD_B.", colnames(bigcnb), fixed = TRUE)])
+cpfdA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPFD_A.", colnames(bigcnb), fixed = TRUE)])
+cpfB <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPF_B.", colnames(bigcnb), fixed = TRUE)])
+cpfdB <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPFD_B.", colnames(bigcnb), fixed = TRUE)])
 
-er40A <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("ER40_A.", colnames(bigcnb), fixed = TRUE)])
-er40C <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("ER40_C.", colnames(bigcnb), fixed = TRUE)])
-er40D <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("ER40_D.", colnames(bigcnb), fixed = TRUE)])
+er40A <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ER40_A.", colnames(bigcnb), fixed = TRUE)])
+er40C <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ER40_C.", colnames(bigcnb), fixed = TRUE)])
+er40D <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("ER40_D.", colnames(bigcnb), fixed = TRUE)])
 
-gng <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("GNG150.", colnames(bigcnb), fixed = TRUE)])
+gng <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("GNG150.", colnames(bigcnb), fixed = TRUE)])
 
-kcpwA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KCPW_A.", colnames(bigcnb), fixed = TRUE)])
-kcpwdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KCPWD_A.", colnames(bigcnb), fixed = TRUE)])
+kcpwA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KCPW_A.", colnames(bigcnb), fixed = TRUE)])
+kcpwdA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KCPWD_A.", colnames(bigcnb), fixed = TRUE)])
 
-kspvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KSPVRT_A.", colnames(bigcnb), fixed = TRUE)])
-kspvrtB <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KSPVRT_B.", colnames(bigcnb), fixed = TRUE)])
-kspvrtD <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KSPVRT_D.", colnames(bigcnb), fixed = TRUE)])
+kspvrtA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KSPVRT_A.", colnames(bigcnb), fixed = TRUE)])
+kspvrtB <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KSPVRT_B.", colnames(bigcnb), fixed = TRUE)])
+kspvrtD <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KSPVRT_D.", colnames(bigcnb), fixed = TRUE)])
 
-medf60A <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("MEDF60_A.", colnames(bigcnb), fixed = TRUE)])
-medf36A <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("MEDF36_A.", colnames(bigcnb), fixed = TRUE)])
+medf60A <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("MEDF60_A.", colnames(bigcnb), fixed = TRUE)])
+medf36A <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("MEDF36_A.", colnames(bigcnb), fixed = TRUE)])
 
-mpract <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("MPRACT.", colnames(bigcnb), fixed = TRUE)])
+mpract <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("MPRACT.", colnames(bigcnb), fixed = TRUE)])
 
-pcetA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PCET_A.", colnames(bigcnb), fixed = TRUE)])
-spcetA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SPCET_A.", colnames(bigcnb), fixed = TRUE)])
+pcetA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PCET_A.", colnames(bigcnb), fixed = TRUE)])
+spcetA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPCET_A.", colnames(bigcnb), fixed = TRUE)])
 
-pmat18B <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PMAT18_B.", colnames(bigcnb), fixed = TRUE)])
-pmat24A <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PMAT24_A.", colnames(bigcnb), fixed = TRUE)])
-pmat24B <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PMAT24_B.", colnames(bigcnb), fixed = TRUE)])
+pmat18B <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PMAT18_B.", colnames(bigcnb), fixed = TRUE)])
+pmat24A <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PMAT24_A.", colnames(bigcnb), fixed = TRUE)])
+pmat24B <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PMAT24_B.", colnames(bigcnb), fixed = TRUE)])
 
-sctap <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SCTAP.", colnames(bigcnb), fixed = TRUE)])
+sctap <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SCTAP.", colnames(bigcnb), fixed = TRUE)])
 
-slnb2 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SLNB2", colnames(bigcnb), fixed = TRUE)])
+slnb2 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SLNB2", colnames(bigcnb), fixed = TRUE)])
 
-spcptnl <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SPCPTNL", colnames(bigcnb), fixed = TRUE)])
-spcptn90 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SPCPTN90.", colnames(bigcnb), fixed = TRUE)])
+spcptnl <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPCPTNL", colnames(bigcnb), fixed = TRUE)])
+spcptn90 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPCPTN90.", colnames(bigcnb), fixed = TRUE)])
 
-svoltA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SVOLT_A.", colnames(bigcnb), fixed = TRUE)])
-svoltdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SVOLTD_A.", colnames(bigcnb), fixed = TRUE)])
+svoltA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SVOLT_A.", colnames(bigcnb), fixed = TRUE)])
+svoltdA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SVOLTD_A.", colnames(bigcnb), fixed = TRUE)])
 
-vsplot24 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("VSPLOT24.", colnames(bigcnb), fixed = TRUE)])
-vsplot15 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("VSPLOT15.", colnames(bigcnb), fixed = TRUE)])
-splot12 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SPLOT12.", colnames(bigcnb), fixed = TRUE)])
+vsplot24 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("VSPLOT24.", colnames(bigcnb), fixed = TRUE)])
+vsplot15 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("VSPLOT15.", colnames(bigcnb), fixed = TRUE)])
+splot12 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPLOT12.", colnames(bigcnb), fixed = TRUE)])
 
-wrat4B <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("WRAT4.", colnames(bigcnb), fixed = TRUE)])
-wrat4G <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("WRAT4B.", colnames(bigcnb), fixed = TRUE)])
+wrat4B <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("WRAT4.", colnames(bigcnb), fixed = TRUE)])
+wrat4G <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("WRAT4B.", colnames(bigcnb), fixed = TRUE)])
 
-kddisc <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KDDISC.", colnames(bigcnb), fixed = TRUE)])
-krdisc <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("KRDISC.", colnames(bigcnb), fixed = TRUE)])
-edisc <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("EDISC", colnames(bigcnb), fixed = TRUE)])
+kddisc <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KDDISC.", colnames(bigcnb), fixed = TRUE)])
+krdisc <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("KRDISC.", colnames(bigcnb), fixed = TRUE)])
+edisc <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("EDISC", colnames(bigcnb), fixed = TRUE)])
 
-abart <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("BART_1.", colnames(bigcnb), fixed = TRUE)])
+abart <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("BART_1.", colnames(bigcnb), fixed = TRUE)])
 
-digsym <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("DIGSYM.", colnames(bigcnb), fixed = TRUE)])
+digsym <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("DIGSYM.", colnames(bigcnb), fixed = TRUE)])
 
-pvtb <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PVTB.", colnames(bigcnb), fixed = TRUE)])
+pvtb <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PVTB.", colnames(bigcnb), fixed = TRUE)])
 
-aim <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("AIM.", colnames(bigcnb), fixed = TRUE)])
+aim <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("AIM.", colnames(bigcnb), fixed = TRUE)])
 
-trailsA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("TRAIL_A.", colnames(bigcnb), fixed = TRUE)])
-trailsB <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("TRAIL_B.", colnames(bigcnb), fixed = TRUE)])
+trailsA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("TRAIL_A.", colnames(bigcnb), fixed = TRUE)])
+trailsB <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("TRAIL_B.", colnames(bigcnb), fixed = TRUE)])
 
-raven <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("RAVEN.", colnames(bigcnb), fixed = TRUE)])
+raven <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("RAVEN.", colnames(bigcnb), fixed = TRUE)])
 
-praD <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("PRA_D.", colnames(bigcnb), fixed = TRUE)])
+praD <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("PRA_D.", colnames(bigcnb), fixed = TRUE)])
 
-sfnb2 <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SFNB2.", colnames(bigcnb), fixed = TRUE)])
+sfnb2 <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SFNB2.", colnames(bigcnb), fixed = TRUE)])
 
-cpwA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPW_A.", colnames(bigcnb), fixed = TRUE)])
-cpwdA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("CPWD_A.", colnames(bigcnb), fixed = TRUE)])
+cpwA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPW_A.", colnames(bigcnb), fixed = TRUE)])
+cpwdA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPWD_A.", colnames(bigcnb), fixed = TRUE)])
 
-spvrtA <- cbind(bigcnb[grepl("test_sessions.bblid", colnames(bigcnb))], bigcnb[,grepl("SPVRT_A.", colnames(bigcnb), fixed = TRUE)])
+spvrtA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPVRT_A.", colnames(bigcnb), fixed = TRUE)])
 
 
 
@@ -701,7 +701,7 @@ write.csv(agesex_mean_sd, "myresults/cpfA_agesex_mean_sd.csv",na="")
 # site differences
 sites <- sort(unique(cpfA$test_sessions.siteid))
 # marines only has men, take out for now to catch other errors
-sites <- sites[-47]
+sites <- sites[-24]
 
 for (site in sites) {
   sitecorrected <- cpfA[which(cpfA$test_sessions.siteid == site),c(1:4,6:7,12:13)]
@@ -720,6 +720,22 @@ for (site in sites) {
   assign(paste0(site, "_SP"), sitesexSP)
 } 
 
+# plot for MARINES
+site <- "MARINES"
+sitecorrected <- cpfA[which(cpfA$test_sessions.siteid == site),c(1:4,6:7,12:13)]
+names(sitecorrected) <- c("SiteID", "BBLID", "Age", "AgeGroup", "Date", "Sex", "TotalCorrect", "Speed") 
+firstday <- min(sitecorrected$Date)
+numdates <- as.numeric(sitecorrected$Date)
+numdates <- numdates - min(numdates)
+sitecorrected$Date <- numdates
+
+fit <- lm(TotalCorrect ~ Date, data=sitecorrected)
+sitesexTC <- visreg(fit, "Date", ylab = "Score (out of 40)",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("CPF form A Accuracy of Participants at the", site, "site Over Time"))
+assign(paste0(site, "_TC"), sitesexTC)
+
+fit <- lm(Speed ~ Date, data=sitecorrected)
+sitesexSP <- visreg(fit, "Date", ylab = "Speed", xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("CPF form A Speed of Participants at the", site, "site Over Time"))
+assign(paste0(site, "_SP"), sitesexSP)
 
 
 # stats analysis for site differences
