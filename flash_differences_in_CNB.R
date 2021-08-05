@@ -121,6 +121,60 @@ kspvrtA <- kspvrtA[!is.na(kspvrtA$KSPVRT_A.KSPVRTA_CR),c(1:3,5:6,13,16)]
 kspvrtB <- kspvrtB[!is.na(kspvrtB$KSPVRT_B.KSPVRTB_CR),c(1:3,5:6,13,16)]
 kspvrtD <- kspvrtD[!is.na(kspvrtD$KSPVRT_D.KSPVRTD_CR),c(1:3,5:6,12,15)]
 
+medf60A <- medf60A[!is.na(medf60A$MEDF60_A.MEDF60_CR),c(1:3,5:6,12,14)]
+medf36A <- medf36A[!is.na(medf36A$MEDF36_A.MEDF36A_CR),c(1:3,5:6,11,13)]
+
+mpract <- mpract[!is.na(mpract$MPRACT.MP2),c(1:3,5:6,12:13)]
+
+pcetA <- pcetA[!is.na(pcetA$PCET_A.PCET_CR),c(1:3,5:6,11:12)]
+spcetA <- spcetA[!is.na(spcetA$SPCET_A.SPCET_CR),c(1:3,5:6,11:12)]
+
+pmat18B <- pmat18B[!is.na(pmat18B$PMAT18_B.PMAT18_B_CR),c(1:3,5:6,12,14)]
+pmat24A <- pmat24A[!is.na(pmat24A$PMAT24_A.PMAT24_A_CR),c(1:3,5:6,12,15)]
+pmat24B <- pmat24B[!is.na(pmat24B$PMAT24_B.PMAT24_B_CR),c(1:3,5:6,12,14)]
+
+sctap <- sctap[!is.na(sctap$sct),c(1:3,5:6,)] # not sure how to process this test
+
+slnb2 <- slnb2[!is.na(slnb2$sln),c(1:3,5:6,)] # for slnb2: should i count TP and TN as total correct?
+
+spcptnl <- spcptnl[!is.na(spcptnl$spcptnl), c(1:3,5:6,)] # same thing as slnb2
+spcptn90 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # same thing as slnb2
+
+svoltA <- svoltA[!is.na(svoltA$SVOLT_A.SVOLT_CR), c(1:3,5:6,11:12)]
+svoltdA <- svoltdA[!is.na(svoltdA$SVOLTD_A.SVOLTD_CR), c(1:3,5:6,12:13)]
+
+vsplot24 <- vsplot24[!is.na(vsplot24$VSPLOT24.VSPLOT24_CR), c(1:3,5:6,11,13)]
+vsplot15 <- vsplot15[!is.na(vsplot15$VSPLOT15.VSPLOT15_CR), c(1:3,5:6,11,13)]
+splot12 <- splot12[!is.na(splot12$SPLOT12.SPLOT_CR), c(1:3,5:6,12,14)]
+
+wrat4B <- wrat4B[!is.na(wrat4B$WRAT4.WRAT4CR_STD), c(1:3,5:6,16)]     # both the WRAT forms are also going to be a special case
+wrat4G <- wrat4G[!is.na(wrat4G$WRAT4B.WRAT4BCR_STD), c(1:3,5:6,16)]
+
+kddisc <- kddisc[!is.na(kddisc$kddisc), c(1:3,5:6,)]
+krdisc <- krdisc[!is.na(krdisc$krdisc), c(1:3,5:6,)]
+edisc <- edisc[!is.na(edisc$edisc), c(1:3,5:6,)]
+
+abart <- abart[!is.na(abart$abart), c(1:3,5:6,)] # everything between WRAT and this test can't be used the same way I've been doing things
+
+digsym <- digsym[!is.na(digsym$DIGSYM.DSCOR), c(1:3,5:6,11,16)]
+
+pvtb <- pvtb[!is.na(pvtb$PVTB.PVTB_CR), c(1:3,5:6,12,17)]
+
+aim <- aim[!is.na(aim$aim), c(1:3,5:6,)] # do i just sum up the total correct columns?
+
+trailsA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+trailsB <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+
+raven <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+
+praD <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+
+sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+
+cpwA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+cpwdA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+
+spvrtA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
 
 
 
