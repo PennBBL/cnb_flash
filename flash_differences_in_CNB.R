@@ -177,6 +177,15 @@ cpwdA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
 spvrtA <- spvrtA[!is.na(spvrtA$SPVRT_A.PVRTCR), c(1:3,5:6,20,23)] # no values? (empty CR and RTCR)
 
 
+# 08.05.21 making a list of all the tasks that are similar enough to try to make plots and stats
+
+# can't make a list of data frames so i'm just going to list th tasks that work well with the method I've been using
+# adt36, adt60, cpfAcpfdA, cpfB, cpfdB, er40A, er40C, er40D, gng, kcpwA, kcpwdA,
+# kspvrtA, kspvrtB, kspvrtD, medf60A, medf36A, mpract, pcetA, spcetA, pmat18B, 
+# pmat24A, pmat24B, svoltA, svoltdA, vsplot24, vsplot15, splot12, digssym, pvtb,
+# trailsA, trailsB, raven
+
+
 
 
 
