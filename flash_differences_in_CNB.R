@@ -158,23 +158,23 @@ abart <- abart[!is.na(abart$abart), c(1:3,5:6,)] # everything between WRAT and t
 
 digsym <- digsym[!is.na(digsym$DIGSYM.DSCOR), c(1:3,5:6,11,16)]
 
-pvtb <- pvtb[!is.na(pvtb$PVTB.PVTB_CR), c(1:3,5:6,12,17)]
+pvtb <- pvtb[!is.na(pvtb$PVTB.PVTB_CR), c(1:3,5:6,12,16)]
 
 aim <- aim[!is.na(aim$aim), c(1:3,5:6,)] # do i just sum up the total correct columns?
 
-trailsA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
-trailsB <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+trailsA <- trailsA[!is.na(trailsA$TRAIL_A.TRAILS_A_CR), c(1:3,5:6,12,13)]
+trailsB <- trailsB[!is.na(trailsB$TRAIL_B.TRAILS_B_CR), c(1:3,5:6,12,13)]
 
-raven <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+raven <- raven[!is.na(raven$RAVEN.RAV_CR), c(1:3,5:6,12:13)]
 
-praD <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+praD <- praD[!is.na(praD$praD), c(1:3,5:6,)] # not sure what to do with this one
 
-sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # not sure what to do with this one either
 
-cpwA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+cpwA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # this is also empty
 cpwdA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
 
-spvrtA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
+spvrtA <- spvrtA[!is.na(spvrtA$SPVRT_A.PVRTCR), c(1:3,5:6,20,23)] # no values? (empty CR and RTCR)
 
 
 
