@@ -135,10 +135,10 @@ pmat24B <- pmat24B[!is.na(pmat24B$PMAT24_B.PMAT24_B_CR),c(1:3,5:6,12,14)]
 
 sctap <- sctap[!is.na(sctap$SCTAP.SCTAP_TOT),c(1:3,5:6,16)] # use sctap.sctap_tot, no response time
 
-slnb2 <- slnb2[!is.na(slnb2$sln),c(1:3,5:6,)] # true positives
+slnb2 <- slnb2[!is.na(slnb2$SLNB2_90.SLNB2_TP),c(1:3,5:6,11,13)] # true positives
 
-spcptnl <- spcptnl[!is.na(spcptnl$spcptnl), c(1:3,5:6,)] # use true positives
-spcptn90 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # 
+spcptnl <- spcptnl[!is.na(spcptnl$SPCPTNL.SCPL_TP), c(1:3,5:6,11,15)] # use true positives
+spcptn90 <- spcptn90[!is.na(spcptn90$SPCPTN90.SCPN90_TP), c(1:3,5:6,11,15)] # same
 
 svoltA <- svoltA[!is.na(svoltA$SVOLT_A.SVOLT_CR), c(1:3,5:6,11:12)]
 svoltdA <- svoltdA[!is.na(svoltdA$SVOLTD_A.SVOLTD_CR), c(1:3,5:6,12:13)]
@@ -147,10 +147,13 @@ vsplot24 <- vsplot24[!is.na(vsplot24$VSPLOT24.VSPLOT24_CR), c(1:3,5:6,11,13)]
 vsplot15 <- vsplot15[!is.na(vsplot15$VSPLOT15.VSPLOT15_CR), c(1:3,5:6,11,13)]
 splot12 <- splot12[!is.na(splot12$SPLOT12.SPLOT_CR), c(1:3,5:6,12,14)]
 
-wrat4B <- wrat4B[!is.na(wrat4B$WRAT4.WRAT4CR_STD), c(1:3,5:6,16)]     # use raw score
-wrat4G <- wrat4G[!is.na(wrat4G$WRAT4B.WRAT4BCR_STD), c(1:3,5:6,16)]
+wrat4B <- wrat4B[!is.na(wrat4B$WRAT4.WRAT4CR_RAW), c(1:3,5:6,15)]     # use raw score, no time
+wrat4G <- wrat4G[!is.na(wrat4G$WRAT4B.WRAT4BCR_RAW), c(1:3,5:6,15)]
 
-kddisc <- kddisc[!is.na(kddisc$kddisc), c(1:3,5:6,)] # total endorsements
+kddisc <- kddisc[!is.na(kddisc$KDDISC.q_01),]
+dore <- grep("KDDISC.q_", colnames(kddisc))
+kddisc[,dore] <- kddisc[,dore] -1
+kddisc$TE <- rowSums(kddisc[,grepl("KDDISC.q_", colnames(kddisc))]) # total endorsements
 krdisc <- krdisc[!is.na(krdisc$krdisc), c(1:3,5:6,)]
 edisc <- edisc[!is.na(edisc$edisc), c(1:3,5:6,)]
 
