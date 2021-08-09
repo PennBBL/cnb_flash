@@ -126,19 +126,19 @@ medf36A <- medf36A[!is.na(medf36A$MEDF36_A.MEDF36A_CR),c(1:3,5:6,11,13)]
 
 mpract <- mpract[!is.na(mpract$MPRACT.MP2),c(1:3,5:6,12:13)]
 
-pcetA <- pcetA[!is.na(pcetA$PCET_A.PCET_CR),c(1:3,5:6,11:12)]
-spcetA <- spcetA[!is.na(spcetA$SPCET_A.SPCET_CR),c(1:3,5:6,11:12)]
+pcetA <- pcetA[!is.na(pcetA$PCET_A.PCET_ACC2),c(1:3,5:6,25,12)] # use ACC2 CR instead (accounts for correct responses and number of rules learned)
+spcetA <- spcetA[!is.na(spcetA$SPCET_A.SPCET_ACC2),c(1:3,5:6,25,12)] # same as pcet
 
 pmat18B <- pmat18B[!is.na(pmat18B$PMAT18_B.PMAT18_B_CR),c(1:3,5:6,12,14)]
 pmat24A <- pmat24A[!is.na(pmat24A$PMAT24_A.PMAT24_A_CR),c(1:3,5:6,12,15)]
 pmat24B <- pmat24B[!is.na(pmat24B$PMAT24_B.PMAT24_B_CR),c(1:3,5:6,12,14)]
 
-sctap <- sctap[!is.na(sctap$sct),c(1:3,5:6,)] # not sure how to process this test
+sctap <- sctap[!is.na(sctap$SCTAP.SCTAP_TOT),c(1:3,5:6,16)] # use sctap.sctap_tot, no response time
 
-slnb2 <- slnb2[!is.na(slnb2$sln),c(1:3,5:6,)] # for slnb2: should i count TP and TN as total correct?
+slnb2 <- slnb2[!is.na(slnb2$sln),c(1:3,5:6,)] # true positives
 
-spcptnl <- spcptnl[!is.na(spcptnl$spcptnl), c(1:3,5:6,)] # same thing as slnb2
-spcptn90 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # same thing as slnb2
+spcptnl <- spcptnl[!is.na(spcptnl$spcptnl), c(1:3,5:6,)] # use true positives
+spcptn90 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # 
 
 svoltA <- svoltA[!is.na(svoltA$SVOLT_A.SVOLT_CR), c(1:3,5:6,11:12)]
 svoltdA <- svoltdA[!is.na(svoltdA$SVOLTD_A.SVOLTD_CR), c(1:3,5:6,12:13)]
@@ -147,29 +147,29 @@ vsplot24 <- vsplot24[!is.na(vsplot24$VSPLOT24.VSPLOT24_CR), c(1:3,5:6,11,13)]
 vsplot15 <- vsplot15[!is.na(vsplot15$VSPLOT15.VSPLOT15_CR), c(1:3,5:6,11,13)]
 splot12 <- splot12[!is.na(splot12$SPLOT12.SPLOT_CR), c(1:3,5:6,12,14)]
 
-wrat4B <- wrat4B[!is.na(wrat4B$WRAT4.WRAT4CR_STD), c(1:3,5:6,16)]     # both the WRAT forms are also going to be a special case
+wrat4B <- wrat4B[!is.na(wrat4B$WRAT4.WRAT4CR_STD), c(1:3,5:6,16)]     # use raw score
 wrat4G <- wrat4G[!is.na(wrat4G$WRAT4B.WRAT4BCR_STD), c(1:3,5:6,16)]
 
-kddisc <- kddisc[!is.na(kddisc$kddisc), c(1:3,5:6,)]
+kddisc <- kddisc[!is.na(kddisc$kddisc), c(1:3,5:6,)] # total endorsements
 krdisc <- krdisc[!is.na(krdisc$krdisc), c(1:3,5:6,)]
 edisc <- edisc[!is.na(edisc$edisc), c(1:3,5:6,)]
 
-abart <- abart[!is.na(abart$abart), c(1:3,5:6,)] # everything between WRAT and this test can't be used the same way I've been doing things
+abart <- abart[!is.na(abart$abart), c(1:3,5:6,)] # use total pumps
 
 digsym <- digsym[!is.na(digsym$DIGSYM.DSCOR), c(1:3,5:6,11,16)]
 
 pvtb <- pvtb[!is.na(pvtb$PVTB.PVTB_CR), c(1:3,5:6,12,16)]
 
-aim <- aim[!is.na(aim$aim), c(1:3,5:6,)] # do i just sum up the total correct columns?
+aim <- aim[!is.na(aim$aim), c(1:3,5:6,)] # use aimTOT
 
 trailsA <- trailsA[!is.na(trailsA$TRAIL_A.TRAILS_A_CR), c(1:3,5:6,12,13)]
 trailsB <- trailsB[!is.na(trailsB$TRAIL_B.TRAILS_B_CR), c(1:3,5:6,12,13)]
 
 raven <- raven[!is.na(raven$RAVEN.RAV_CR), c(1:3,5:6,12:13)]
 
-praD <- praD[!is.na(praD$praD), c(1:3,5:6,)] # not sure what to do with this one
+praD <- praD[!is.na(praD$praD), c(1:3,5:6,)] # use raw scores
 
-sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # not sure what to do with this one either
+sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # TP
 
 cpwA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # this is also empty
 cpwdA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
@@ -185,7 +185,11 @@ spvrtA <- spvrtA[!is.na(spvrtA$SPVRT_A.PVRTCR), c(1:3,5:6,20,23)] # no values? (
 # pmat24A, pmat24B, svoltA, svoltdA, vsplot24, vsplot15, splot12, digssym, pvtb,
 # trailsA, trailsB, raven
 
-
+texts <- c("adt36", "adt60", "cpfA","cpfdA", "cpfB", "cpfdB", "er40A", "er40C", 
+"er40D", "gng", "kcpwA", "kcpwdA", "kspvrtA", "kspvrtB", "kspvrtD", "medf60A", "medf36A", 
+"mpract", "pcetA", "spcetA", "pmat18B", "pmat24A", "pmat24B", "svoltA","svoltdA", 
+"vsplot24", "vsplot15", "splot12", "digsym", "pvtb", "trailsA", "trailsB", "raven")
+tests <- mget(texts)
 
 
 
