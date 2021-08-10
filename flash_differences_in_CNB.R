@@ -241,6 +241,23 @@ for (test in tests) {
   
   
   # age-sex group differences
+  age <- na.exclude(test$Age)
+  binned <- bins(age, 7, minpts = 30, exact.groups = T)
+  lo <- binned$binlo
+  hi <- binned$binhi
+  
+  ages <- sort(unique(na.exclude(test$Age)))
+  agegroups <- c()
+  
+  for (i in 1:7){
+    low <- lo[i]
+    hig <- hi[i]
+    agegroups <- c(agegroups,paste(ages[low],ages[hig], sep="-"))
+  }
+  
+  
+  
+  
   
   
   
@@ -249,6 +266,8 @@ for (test in tests) {
   
 }
 
+
+# just testing random stuff
 yay <- 3
 plane <- "gey"
 test <- 1:20
