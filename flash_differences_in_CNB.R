@@ -99,7 +99,7 @@ cpwdA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("CPWD_A.", colname
 spvrtA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPVRT_A.", colnames(bigcnb), fixed = TRUE)])
 
 
-# refining data separated out into tasks (only site, bblid, age, date, sex, TC, SP)
+# refining data separated out into tasks (only site, bblid, age, date, sex, TC, SP) ----
 adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),c(1:3,5:6,11,13)]
 adt60 <- adt60[!is.na(adt60$ADT60_A.ADT60_CR),c(1:3,5:6,12,14)]
 
@@ -154,25 +154,43 @@ kddisc <- kddisc[!is.na(kddisc$KDDISC.q_01),]
 dore <- grep("KDDISC.q_", colnames(kddisc))
 kddisc[,dore] <- kddisc[,dore] -1
 kddisc$TE <- rowSums(kddisc[,grepl("KDDISC.q_", colnames(kddisc))]) # total endorsements
-krdisc <- krdisc[!is.na(krdisc$krdisc), c(1:3,5:6,)]
-edisc <- edisc[!is.na(edisc$edisc), c(1:3,5:6,)]
+kddisc$RT <- rowMeans(kddisc[,grepl("KDDISC.trr_", colnames(kddisc))])
+temp <- kddisc[,c(1:3,5:6,80:81)]
+kddisc <- temp
 
-abart <- abart[!is.na(abart$abart), c(1:3,5:6,)] # use total pumps
+krdisc <- krdisc[!is.na(krdisc$KRDISC.q_01),]
+dore <- grep("KRDISC.q_", colnames(krdisc))
+krdisc[,dore] <- krdisc[,dore] - 1
+krdisc$TE <- rowSums(krdisc[,grepl("KRDISC.q_", colnames(krdisc))]) # total endorsements
+krdisc$RT <- rowMeans(krdisc[,grepl("KRDISC.trr_", colnames(krdisc))])
+temp <- krdisc[,c(1:3,5:6,94:95)]
+krdisc <- temp
+
+edisc <- edisc[!is.na(edisc$EDISC.q_1_resp),]                   # i will come back to EDISC later, weird thing with all responses being th same up to q101-134
+questions <- edisc[,grepl("EDISC.q_", colnames(edisc))]
+resp <- questions[,grep("resp", colnames(questions))] -1
+times <- questions[,grep("ttr", colnames(questions))]
+edisc$TE <- rowSums(resp) # total endorsements
+edisc$RT <- rowMeans(edisc[,grepl("EDISC.trr_", colnames(edisc))])
+temp <- edisc[,c(1:3,5:6,94:95)]
+edisc <- temp
+
+abart <- abart[!is.na(abart$BART_1.ABART_A_TOTAL_PUMPS), c(1:3,5:6,11,14)] # total pumps
 
 digsym <- digsym[!is.na(digsym$DIGSYM.DSCOR), c(1:3,5:6,11,16)]
 
 pvtb <- pvtb[!is.na(pvtb$PVTB.PVTB_CR), c(1:3,5:6,12,16)]
 
-aim <- aim[!is.na(aim$aim), c(1:3,5:6,)] # use aimTOT
+aim <- aim[!is.na(aim$AIM.AIMTOT), c(1:3,5:6,37,40)] # use aimTOT
 
 trailsA <- trailsA[!is.na(trailsA$TRAIL_A.TRAILS_A_CR), c(1:3,5:6,12,13)]
 trailsB <- trailsB[!is.na(trailsB$TRAIL_B.TRAILS_B_CR), c(1:3,5:6,12,13)]
 
 raven <- raven[!is.na(raven$RAVEN.RAV_CR), c(1:3,5:6,12:13)]
 
-praD <- praD[!is.na(praD$praD), c(1:3,5:6,)] # use raw scores
+praD <- praD[!is.na(praD$PRA_D.PRADCR_RAW), c(1:3,5:6,16)] # use raw scores, no response time
 
-sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # TP
+sfnb2 <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # TP, no data (no columns named sfn)
 
 cpwA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)] # this is also empty
 cpwdA <- spcptn90[!is.na(spcptn90$spcptn90), c(1:3,5:6,)]
@@ -182,20 +200,19 @@ spvrtA <- spvrtA[!is.na(spvrtA$SPVRT_A.PVRTCR), c(1:3,5:6,20,23)] # no values? (
 
 # 08.05.21 making a list of all the tasks that are similar enough to try to make plots and stats
 
-# can't make a list of data frames so i'm just going to list th tasks that work well with the method I've been using
-# adt36, adt60, cpfAcpfdA, cpfB, cpfdB, er40A, er40C, er40D, gng, kcpwA, kcpwdA,
-# kspvrtA, kspvrtB, kspvrtD, medf60A, medf36A, mpract, pcetA, spcetA, pmat18B, 
-# pmat24A, pmat24B, svoltA, svoltdA, vsplot24, vsplot15, splot12, digssym, pvtb,
-# trailsA, trailsB, raven
-
 texts <- c("adt36", "adt60", "cpfA","cpfdA", "cpfB", "cpfdB", "er40A", "er40C", 
-"er40D", "gng", "kcpwA", "kcpwdA", "kspvrtA", "kspvrtB", "kspvrtD", "medf60A", "medf36A", 
-"mpract", "pcetA", "spcetA", "pmat18B", "pmat24A", "pmat24B", "svoltA","svoltdA", 
-"vsplot24", "vsplot15", "splot12", "digsym", "pvtb", "trailsA", "trailsB", "raven")
+           "er40D", "gng", "kcpwA", "kcpwdA", "kspvrtA", "kspvrtB", "kspvrtD", 
+           "medf60A", "medf36A", "mpract", "pcetA", "spcetA", "pmat18B", "pmat24A", 
+           "pmat24B", "slnb2", "spcptnl", "spcptn90", "svoltA","svoltdA", "vsplot24", 
+           "vsplot15", "splot12", "kddisc", "krdisc", "edisc", "abart", "digsym", "pvtb", 
+           "aim", "trailsA", "trailsB", "raven")
 tests <- mget(texts)
 
+noRT <- c("sctap","wrat4B","wrat4G", "praD")
+noRT <- mget(noRT)
 
-
+needhelp <- c("sfnb2", "cpwA", "cpwdA", "spvrtA")
+needhelp <- mget(needhelp)
 
 
 
