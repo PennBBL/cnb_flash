@@ -105,10 +105,6 @@ spvrtA <- cbind(bigcnb[,c(2,5:8,11,15:16,1674)], bigcnb[,grepl("SPVRT_A.", colna
 
 # Making plots ----
 # * ADT36 ----
-adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),]
-adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
-adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
-
 # basic accuracy and speed plots (flash vs non-flash)
 adt36 <- adt36[!is.na(adt36$ADT36_A.ADT36A_CR),]
 adt36$test_sessions_v.dotest <- as.Date(adt36$test_sessions_v.dotest)
@@ -117,7 +113,7 @@ adt36$ADT36_A.ADT36A_PC <- 100*adt36$ADT36_A.ADT36A_CR/36
 corrected <- adt36[,c(2,5:6,11:13)]
 names(corrected) <- c("BBLID", "Date", "Sex", "TotalCorrect", "PercentCorrect", "Speed")
 
-# basic accuracy and speed plots (flash vs non-flash)
+
 firstday <- min(corrected$Date)
 numdates <- as.numeric(corrected$Date)
 numdates <- numdates - min(numdates)
