@@ -304,12 +304,25 @@ for (test in tests) {
   
   write.csv(agesex_mean_sd, paste0("myresults/", texts[count], "_agesex_mean_sd.csv"),na="",row.names=F)
   
+  # age and flash/non-flash
+  agefTC <- test %>%
+    group_by(AgeGroup,Flash) %>%
+    summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
+  
+  agefSP <- test %>%
+    group_by(AgeGroup,Flash) %>%
+    summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
+  
+  agef_mean_sd <- cbind(agesexTC[1:4],agesexSP[,3:5])
+  names(agef_mean_sd)[2:7] <- c("Flash", "meanTC", "sdTC", "meanSP", "sdSP", "n")
+  
+  write.csv(agef_mean_sd, paste0("myresults/", texts[count], "_agefnf_mean_sd.csv"),na="",row.names=F)
+  
   
   
   
   # site differences
-  
-  sites <- sort(unique(test$Site))
+  # sites <- sort(unique(test$Site))
   siteTC <- test %>%
     group_by(Site,Sex) %>%
     summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
@@ -322,6 +335,20 @@ for (test in tests) {
   names(site_mean_sd) <- c("Site", "Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
 
   write.csv(site_mean_sd,paste0("myresults/", texts[count], "_site_mean_sd.csv"),na="",row.names=F)
+  
+  # site and flash
+  sitefTC <- test %>%
+    group_by(Site,Flash) %>%
+    summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
+  
+  sitefSP <- test %>%
+    group_by(Site,Flash) %>%
+    summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
+  
+  sitefnf_mean_sd <- cbind(sitefTC[,1:4], sitefSP[,3:5])
+  names(sitefnf_mean_sd) <- c("Site", "Flash", "meanTC", "sdTC", "meanSP", "sdSP", "n")
+  
+  write.csv(sitefnf_mean_sd,paste0("myresults/", texts[count], "_sitefnf_mean_sd.csv"),na="",row.names=F)
   
   
   
