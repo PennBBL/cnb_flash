@@ -224,11 +224,11 @@ for (test in tests) {
   
   fnfTC <- test %>%
     group_by(Flash,Sex) %>%
-    summarise(mean = mean(TotalCorrect), sd = sd(TotalCorrect), n = n())  # much fewer tests administered in non-flash years compared to flash years
+    summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())  # much fewer tests administered in non-flash years compared to flash years
   
   fnfSP <- test %>%
     group_by(Flash,Sex) %>%
-    summarise(mean = mean(MedianRT), sd = sd(MedianRT), n = n())
+    summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
   
   flash_meanSD <- cbind(fnfTC[-5],fnfSP[3:5])
   names(flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
@@ -240,14 +240,20 @@ for (test in tests) {
   
   # age-sex group differences
   age <- na.exclude(test$Age)
-  binned <- bins(age, 7, minpts = 30, exact.groups = T)
-  lo <- binned$binlo
-  hi <- binned$binhi
+  
+  if (any(count == c(26,35,37))){      # if statement for spcptn90, abart, pvtb to have a separate agegroup thing
+    binned <- bins(age, 7, minpts = 1, exact.groups = T)
+    lo <- binned$binlo
+    hi <- binned$binhi
+  }else {
+    binned <- bins(age, 7, minpts = 30, exact.groups = T)
+    lo <- binned$binlo
+    hi <- binned$binhi
+  }
+  
   
   ages <- sort(unique(na.exclude(test$Age)))
   agegroups <- c()
-  
-  # if statement for spcptn90, abart, pvtb to have a separate agegroup thing
   
   for (i in 1:7){
     low <- lo[i]
