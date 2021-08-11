@@ -230,10 +230,10 @@ for (test in tests) {
     group_by(Flash,Sex) %>%
     summarise(mean = mean(MedianRT), sd = sd(MedianRT), n = n())
   
-  flash_meanSD <- cbind(fnfTC[-5],fnfSP[3:4])
-  names(flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanSP", "sdSP")
+  flash_meanSD <- cbind(fnfTC[-5],fnfSP[3:5])
+  names(flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
   
-  write.csv(flash_meanSD,paste0("myresults/", texts[count], "_fnf_mean_sd.csv"),na="")
+  write.csv(flash_meanSD,paste0("myresults/", texts[count], "_fnf_mean_sd.csv"),na="",row.names=F)
   
   
   
@@ -247,6 +247,8 @@ for (test in tests) {
   ages <- sort(unique(na.exclude(test$Age)))
   agegroups <- c()
   
+  # if statement for spcptn90, abart, pvtb to have a separate agegroup thing
+  
   for (i in 1:7){
     low <- lo[i]
     hig <- hi[i]
@@ -254,45 +256,55 @@ for (test in tests) {
     if (i==7){
       agegroups[7] <- paste0(ages[low], "+")
     }
-  }
-  
-  missing <- c()
-  
-  for (i in 1:nrow(test)) {
-    if (is.na(test$Age[i])) {
-      missing <- c(missing,i)
-    }
-    else if (test$Age[i] %in% ages[lo[1]]:ages[hi[1]]) {
-      test$AgeGroup[i] <- agegroups[1]
-    }
-    else if (test$Age[i] %in% ages[lo[2]]:ages[hi[2]]) {
-      test$AgeGroup[i] <- agegroups[2]
-    }
-    else if (test$Age[i] %in% ages[lo[13]]:ages[hi[3]]) {
-      test$AgeGroup[i] <- agegroups[3]
-    }
-    else if (test$Age[i] %in% ages[lo[4]]:ages[hi[4]]) {
-      test$AgeGroup[i] <- agegroups[4]
-    }
-    else if (test$Age[i] %in% ages[lo[5]]:ages[hi[5]]) {
-      test$AgeGroup[i] <- agegroups[5]
-    }
-    else if (test$Age[i] %in% ages[lo[6]]:ages[hi[6]]) {
-      test$AgeGroup[i] <- agegroups[6]
-    }
-    else if (test$Age[i] >= ages[lo[7]]) {
-      test$AgeGroup[i] <- agegroups[7]
+    else if (lo[i]==hi[i]) {
+      agegroups[i] <- ages[lo[i]]
     }
   }
   
+  for (age in ages){
+    if (age %in% ages[lo[1]]:ages[hi[1]]){
+      test$AgeGroup[test$Age==age] <- agegroups[1]
+    }
+    else if (age %in% ages[lo[2]]:ages[hi[2]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[2]
+    }
+    else if (age %in% ages[lo[3]]:ages[hi[3]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[3]
+    }
+    else if (age %in% ages[lo[4]]:ages[hi[4]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[4]
+    }
+    else if (age %in% ages[lo[5]]:ages[hi[5]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[5]
+    }
+    else if (age %in% ages[lo[6]]:ages[hi[6]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[6]
+    }
+    else if (age >= ages[lo[7]]) {
+      test$AgeGroup[test$Age==age] <- agegroups[7]
+    }
+  }
   
+  agesexTC <- test %>%
+    group_by(AgeGroup,Sex) %>%
+    summarise(mean = mean(TotalCorrect), sd = sd(TotalCorrect), n = n())
+  
+  agesexSP <- test %>%
+    group_by(AgeGroup,Sex) %>%
+    summarise(mean = mean(TotalCorrect), sd = sd(TotalCorrect), n = n())
+  
+  
+  agesex_mean_sd <- cbind(agesexTC[1:4],agesexSP[,3:5])
+  names(agesex_mean_sd)[2:7] <- c("Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
+  
+  write.csv(agesex_mean_sd, paste0("myresults/", texts[count], "_agesex_mean_sd.csv"),na="",row.names=F)
   
   
   
   
   # site differences
   
-  
+  #sites <- sort(unique(adt36$test_sessions.siteid))
   
   
   
@@ -333,29 +345,7 @@ tests <- tests[-35]
 
 # new for loop to make agegroup column
 
-for (age in ages){
-  if (age %in% ages[lo[1]]:ages[hi[1]]){
-    test$AgeGroup[test$Age==age] <- agegroups[1]
-  }
-  else if (age %in% ages[lo[2]]:ages[hi[2]]) {
-    test$AgeGroup[test$Age==age] <- agegroups[2]
-  }
-  # else if (age %in% ages[lo[13]]:ages[hi[3]]) {
-  #   test$AgeGroup[test$Age==age] <- agegroups[3]
-  # }
-  # else if (age %in% ages[lo[4]]:ages[hi[4]]) {
-  #   test$AgeGroup[test$Age==age] <- agegroups[4]
-  # }
-  # else if (age %in% ages[lo[5]]:ages[hi[5]]) {
-  #   test$AgeGroup[test$Age==age] <- agegroups[5]
-  # }
-  # else if (age %in% ages[lo[6]]:ages[hi[6]]) {
-  #   test$AgeGroup[test$Age==age] <- agegroups[6]
-  # }
-  # else if (age >= ages[lo[7]]) {
-  #   test$AgeGroup[test$Age==age] <- agegroups[7]
-  # }
-}
+
 
 
 
