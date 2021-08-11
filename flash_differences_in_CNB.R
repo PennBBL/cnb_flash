@@ -251,7 +251,6 @@ for (test in tests) {
     hi <- binned$binhi
   }
   
-  
   ages <- sort(unique(na.exclude(test$Age)))
   agegroups <- c()
   
@@ -293,11 +292,11 @@ for (test in tests) {
   
   agesexTC <- test %>%
     group_by(AgeGroup,Sex) %>%
-    summarise(mean = mean(TotalCorrect), sd = sd(TotalCorrect), n = n())
+    summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
   
   agesexSP <- test %>%
     group_by(AgeGroup,Sex) %>%
-    summarise(mean = mean(TotalCorrect), sd = sd(TotalCorrect), n = n())
+    summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
   
   
   agesex_mean_sd <- cbind(agesexTC[1:4],agesexSP[,3:5])
@@ -310,7 +309,19 @@ for (test in tests) {
   
   # site differences
   
-  #sites <- sort(unique(adt36$test_sessions.siteid))
+  sites <- sort(unique(test$Site))
+  siteTC <- test %>%
+    group_by(Site,Sex) %>%
+    summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
+
+  siteSP <- test %>%
+    group_by(Site,Sex) %>%
+    summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
+
+  site_mean_sd <- cbind(siteTC[,1:4], siteSP[,3:5])
+  names(site_mean_sd) <- c("Site", "Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
+
+  write.csv(site_mean_sd,paste0("myresults/", texts[count], "_site_mean_sd.csv"),na="",row.names=F)
   
   
   
@@ -349,7 +360,47 @@ tests <- tests[-34]
 tests <- tests[-35]
 
 
-# new for loop to make agegroup column
+# rrevisitng code from kosha_cnb for site differences
+siteTC <- adt36 %>%
+  group_by(test_sessions.siteid,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR), n = n())
+siteTC <- siteTC[which(!is.na(siteTC$test_sessions_v.gender)),]   # LiBI has no age or sex data (missing on this table) and ImmuSili only has one (F) data point
+names(siteTC) <- c("siteID", "gender", "meanTC", "sdTC", "n")
+
+siteSP <- adt36 %>%
+  group_by(test_sessions.siteid,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR), n = n())
+siteSP <- siteSP[which(!is.na(siteSP$test_sessions_v.gender)),]
+names(siteSP) <- c("siteID", "gender", "meanSP", "sdSP", "n")
+
+site_mean_sd <- cbind(siteTC[,1:4], siteSP[,3:5])
+
+write.csv(site_mean_sd, "myresults/adt36_site_mean_sd.csv",na="", row.names = FALSE)
+
+siteTC_as <- adt36 %>%
+  group_by(test_sessions.siteid,agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_CR), sd = sd(ADT36_A.ADT36A_CR), n = n())
+siteTC_as <- siteTC_as[which(!is.na(siteTC_as$test_sessions_v.gender)),]
+siteTC_as <- siteTC_as[order(siteTC_as$test_sessions_v.gender),]
+siteTC_as <- siteTC_as[order(siteTC_as$agegroup),]
+siteTC_as <- siteTC_as[order(siteTC_as$test_sessions.siteid),]
+siteTC_as <- siteTC_as[c(5,1:4,6:8,21:22,9:20,23:91,104:105,92:103,106:114,127:128,115:126,129:137,147:148,138:146,149:154),]
+names(siteTC_as) <- c("siteID", "agegroup", "gender", "meanTC", "sdTC", "n")
+
+siteSP_as <- adt36 %>%
+  group_by(test_sessions.siteid,agegroup,test_sessions_v.gender) %>%
+  summarise(mean = mean(ADT36_A.ADT36A_RTCR), sd = sd(ADT36_A.ADT36A_RTCR), n = n())
+siteSP_as <- siteSP_as[which(!is.na(siteSP_as$test_sessions_v.gender)),]
+siteSP_as <- siteSP_as[order(siteSP_as$test_sessions_v.gender),]
+siteSP_as <- siteSP_as[order(siteSP_as$agegroup),]
+siteSP_as <- siteSP_as[order(siteSP_as$test_sessions.siteid),]
+siteSP_as <- siteSP_as[c(5,1:4,6:8,21:22,9:20,23:91,104:105,92:103,106:114,127:128,115:126,129:137,147:148,138:146,149:154),]
+names(siteSP_as) <- c("siteID", "agegroup", "gender", "meanSP", "sdSP", "n")
+
+site_agesex <- cbind(siteTC_as[,1:5], siteSP_as[,4:6])
+
+write.csv(site_agesex, "myresults/adt36_siteagesex_mean_sd.csv",na="", row.names = FALSE)
+
 
 
 
