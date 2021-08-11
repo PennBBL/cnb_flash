@@ -216,7 +216,7 @@ needhelp <- mget(needhelp)
 
 
 # Stats Loop ----
-
+count <- 1
 for (test in tests) {
   # general flash non-flash difference
   test[,4] <- as.Date(test[,4])
@@ -233,9 +233,7 @@ for (test in tests) {
   flash_meanSD <- cbind(fnfTC[-5],fnfSP[3:4])
   names(flash_meanSD) <- c("Flash", "Sex", "meanTC", "sdTC", "meanSP", "sdSP")
   
-  # still need to figure out how to name this right
-  # also: do i want to make a folder for each test where I store all the plots and stats?
-  write.csv(flash_meanSD,"myresults/adt36_fnf_mean_sd.csv",na="")
+  write.csv(flash_meanSD,paste0("myresults/", texts[count], "_fnf_mean_sd.csv"),na="")
   
   
   
@@ -253,9 +251,39 @@ for (test in tests) {
     low <- lo[i]
     hig <- hi[i]
     agegroups <- c(agegroups,paste(ages[low],ages[hig], sep="-"))
+    if (i==7){
+      agegroups[7] <- paste0(ages[low], "+")
+    }
   }
   
+  missing <- c()
   
+  for (i in 1:nrow(test)) {
+    if (is.na(test$Age[i])) {
+      missing <- c(missing,i)
+    }
+    else if (test$Age[i] %in% ages[lo[1]]:ages[hi[1]]) {
+      test$AgeGroup[i] <- agegroups[1]
+    }
+    else if (test$Age[i] %in% ages[lo[2]]:ages[hi[2]]) {
+      test$AgeGroup[i] <- agegroups[2]
+    }
+    else if (test$Age[i] %in% ages[lo[13]]:ages[hi[3]]) {
+      test$AgeGroup[i] <- agegroups[3]
+    }
+    else if (test$Age[i] %in% ages[lo[4]]:ages[hi[4]]) {
+      test$AgeGroup[i] <- agegroups[4]
+    }
+    else if (test$Age[i] %in% ages[lo[5]]:ages[hi[5]]) {
+      test$AgeGroup[i] <- agegroups[5]
+    }
+    else if (test$Age[i] %in% ages[lo[6]]:ages[hi[6]]) {
+      test$AgeGroup[i] <- agegroups[6]
+    }
+    else if (test$Age[i] >= ages[lo[7]]) {
+      test$AgeGroup[i] <- agegroups[7]
+    }
+  }
   
   
   
@@ -264,10 +292,18 @@ for (test in tests) {
   
   # site differences
   
+  
+  
+  
+  
+  
+  count <- count + 1
 }
 
 
-# just testing random stuff
+
+
+# just testing random stuff ----
 yay <- 3
 plane <- "gey"
 test <- 1:20
@@ -279,5 +315,47 @@ for (word in c) {
   txt <- print(word)
   print(paste0("aki", txt))
 }
+
+count <- 1
+for (test in tests) {
+  print(count)
+  age <- na.exclude(test$test_sessions_v.age)
+  groups <- bins(age, 7, minpts = 30)$binct
+  count <- count + 1
+}
+
+
+# not enough ages for spcptn90 (26) -- too many NAs, abart (35)-- too many NAs, pvtb (37) only 22 entries
+tests <- tests[-26]
+tests <- tests[-34]
+tests <- tests[-35]
+
+
+# new for loop to make agegroup column
+
+for (age in ages){
+  if (age %in% ages[lo[1]]:ages[hi[1]]){
+    test$AgeGroup[test$Age==age] <- agegroups[1]
+  }
+  else if (age %in% ages[lo[2]]:ages[hi[2]]) {
+    test$AgeGroup[test$Age==age] <- agegroups[2]
+  }
+  # else if (age %in% ages[lo[13]]:ages[hi[3]]) {
+  #   test$AgeGroup[test$Age==age] <- agegroups[3]
+  # }
+  # else if (age %in% ages[lo[4]]:ages[hi[4]]) {
+  #   test$AgeGroup[test$Age==age] <- agegroups[4]
+  # }
+  # else if (age %in% ages[lo[5]]:ages[hi[5]]) {
+  #   test$AgeGroup[test$Age==age] <- agegroups[5]
+  # }
+  # else if (age %in% ages[lo[6]]:ages[hi[6]]) {
+  #   test$AgeGroup[test$Age==age] <- agegroups[6]
+  # }
+  # else if (age >= ages[lo[7]]) {
+  #   test$AgeGroup[test$Age==age] <- agegroups[7]
+  # }
+}
+
 
 
