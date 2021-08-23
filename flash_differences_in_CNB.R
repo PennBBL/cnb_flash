@@ -166,13 +166,13 @@ krdisc$RT <- rowMeans(krdisc[,grepl("KRDISC.trr_", colnames(krdisc))])
 temp <- krdisc[,c(1:3,5:6,9,94:95)]
 krdisc <- temp
 
-edisc <- edisc[!is.na(edisc$EDISC.q_1_resp),]                   # i will come back to EDISC later, weird thing with all responses being th same up to q101-134
+edisc <- edisc[!is.na(edisc$EDISC.q_101_resp),]                   # first 100 questions are just the 100  items to get correct, only sum 101-134
 questions <- edisc[,grepl("EDISC.q_", colnames(edisc))]
 resp <- questions[,grep("resp", colnames(questions))] -1
 times <- questions[,grep("ttr", colnames(questions))]
-edisc$TE <- rowSums(resp) # total endorsements
-edisc$RT <- rowMeans(edisc[,grepl("EDISC.trr_", colnames(edisc))])
-temp <- edisc[,c(1:3,5:6,9,94:95)]
+edisc$TE <- rowSums(resp[,101:134]) # total endorsements
+edisc$RT <- rowMeans(times[,101:134])
+temp <- edisc[,c(1:3,5:6,9,280:281)]
 edisc <- temp
 
 abart <- abart[!is.na(abart$BART_1.ABART_A_TOTAL_PUMPS), c(1:3,5:6,9,11,14)] # total pumps
@@ -215,13 +215,31 @@ needhelp <- c("sfnb2", "cpwA", "cpwdA", "spvrtA")
 needhelp <- mget(needhelp)
 
 
-# Stats Loop ----
+# Stats/Plots Loop ----
 count <- 1
 for (test in tests) {
   # general flash non-flash difference
   test[,4] <- as.Date(test[,4])
   colnames(test) <- c("Site", "BBLID", "Age", "Date", "Sex", "Flash", "TotalCorrect", "MedianRT")
   
+  firstday <- min(test$Date)
+  numdates <- as.numeric(test$Date)
+  numdates <- numdates - min(numdates)
+  test$Date <- numdates
+  
+  # plots
+  # still need to figure out which tests need PC instead of TC
+  # fit <- lm(TotalCorrect ~ Date, data=test)
+  # png(filename = paste0("plots/",texts[count], "fnf_TC.png"), width = 2400,height = 1800)
+  # fnfTC <- visreg(fit, "Date", ylab = "Score (out of 36)",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Accuracy on", texts[count], "over time"))
+  # dev.off()
+  # 
+  # fit <- lm(MedianRT ~ Date, data=test)
+  # png(filename = paste0("plots/",texts[count], "fnf_SP.png"), width = 2400,height = 1800)
+  # fnfSP <- visreg(fit, "Date", ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Speed on", texts[count], "over time"))
+  # dev.off()
+  # 
+  # stats
   fnfTC <- test %>%
     group_by(Flash,Sex) %>%
     summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())  # much fewer tests administered in non-flash years compared to flash years
@@ -290,6 +308,29 @@ for (test in tests) {
     }
   }
   
+  # plots
+  # for (age in agegroups) {
+  #   data <- test[test$AgeGroup == age,1:8]
+  #   
+  #   firstday <- min(test$Date)
+  #   numdates <- as.numeric(test$Date)
+  #   numdates <- numdates - min(numdates)
+  #   test$Date <- numdates
+  #   
+  #   fit <- lm(TotalCorrect ~ Date*Sex, data=data)
+  #   png(filename = paste0("plots/",texts[count], "_", age, "agesex_TC.png"), width = 2400,height = 1800)
+  #   agesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 60)", xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in", texts[count], "Accuracy of Participants Age(s)", age, "Over Time"))
+  #   dev.off()
+  #   
+  #   fit <- lm(MedianRT ~ Date*Sex, data=data)
+  #   png(filename = paste0("plots/",texts[count], "_", age, "agesex_SP.png"), width = 2400,height = 1800)
+  #   agesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", xlab = paste("Date (starting at", as.character(firstday), ")"),main = paste("Sex Differences in", texts[count], "Speed of Participants Age(s)", age, "Over Time"))
+  #   dev.off()
+  # }
+  
+  
+  
+  #stats
   agesexTC <- test %>%
     group_by(AgeGroup,Sex) %>%
     summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
@@ -313,7 +354,7 @@ for (test in tests) {
     group_by(AgeGroup,Flash) %>%
     summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
   
-  agef_mean_sd <- cbind(agesexTC[1:4],agesexSP[,3:5])
+  agef_mean_sd <- cbind(agefTC[1:4],agefSP[,3:5])
   names(agef_mean_sd)[2:7] <- c("Flash", "meanTC", "sdTC", "meanSP", "sdSP", "n")
   
   write.csv(agef_mean_sd, paste0("myresults/", texts[count], "_agefnf_mean_sd.csv"),na="",row.names=F)
@@ -322,18 +363,39 @@ for (test in tests) {
   
   
   # site differences
+  
+  # plots
   # sites <- sort(unique(test$Site))
+  # for (site in sites) {
+  #   data <- test[test$Site == site,2:9]
+  #   
+  #   firstday <- min(test$Date)
+  #   numdates <- as.numeric(test$Date)
+  #   numdates <- numdates - min(numdates)
+  #   test$Date <- numdates
+  #   
+  #   # need to filter out bad sites for each site
+  #   fit <- lm(TotalCorrect ~ Date*Sex, data=data)
+  #   sitesexTC <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Score (out of 60)",xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in", texts[count], "Accuracy of Participants at the", site, " site Over Time"))
+  #   
+  #   fit <- lm(MedianRT ~ Date*Sex, data=data)
+  #   sitesexSP <- visreg(fit, "Date", by= "Sex", overlay =T, ylab = "Speed", xlab = paste("Date (starting at", as.character(firstday), ")"), main = paste("Sex Differences in", texts[count], "Speed of Participants at the", site, "site Over Time"))
+  # }
+  
+  
+  
+  # stats
   siteTC <- test %>%
     group_by(Site,Sex) %>%
     summarise(mean = mean(TotalCorrect,na.rm=T), sd = sd(TotalCorrect,na.rm=T), n = n())
-
+  
   siteSP <- test %>%
     group_by(Site,Sex) %>%
     summarise(mean = mean(MedianRT,na.rm=T), sd = sd(MedianRT,na.rm=T), n = n())
-
+  
   site_mean_sd <- cbind(siteTC[,1:4], siteSP[,3:5])
   names(site_mean_sd) <- c("Site", "Sex", "meanTC", "sdTC", "meanSP", "sdSP", "n")
-
+  
   write.csv(site_mean_sd,paste0("myresults/", texts[count], "_site_mean_sd.csv"),na="",row.names=F)
   
   # site and flash
@@ -355,6 +417,8 @@ for (test in tests) {
   
   count <- count + 1
 }
+
+
 
 
 
