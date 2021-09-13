@@ -16,7 +16,7 @@ library(visreg)
 
 
 # load data ----
-bigcnb <- read.csv("cnb_dump_15july2021.csv", na=c("",".","NA"))
+bigcnb <- read.csv("cnb_dump_15july2021.csv", na=c("",".","NA",NA))
 
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$test_sessions_v.dotest < as.Date("2021-01-01"))] <- 1
@@ -229,14 +229,14 @@ for (test in tests) {
   
   # plots
   # still need to figure out which tests need PC instead of TC
-  # fit <- lm(TotalCorrect ~ Date, data=test)
+  fit <- lm(TotalCorrect ~ Date*Flash, data=test)
   # png(filename = paste0("plots/",texts[count], "fnf_TC.png"), width = 2400,height = 1800)
-  # fnfTC <- visreg(fit, "Date", ylab = "Score (out of 36)",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Accuracy on", texts[count], "over time"))
+  fnfTC <- visreg(fit, "Date", by="Flash",overlay=T, ylab = "Score (out of 36)",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Accuracy on", texts[count], "over time"))
   # dev.off()
   # 
-  # fit <- lm(MedianRT ~ Date, data=test)
+  fit <- lm(MedianRT ~ Date*Flash, data=test)
   # png(filename = paste0("plots/",texts[count], "fnf_SP.png"), width = 2400,height = 1800)
-  # fnfSP <- visreg(fit, "Date", ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Speed on", texts[count], "over time"))
+  fnfSP <- visreg(fit, "Date", by="Flash",overlay=T, ylab = "Speed",xlab = paste("Date (starting at", as.character(firstday), ")"), main= paste("Speed on", texts[count], "over time"))
   # dev.off()
   # 
   # stats
