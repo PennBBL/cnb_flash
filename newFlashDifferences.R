@@ -12,22 +12,29 @@ library(binr)
 library(arules)
 library(stringr)
 library(visreg)
+library(lubridate)
 
 
 # Load and organize data ----
 bigcnb <- read.csv("bigcnb_13Sep2021.csv", na=c("",".","NA",NA))
 
 bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
-bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")
+bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
+bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
+
+temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
+temp <- temp %m-% years(100) 
+bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
 
 bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
 
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
 
+bigcnb <- bigcnb[order(bigcnb$Datasetid),]
 
 
-# Models and Plotting ----
+# * Separate into test versions ----
 tests <- sort(unique(bigcnb$Version))
 
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Version),]
@@ -74,7 +81,7 @@ SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version),]
 
 
 
-
+# Models and Plotting ----
 
 
 
