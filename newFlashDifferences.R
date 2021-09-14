@@ -16,7 +16,7 @@ library(lubridate)
 
 
 # Load and organize data ----
-bigcnb <- read.csv("bigcnb_13Sep2021.csv", na=c("",".","NA",NA))
+bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
 
 bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
 bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
@@ -25,6 +25,7 @@ bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
 temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
 temp <- temp %m-% years(100) 
 bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
+bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
 
 bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
 
@@ -83,7 +84,13 @@ SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version),]
 
 # Models and Plotting ----
 
+# old script only used siteid, bblid, age, dotest, gender, flash, CR, RTCR as the important columns
+# i can do that again here, or I can just call on the columns i need, leaving the 
+# unneeded ones in still.
 
+# CPF_A, 40 total
+
+CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),]
 
 
 
