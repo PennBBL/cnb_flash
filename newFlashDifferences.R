@@ -92,11 +92,16 @@ SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version),]
 
 CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),]
 
+genfit <- lm(Accuracy ~ Dotest+flash, data=CPF_A)
+fit <- lm(Accuracy ~ Dotest*flash, data=CPF_A)
 
+summary(genfit)
+summary(fit)
 
+visreg(genfit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
+visreg(fit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
 
-
-
+# genfit definitely looks better (line of best fit-wise)
 
 
 
