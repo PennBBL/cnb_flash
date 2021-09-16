@@ -91,7 +91,7 @@ SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version),]
 # * CPF_A, 40 total ----
 
 CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),] # there are some missing ages
-CPF_A <- CPF_A[!is.na(CPF_A$age) & !is.na(CPF_A$Accuracy),]
+CPF_A <- CPF_A[!is.na(CPF_A$Accuracy),]
 
 firstday <- min(CPF_A$Dotest)
 lastday <- max(CPF_A$Dotest)
@@ -116,11 +116,16 @@ visreg(genfit, "Dotest", by= "flash", overlay =T, gg=T) +
 
 flashfit <- lm(Accuracy ~ flash, data=CPF_A)
 summary(flashfit)
-visreg(flashfit, "flash", gg=T) +
+ad <- visreg(flashfit, "flash", gg=T) +
   theme_bw() + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
   labs(y = "Score (out of 40)",
-       title = "Accuracy on CPF_A") +
+       title = "Accuracy on CPF_A depending on Flash/non-Flash") +
   scale_x_continuous(name = "Date of test", breaks = seq(0,1,by=1))
+
+png(filename = "plots/CPF_A_general_alldates.png", height = 1000, width = 1000,res=160)
+ad
+dev.off()
 
 
 # flashfit but with only the last year of flash
@@ -130,11 +135,18 @@ lastyear <- CPF_A[CPF_A$Dotest >= cutoff,]
 
 flashfit <- lm(Accuracy ~ flash, data=lastyear)
 summary(flashfit)
-visreg(flashfit, "flash", gg=T) +
+ly <- visreg(flashfit, "flash", gg=T) +
   theme_bw() + 
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
   labs(y = "Score (out of 40)",
-       title = "Accuracy on CPF_A") +
-  scale_x_continuous(name = "Date of test", breaks = seq(0,1,by=1))
+       title = "Accuracy on CPF_A depending on Flash/non-Flash (only last year of Flash)") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1))
+
+png(filename = "plots/CPF_A_general_lastyear.png", height = 1000, width = 1000,res=160)
+ly
+dev.off()
+
+
 
 
 
@@ -142,17 +154,59 @@ visreg(flashfit, "flash", gg=T) +
 
 agesexfit <- lm(Accuracy ~ flash + age + Gender, data=CPF_A)
 summary(agesexfit)
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T,ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+v1 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)", 
+       title = "Male Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+v2 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)",
+       title = "Female Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
 
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+png(filename = "plots/CPF_A_agesex_alldates_male.png", height = 1000, width = 500,res=100)
+v1
+dev.off()
+
+png(filename = "plots/CPF_A_agesex_alldates_female.png", height = 1000, width = 500,res=100)
+v2
+dev.off()
+
 
 # trying to put the above two plots in the same display
 v <- visregList(visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age", plot=FALSE),
                 visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age", plot=FALSE),
                 labels=c("Male", "Female"), collapse=TRUE)
 plot(v, ylab="Score (out of 40)")
+
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+# using gg=T to fix x axis ticks
+v1p <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), gg=T) +
+  theme_bw() +
+  labs(title = "Male Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+v2p <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), gg=T) +
+  theme_bw() +
+  labs(title = "Female Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+
+png(filename = "plots/CPF_A_agesex_alldates_malepanels.png", height = 500, width = 1000,res=100)
+v1p
+dev.off()
+
+png(filename = "plots/CPF_A_agesex_alldates_femalepanels.png", height = 500, width = 1000,res=100)
+v2p
+dev.off()
+
 
 # trying to make the opposite happen
 # looks like I need to make an agegroup variable to make this happen smoother. this would make it more challenging to generalize tho
@@ -167,11 +221,50 @@ plot(v, ylab="Score (out of 40)")
 # age-sex but only for the last year of flash
 agesexfit <- lm(Accuracy ~ flash + age + Gender, data=lastyear)
 summary(agesexfit)
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
 
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+v1ly <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)", 
+       title = "Male Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+v2ly <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)",
+       title = "Female Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+
+png(filename = "plots/CPF_A_agesex_lastyear_male.png", height = 1000, width = 500,res=100)
+v1ly
+dev.off()
+
+png(filename = "plots/CPF_A_agesex_lastyear_female.png", height = 1000, width = 500,res=100)
+v2ly
+dev.off()
+
+# lastyear panels
+v1ply <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), gg=T) +
+  theme_bw() +
+  labs(title = "Male Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+v2ply <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), gg=T) +
+  theme_bw() +
+  labs(title = "Female Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
+
+png(filename = "plots/CPF_A_agesex_lastyear_malepanels.png", height = 500, width = 1000,res=100)
+v1ply
+dev.off()
+
+png(filename = "plots/CPF_A_agesex_lastyear_femalepanels.png", height = 500, width = 1000,res=100)
+v2ply
+dev.off()
+
 
 # looking at threeway interaction plots
 asf <- lm(Accuracy ~ flash * age * Gender, data=lastyear)
@@ -189,11 +282,32 @@ visreg(asf, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(
 sitefit <- lm(Accuracy ~ flash*Siteid, data=CPF_A)
 summary(sitefit)
 # EFR01, EVOLPSY, LiBI, MOTIVE, PAISA are the only ones with flash interaction (actual data for non-flash)
-yes <- c("EFR01", "EVOLPSY", "LiBI", "MOTIVE", "PAISA")
-tempCPFA <- CPF_A[which(CPF_A$Siteid %in% yes),]
-sitefit <- lm(Accuracy ~ flash*Siteid, data=tempCPFA)
+sites <- c("EFR01", "EVOLPSY", "LiBI", "MOTIVE", "PAISA")
+sCPFA <- CPF_A[which(CPF_A$Siteid %in% sites),]
+sitefit <- lm(Accuracy ~ flash*Siteid, data=sCPFA)
 summary(sitefit)
-visreg(sitefit, "flash", by= "Siteid", ylab = "Score (out of 40)", xlab = "Flash", main = "Site differencess in Accuracy on CPF_A")
+sites <- visreg(sitefit, "flash", by= "Siteid", gg=T) +
+  theme_bw() +
+  labs(title = "Site differencess in Accuracy on CPF_A") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42,by=5))
+
+png(filename = "plots/CPF_A_sites_alldates.png", height = 500, width = 1000,res=100)
+sites
+dev.off()
+
+sCPFAly <- lastyear[which(lastyear$Siteid %in% sites),]
+sitefit <- lm(Accuracy ~ flash*Siteid, data=sCPFAly)
+summary(sitefit)
+sites <- visreg(sitefit, "flash", by= "Siteid", gg=T) +
+  theme_bw() +
+  labs(title = "Site differencess in Accuracy on CPF_A (only last year of Flash)") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42,by=5))
+
+png(filename = "plots/CPF_A_sites_lastyear.png", height = 500, width = 1000,res=100)
+sites
+dev.off()
 
 
 
@@ -212,46 +326,27 @@ visreg(sitefit, "flash", by= "Siteid", ylab = "Score (out of 40)", xlab = "Flash
 
 
 
-# temp code to give Mrugank Bblid's of PC/RTCR switched + missing accuracy ----
-# ADT36_A
-allPC <- ADT36_A[!is.na(ADT36_A$Percent.correct),]
-allPC$wrongPC <- 1
+# test ----
+agesexfit <- lm(Accuracy ~ flash + age + Gender, data=CPF_A)
+summary(agesexfit)
+v1 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)", 
+       title = "Male Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1))
+v2 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, gg=T) +
+  theme_bw() +
+  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(y = "Score (out of 40)",
+       title = "Female Accuracy on CPF_A by age") +
+  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1))
 
-allRTCR <- ADT36_A[!is.na(ADT36_A$Speed),]
-allRTCR$wrongRTCR <- 1
-
-
-temp <- merge(ADT36_A,allPC,by.x=1:18,by.y=1:18,all=T)
-temp <- merge(temp,allRTCR,by.x=1:18,by.y=1:18,all=T)
-temp[is.na(temp$wrongPC),]$wrongPC <- 0
-temp[is.na(temp$wrongRTCR),]$wrongRTCR <- 0
-temp$missingall <- 0
-temp[temp$wrongPC==0,]$missingall <- 1
-write.csv(temp, "ADT36A_tofix.csv",row.names = F)
-
-#ADT60_A
-allPC <- ADT60_A[!is.na(ADT60_A$Percent.correct),]
-allPC$wrongPC <- 1
-
-allRTCR <- ADT60_A[!is.na(ADT60_A$Speed),]
-allRTCR$wrongRTCR <- 1
-
-
-temp <- merge(ADT60_A,allPC,by.x=1:18,by.y=1:18,all=T)
-temp <- merge(temp,allRTCR,by.x=1:18,by.y=1:18,all=T)
-temp[is.na(temp$wrongPC),]$wrongPC <- 0
-temp[is.na(temp$wrongRTCR),]$wrongRTCR <- 0
-temp$missingall <- 0
-temp[temp$wrongPC==0,]$missingall <- 1
-write.csv(temp, "ADT60A_tofix.csv",row.names = F)
-
-# MEDF36_A
-temp <- merge(MEDF36_A,MEDF60_A,by=1:18,all=T)
-bbl <- sort(unique(temp$Bblid))
-
-write.csv(bbl, "MEDF36and60_tofix.csv",row.names = F)
-
-
+# trying to put the above two plots in the same display
+v <- visregList(v1,
+                v2,
+                labels=c("Male", "Female"), collapse=TRUE)
+plot(v, ylab="Score (out of 40)")
 
 
 
