@@ -88,20 +88,80 @@ SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version),]
 # i can do that again here, or I can just call on the columns i need, leaving the 
 # unneeded ones in still.
 
-# CPF_A, 40 total
+# * CPF_A, 40 total ----
 
-CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),]
+CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),] # there are some missing ages
+CPF_A <- CPF_A[!is.na(CPF_A$age) & !is.na(CPF_A$Accuracy),]
+
+firstday <- min(CPF_A$Dotest)
+lastday <- max(CPF_A$Dotest)
+numdates <- as.numeric(CPF_A$Dotest)
+numdates <- numdates - min(numdates)
+CPF_A$Dotest <- numdates
 
 genfit <- lm(Accuracy ~ Dotest+flash, data=CPF_A)
-fit <- lm(Accuracy ~ Dotest*flash, data=CPF_A)
-
 summary(genfit)
-summary(fit)
+visreg(genfit, "Dotest", by= "flash", overlay =T, gg=T) + 
+  theme_bw() +
+  theme(legend.position = "right",
+        plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
+  labs(x = paste0("Date of test (with ", firstday, " as 0)"),
+       title = "Accuracy on CPF_A") +
+  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5)) 
 
-visreg(genfit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
-visreg(fit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
+# this one did not look ass well
+# fit <- lm(Accuracy ~ Dotest*flash, data=CPF_A)
+# summary(fit)
+# visreg(fit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
 
 # genfit definitely looks better (line of best fit-wise)
+
+flashfit <- lm(Accuracy ~ flash, data=CPF_A)
+summary(flashfit)
+visreg(flashfit, "flash", gg=T) +
+  labs(y = "Score (out of 40)", 
+       x = "Date of test", 
+       title = "Accuracy on CPF_A")
+
+# looking at age-sex interaction
+
+agesexfit <- lm(Accuracy ~ flash + age + Gender, data=CPF_A)
+summary(agesexfit)
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 7, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 7, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+# trying to put the above two plots in the same display
+v <- visregList(visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age", plot=FALSE),
+                visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age", plot=FALSE),
+                labels=c("Male", "Female"), collapse=TRUE)
+plot(v, ylab="Score (out of 40)")
+
+
+
+# looking at site differences
+
+sitefit <- lm(Accuracy ~ flash*Siteid, data=CPF_A)
+summary(sitefit)
+# EFR01, EVOLPSY, LiBI, MOTIVE, PAISA are the only ones with flash interaction (actual data for non-flash)
+yes <- c("EFR01", "EVOLPSY", "LiBI", "MOTIVE", "PAISA")
+tempCPFA <- CPF_A[which(CPF_A$Siteid %in% yes),]
+sitefit <- lm(Accuracy ~ flash*Siteid, data=tempCPFA)
+summary(sitefit)
+visreg(sitefit, "flash", by= "Siteid", ylab = "Score (out of 40)", xlab = "Flash", main = "Site differencess in Accuracy on CPF_A")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
