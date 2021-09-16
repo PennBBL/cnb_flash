@@ -114,21 +114,36 @@ visreg(genfit, "Dotest", by= "flash", overlay =T, gg=T) +
 # summary(fit)
 # visreg(fit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
 
-# genfit definitely looks better (line of best fit-wise)
-
 flashfit <- lm(Accuracy ~ flash, data=CPF_A)
 summary(flashfit)
 visreg(flashfit, "flash", gg=T) +
-  labs(y = "Score (out of 40)", 
-       x = "Date of test", 
-       title = "Accuracy on CPF_A")
+  theme_bw() + 
+  labs(y = "Score (out of 40)",
+       title = "Accuracy on CPF_A") +
+  scale_x_continuous(name = "Date of test", breaks = seq(0,1,by=1))
+
+
+# flashfit but with only the last year of flash
+
+cutoff <- as.numeric(as.Date("2019-12-31"))-as.numeric(firstday)
+lastyear <- CPF_A[CPF_A$Dotest >= cutoff,]
+
+flashfit <- lm(Accuracy ~ flash, data=lastyear)
+summary(flashfit)
+visreg(flashfit, "flash", gg=T) +
+  theme_bw() + 
+  labs(y = "Score (out of 40)",
+       title = "Accuracy on CPF_A") +
+  scale_x_continuous(name = "Date of test", breaks = seq(0,1,by=1))
+
+
 
 # looking at age-sex interaction
 
 agesexfit <- lm(Accuracy ~ flash + age + Gender, data=CPF_A)
 summary(agesexfit)
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 7, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 7, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T,ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
 
 visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
 visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
@@ -138,6 +153,34 @@ v <- visregList(visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), b
                 visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age", plot=FALSE),
                 labels=c("Male", "Female"), collapse=TRUE)
 plot(v, ylab="Score (out of 40)")
+
+# trying to make the opposite happen
+# looks like I need to make an agegroup variable to make this happen smoother. this would make it more challenging to generalize tho
+v <- visregList(visreg(agesexfit, "flash", by= "Gender", cond = list(age=7:18), overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 7 to 18", plot=FALSE),
+                visreg(agesexfit, "flash", by= "Gender", cond = list(age=19:26), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 19 to 26", plot=FALSE),
+                visreg(agesexfit, "flash", by= "Gender", cond = list(age=27:35), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 27 to 35", plot=FALSE),
+                visreg(agesexfit, "flash", by= "Gender", cond = list(age=36:46), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 36 to 46", plot=FALSE),
+                visreg(agesexfit, "flash", by= "Gender", cond = list(age=47:62), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 47 to 62", plot=FALSE),
+                labels=c("7 to 18", "19 to 26", "27 to 35","36 to 46", "47 to 62"), collapse=TRUE)
+plot(v, ylab="Score (out of 40)")
+
+# age-sex but only for the last year of flash
+agesexfit <- lm(Accuracy ~ flash + age + Gender, data=lastyear)
+summary(agesexfit)
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+# looking at threeway interaction plots
+asf <- lm(Accuracy ~ flash * age * Gender, data=lastyear)
+summary(asf)
+visreg(asf, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(asf, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
+
+visreg(asf, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
+visreg(asf, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
 
 
 
