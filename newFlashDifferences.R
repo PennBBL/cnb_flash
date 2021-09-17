@@ -102,142 +102,6 @@ tests <- mget(texts)
 
 # * t-tests ----
 
-fit <- lm(Accuracy ~ age + Gender + I(age^2) + I(age^3), data = ADT36_A)
-# summary(fit)
-visreg(fit,"age", by="Gender")
-
-res <- scale(resid(fit))   # scaled residuals
-newADT36 <- ADT36_A[!is.na(ADT36_A$Accuracy) & !is.na(ADT36_A$age) & !is.na(ADT36_A$Gender),]
-flash <- newADT36[newADT36$flash==1,]
-nflash <- newADT36[newADT36$flash==0,]
-# nrow(flash)
-# nrow(nflash)
-frownames <- row.names(flash)
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-names(res) <- "residuals"
-res$flash <- 1
-for (i in 1:nrow(res)) {
-  if (row.names(res[i,]) %in% nfrownames) {
-    res[i,]$flash <- 0
-  } else{}
-}
-
-ttest <- t.test(res$residuals~res$flash)
-
-
-# running the same thing with only the last year of flash
-cutoff <- as.Date("2019-12-31")
-lastyear <- ADT36_A[ADT36_A$Dotest >= cutoff,]
-fit <- lm(Accuracy ~ age + Gender + I(age^2) + I(age^3), data = lastyear)
-# summary(fit)
-visreg(fit,"age", by="Gender")
-
-res <- scale(resid(fit))   # scaled residuals
-newADT36 <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
-flash <- newADT36[newADT36$flash==1,]
-nflash <- newADT36[newADT36$flash==0,]
-# nrow(flash)
-# nrow(nflash)
-frownames <- row.names(flash)
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-names(res) <- "residuals"
-res$flash <- 1
-for (i in 1:nrow(res)) {
-  if (row.names(res[i,]) %in% nfrownames) {
-    res[i,]$flash <- 0
-  } else{}
-}
-
-ttest <- t.test(res$residuals~res$flash)
-
-# same t-tests but with gam instead of lm
-fit <- gam(Accuracy ~ s(age) + Gender + s(I(age^2)) + s(I(age^3)), data = ADT36_A)
-# summary(fit)
-visreg(fit,"age", by="Gender")
-
-res <- scale(resid(fit))   # scaled residuals
-newADT36 <- ADT36_A[!is.na(ADT36_A$Accuracy) & !is.na(ADT36_A$age) & !is.na(ADT36_A$Gender),]
-flash <- newADT36[newADT36$flash==1,]
-nflash <- newADT36[newADT36$flash==0,]
-# nrow(flash)
-# nrow(nflash)
-frownames <- row.names(flash)
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-rownames(res) <- rownames(newADT36)
-names(res) <- "residuals"
-res$flash <- 1
-for (i in 1:nrow(res)) {
-  if (row.names(res[i,]) %in% nfrownames) {
-    res[i,]$flash <- 0
-  } else{}
-}
-
-ttest <- t.test(res$residuals~res$flash)
-
-
-# running the same thing with only the last year of flash
-cutoff <- as.Date("2019-12-31")
-lastyear <- ADT36_A[ADT36_A$Dotest >= cutoff,]
-fit <- gam(Accuracy ~ s(age) + Gender + s(I(age^2)) + s(I(age^3)), data = lastyear)
-# summary(fit)
-visreg(fit,"age", by="Gender")
-
-res <- scale(resid(fit))   # scaled residuals
-newADT36 <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
-flash <- newADT36[newADT36$flash==1,]
-nflash <- newADT36[newADT36$flash==0,]
-# nrow(flash)
-# nrow(nflash)
-frownames <- row.names(flash)
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-rownames(res) <- rownames(newADT36)
-names(res) <- "residuals"
-res$flash <- 1
-for (i in 1:nrow(res)) {
-  if (row.names(res[i,]) %in% nfrownames) {
-    res[i,]$flash <- 0
-  } else{}
-}
-
-ttest <- t.test(res$residuals~res$flash)
-
-
-# only age in s()
-fit <- gam(Accuracy ~ s(age) + Gender + I(age^2) + I(age^3), data = lastyear)
-# summary(fit)
-visreg(fit,"age", by="Gender")
-
-res <- scale(resid(fit))   # scaled residuals
-newADT36 <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
-flash <- newADT36[newADT36$flash==1,]
-nflash <- newADT36[newADT36$flash==0,]
-# nrow(flash)
-# nrow(nflash)
-frownames <- row.names(flash)
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-rownames(res) <- rownames(newADT36)
-names(res) <- "residuals"
-res$flash <- 1
-for (i in 1:nrow(res)) {
-  if (row.names(res[i,]) %in% nfrownames) {
-    res[i,]$flash <- 0
-  } else{}
-}
-
-ttest <- t.test(res$residuals~res$flash)
-
-
-
 # general code for t-tests
 for (i in 1:length(texts)) {
   test <- tests[[i]]
@@ -573,6 +437,32 @@ dev.off()
 
 
 # test ----
+
+demos <- read.csv("subjectdemosall_v.csv")
+sum(is.na(demos$AGE_INTAKE))
+sum(is.na(demos$DOBIRTH))
+sum(is.na(demos$DOINTAKE))
+
+noDOB <- SVOLT_A$Bblid[is.na(SVOLT_A$Dob) & SVOLT_A$flash==0]
+
+DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)] # extract bblid and dob from demos
+DOBfromdemos <- distinct(DOBfromdemos)
+DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
+
+x <- left_join(SVOLT_A,DOBfromdemos,by=c("Bblid"="BBLID"))
+x$newDOB <- ifelse(is.na(x$Dob),x$DOBIRTH,x$Dob)
+x <- x%>%
+  mutate(newdob = if_else(is.na(Dob),DOBIRTH,Dob))
+
+
+
+
+# online exampe to work through repllacing variable in df conditional on another variable (hopefully without for loops)
+data <- data.frame(num1 = 1:5,                # Example data
+                   num2 = 3:7,
+                   char = letters[1:5],
+                   fac = as.factor(c("gr1", "gr2", "gr1", "gr3", "gr2")))
+data
 
 
 
