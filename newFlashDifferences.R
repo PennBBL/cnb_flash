@@ -18,6 +18,7 @@ library(mgcv)
 
 # Load and organize data ----
 bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
+demos <- read.csv("subjectdemosall_v.csv")
 
 bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
 bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
@@ -28,10 +29,20 @@ temp <- temp %m-% years(100)
 bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
 bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
 
-bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
-
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
+
+     # move demos stuff here
+noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
+DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
+DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
+x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
+x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+x <- x[,c(1:5,17,7:15)]
+names(x)[6]<- "Dob"
+bigcnb <- x
+
+bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
 
 bigcnb <- bigcnb[order(bigcnb$Datasetid),]
 
@@ -86,16 +97,36 @@ SVOLT_A <- bigcnb[bigcnb$Version == "SVOLT_A" & !is.na(bigcnb$Version) & !is.na(
 SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
 texts <- sort(unique(bigcnb$Version))
+# what tests don't have sny flash==0 babies
+notthese <- c()
+tests <- mget(texts)
+for (i in 1:length(texts)){
+  test <- tests[[i]]
+  if (length(unique(test$flash))!=2){
+    notthese <- c(notthese,texts[i])
+  }
+}
 '%!in%' <- function(x,y)!('%in%'(x,y))
-notthese <- c("ADT60_A","CPFD_A","CPFD_B","ER40_A","ER40_C","KCPWD_A","KSPVRT_A","KSPVRT_B",
-              "MEDF60_A","MPRACT","PMAT18_B","PMAT24_B","SCTAP","SPCET_A","SPLOT12","SPVRT_A",
-              "SVOLTD_A","VSPLOT24")
+# notthese <- c("ADT60_A","CPFD_A","CPFD_B","ER40_A","ER40_C","KCPWD_A","KSPVRT_A","KSPVRT_B",
+#               "MEDF60_A","MPRACT","PMAT18_B","PMAT24_B","SCTAP","SPCET_A","SPLOT12","SPVRT_A",
+#               "SVOLTD_A","VSPLOT24")
+notthese <- c()
+for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
+  test <- tests[[i]]
+  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Gender),]
+  if (length(unique(newtest$flash))!=2){
+    notthese <- c(notthese,texts[i])
+  }
+}
+
 texts <- texts[texts %!in% notthese] # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
 
 # Models and Plotting ----
 
 # 9.16.21 implementing what I talked about with Kosha and Tyler
+
+
 
 # * two-factor FA, waiting itemwise data for this ----
 
@@ -107,13 +138,13 @@ for (i in 1:length(texts)) {
   test <- tests[[i]]
   
   # alldates
-  fit <- gam(Accuracy ~ s(age) + Gender + s(I(age^2)) + s(I(age^3)), data = test)
+  fit <- gam(Accuracy ~ s(age) + Gender, data = test)
   
   # save summary of this model as a variable
   name <- paste0(texts[i],"fitAD")
   assign(name,summary(fit))
   
-  # is this plot necesssary?
+  # is this plot necessary?
   visreg(fit,"age", by="Gender")
   
   res <- scale(resid(fit))   # scaled residuals
@@ -136,11 +167,18 @@ for (i in 1:length(texts)) {
   name <- paste0(texts[i],"ttestAD")
   assign(name,ttest)
   
+  # effect sizes
+  AD0 <- ttest$estimate[[1]]
+  AD1 <- ttest$estimate[[2]]
+  effsize <- abs(AD0-AD1)
+  name <- paste0(texts[i],"effsizeAD")
+  assign(name,effsize)
+  
   
   # lastyear
   cutoff <- as.Date("2019-12-31")
   lastyear <- test[test$Dotest >= cutoff,]
-  fit <- gam(Accuracy ~ s(age) + Gender + s(I(age^2)) + s(I(age^3)), data = lastyear)
+  fit <- gam(Accuracy ~ s(age) + Gender, data = lastyear)
   
   # save summary of this model as a variable
   name <- paste0(texts[i],"fitLY")
@@ -167,6 +205,13 @@ for (i in 1:length(texts)) {
   # save ttest as a variable
   name <- paste0(texts[i],"ttestLY")
   assign(name,ttest)
+  
+  # effect sizes
+  LY0 <- ttest$estimate[[1]]
+  LY1 <- ttest$estimate[[2]]
+  effsize <- abs(LY0-LY1)
+  name <- paste0(texts[i],"effsizeLY")
+  assign(name,effsize)
 }
 
 
@@ -454,15 +499,112 @@ x$newDOB <- ifelse(is.na(x$Dob),x$DOBIRTH,x$Dob)
 x <- x%>%
   mutate(newdob = if_else(is.na(Dob),DOBIRTH,Dob))
 
+# comparing bigcnb and demos DOB directly
+x <- left_join(bigcnb,demos[,c(1,21)],by=c("Bblid"="BBLID"))
+
+# this is giving me 388,323 obs. when I should only have 247,324
+noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
+DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
+DOBfromdemos <- distinct(DOBfromdemos)
+DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
+x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
+x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+View(x[,c(6,18:19)])
+
+
+# checking to see if my code in the beginning is actually adding any DOB from demos
+bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
+demos <- read.csv("subjectdemosall_v.csv")
+
+bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
+bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
+bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
+
+temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
+temp <- temp %m-% years(100) 
+bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
+bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
+
+bigcnb$flash <- 0
+bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
+
+oldcnb <- bigcnb
+oldcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+
+oldcnb <- oldcnb[order(oldcnb$Datasetid),]
+
+# check distinct BBLids in demos
+demosbblid <- sort(unique(demos$BBLID))    # 19366 
+bblidsum <- sum(!is.na(demos$BBLID))       # 23355
+repbblid <- bblidsum - length(demosbblid)  # 3989
+
+noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
+DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
+DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
+x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
+x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+View(x[,c(6,17,18)])
+x <- x[,c(1:5,18,7:16)]
+names(x)[6]<- "Dob"
+bigcnb <- x
+
+bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+bigcnb <- bigcnb[order(bigcnb$Datasetid),]
+
+oldDOB <- sort(unique(oldcnb$Dob))  # 10912
+newDOB <- sort(unique(bigcnb$Dob))  # 10948 (difference of 36)
+
+old0DOB <- sort(unique(oldcnb[oldcnb$flash==0,6]))  # 1370
+new0DOB <- sort(unique(bigcnb[bigcnb$flash==0,6]))  # 1561 (difference of 191)
+
+oldbbl <- sort(unique(oldcnb$Bblid))
+newbbl <- sort(unique(bigcnb$Bblid)) # both 12623
 
 
 
-# online exampe to work through repllacing variable in df conditional on another variable (hopefully without for loops)
-data <- data.frame(num1 = 1:5,                # Example data
-                   num2 = 3:7,
-                   char = letters[1:5],
-                   fac = as.factor(c("gr1", "gr2", "gr1", "gr3", "gr2")))
-data
+bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
+demos <- read.csv("subjectdemosall_v.csv")
+
+bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
+bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
+bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
+
+temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
+temp <- temp %m-% years(100) 
+bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
+bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
+
+bigcnb$flash <- 0
+bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
+
+oldcnb <- bigcnb
+oldcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+
+oldcnb <- oldcnb[order(oldcnb$Datasetid),]
+
+# check distinct BBLids in demos
+demosbblid <- sort(unique(demos$BBLID))    # 19366 
+bblidsum <- sum(!is.na(demos$BBLID))       # 23355
+repbblid <- bblidsum - length(demosbblid)  # 3989
+
+# getting rid of duplicate BBLids in demos
+newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
+x <- left_join(bigcnb,newdemos,by=c("Bblid"="BBLID")) # 347,324 rows! yay
+x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
+x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+View(x[,c(2,6,17,18,16)])
+newnonflash <- x[is.na(x$Dob) & !is.na(x$DOBIRTH) & x$flash==0,] # 5016 birthdays added to nonfash
+nobbliddup <- newnonflash[!duplicated(newnonflash$Bblid),] # demos file has added DOBs to 238 distinct non-flash BBLids
+x <- x[,c(1:5,18,7:16)]
+names(x)[6]<- "Dob"
+bigcnb <- x
+
+
+
+
+
+
+
 
 
 
