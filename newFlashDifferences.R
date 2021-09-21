@@ -24,28 +24,32 @@ bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
 bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
 bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
 
+     # move demos stuff here
+newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
+x <- left_join(bigcnb,newdemos,by=c("Bblid"="BBLID")) # 347,324 rows! yay
+x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
+x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+# View(x[,c(2,6,17,18,16)])
+# noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
+# DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
+# DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
+# x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
+# x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
+x <- x[,c(1:5,17,7:15)]
+names(x)[6]<- "Dob"
+bigcnb <- x
+
 temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
 temp <- temp %m-% years(100) 
 bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
 bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
 
+bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
 
-     # move demos stuff here
-noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
-DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
-DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
-x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
-x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-x <- x[,c(1:5,17,7:15)]
-names(x)[6]<- "Dob"
-bigcnb <- x
-
-bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
-
 bigcnb <- bigcnb[order(bigcnb$Datasetid),]
-
+nonflashmissdob <- bigcnb[is.na(bigcnb$Dob) & bigcnb$flash==0,] # 519 post demos merge, 5535 pre demos merge
 
 # * Separate into test versions ----
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
@@ -97,7 +101,7 @@ SVOLT_A <- bigcnb[bigcnb$Version == "SVOLT_A" & !is.na(bigcnb$Version) & !is.na(
 SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
 texts <- sort(unique(bigcnb$Version))
-# what tests don't have sny flash==0 babies
+# what tests don't have any flash==0 babies
 notthese <- c()
 tests <- mget(texts)
 for (i in 1:length(texts)){
@@ -115,6 +119,8 @@ for (i in 1:length(texts)){   # catch the tests that don't have enough f==0
   test <- tests[[i]]
   newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Gender),]
   if (length(unique(newtest$flash))!=2){
+    notthese <- c(notthese,texts[i])
+  } else if (nrow(test[test$flash==0,])<5) {
     notthese <- c(notthese,texts[i])
   }
 }
