@@ -124,7 +124,8 @@ for (i in 1:length(texts)){   # catch the tests that don't have enough f==0
     notthese <- c(notthese,texts[i])
   }
 }
-
+# adding SPLOT12 manually for now
+notthese <- c(notthese, "SPLOT12")
 texts <- texts[texts %!in% notthese] # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
 
