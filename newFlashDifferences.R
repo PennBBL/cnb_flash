@@ -29,12 +29,6 @@ newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
 x <- left_join(bigcnb,newdemos,by=c("Bblid"="BBLID")) # 347,324 rows! yay
 x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
 x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-# View(x[,c(2,6,17,18,16)])
-# noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
-# DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
-# DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
-# x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
-# x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
 x <- x[,c(1:5,17,7:15)]
 names(x)[6]<- "Dob"
 bigcnb <- x
@@ -45,17 +39,24 @@ bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <
 bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
 
 bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+# fixing the 106 and 107 year olds
+temp <- bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$Dob
+temp <- temp %m+% years(100) 
+bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$Dob <- temp
+bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
 
 bigcnb <- bigcnb[order(bigcnb$Datasetid),]
-nonflashmissdob <- bigcnb[is.na(bigcnb$Dob) & bigcnb$flash==0,] # 519 post demos merge, 5535 pre demos merge
+# nonflashmissdob <- bigcnb[is.na(bigcnb$Dob) & bigcnb$flash==0,] # 519 post demos merge, 5535 pre demos merge
 
 # * Separate into test versions ----
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 ADT60_A <- bigcnb[bigcnb$Version == "ADT60_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
 AIM <- bigcnb[bigcnb$Version == "AIM" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
+AIMs <- bigcnb[bigcnb$Version == "AIM" & !is.na(bigcnb$Version) & !is.na(bigcnb$Speed),]
 
 CPF_A <- bigcnb[bigcnb$Version == "CPF_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 CPF_B <- bigcnb[bigcnb$Version == "CPF_B" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
@@ -78,7 +79,7 @@ KSPVRT_D <- bigcnb[bigcnb$Version == "KSPVRT_D" & !is.na(bigcnb$Version) & !is.n
 MEDF36_A <- bigcnb[bigcnb$Version == "MEDF36_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 MEDF60_A <- bigcnb[bigcnb$Version == "MEDF60_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
-MPRACT <- bigcnb[bigcnb$Version == "MPRACT" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
+MPRACT <- bigcnb[bigcnb$Version == "MPRACT" & !is.na(bigcnb$Version) & !is.na(bigcnb$Speed),]
 
 PCET_A <- bigcnb[bigcnb$Version == "PCET_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 SPCET_A <- bigcnb[bigcnb$Version == "SPCET_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
@@ -87,7 +88,7 @@ PMAT18_B <- bigcnb[bigcnb$Version == "PMAT18_B" & !is.na(bigcnb$Version) & !is.n
 PMAT24_A <- bigcnb[bigcnb$Version == "PMAT24_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 PMAT24_B <- bigcnb[bigcnb$Version == "PMAT24_B" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
-SCTAP <- bigcnb[bigcnb$Version == "SCTAP" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
+SCTAP <- bigcnb[bigcnb$Version == "SCTAP" & !is.na(bigcnb$Version) & !is.na(bigcnb$Speed),]
 
 SLNB2_90 <- bigcnb[bigcnb$Version == "SLNB2_90" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
@@ -100,32 +101,44 @@ SPVRT_A <- bigcnb[bigcnb$Version == "SPVRT_A" & !is.na(bigcnb$Version) & !is.na(
 SVOLT_A <- bigcnb[bigcnb$Version == "SVOLT_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
+
 texts <- sort(unique(bigcnb$Version))
+tests <- mget(texts)
 # what tests don't have any flash==0 babies
 notthese <- c()
-tests <- mget(texts)
 for (i in 1:length(texts)){
   test <- tests[[i]]
   if (length(unique(test$flash))!=2){
     notthese <- c(notthese,texts[i])
   }
 }
-'%!in%' <- function(x,y)!('%in%'(x,y))
-# notthese <- c("ADT60_A","CPFD_A","CPFD_B","ER40_A","ER40_C","KCPWD_A","KSPVRT_A","KSPVRT_B",
-#               "MEDF60_A","MPRACT","PMAT18_B","PMAT24_B","SCTAP","SPCET_A","SPLOT12","SPVRT_A",
-#               "SVOLTD_A","VSPLOT24")
+
 notthese <- c()
 for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
   test <- tests[[i]]
   newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Gender),]
-  if (length(unique(newtest$flash))!=2){
+  if (length(unique(newtest$flash))!=2) {
     notthese <- c(notthese,texts[i])
-  } else if (nrow(test[test$flash==0,])<5) {
+  } else if (nrow(newtest[newtest$flash==0,])<5) {
     notthese <- c(notthese,texts[i])
   }
 }
-# adding SPLOT12 manually for now
+
+nottheseSp <- c()
+for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
+  test <- tests[[i]]
+  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$Gender),]
+  if (length(unique(newtest$flash))!=2) {
+    nottheseSp <- c(nottheseSp,texts[i])
+  } else if (nrow(newtest[newtest$flash==0,])<5) {
+    nottheseSp <- c(nottheseSp,texts[i])             # these ended up being the same as notthese other than MPRACT and SCTAP obviously
+  }
+}
+
+notthese <- nottheseSp
+# adding SPLOT12 manually for now (for both accuracy and speed)
 notthese <- c(notthese, "SPLOT12")
+'%!in%' <- function(x,y)!('%in%'(x,y))
 texts <- texts[texts %!in% notthese] # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
 
@@ -141,15 +154,21 @@ tests <- mget(texts)
 # * t-tests ----
 
 # general code for t-tests
-for (i in 1:length(texts)) {
-  test <- tests[[i]]
+textsAcc <- texts[texts %!in% c("MPRACT","SCTAP")]
+testsAcc <- mget(textsAcc)
+cutoff <- as.Date("2019-12-31")
+for (i in 1:length(textsAcc)) {
+  test <- testsAcc[[i]]
+  name <- paste0(textsAcc[i],"sumAcc")
+  sumAcc <- c(textsAcc[i])
+  
   
   # alldates
   fit <- gam(Accuracy ~ s(age) + Gender, data = test)
   
   # save summary of this model as a variable
-  name <- paste0(texts[i],"fitAD")
-  assign(name,summary(fit))
+  fitAD <- summary(fit)
+  sumAcc <- c(sumAcc,"fitAD")
   
   # is this plot necessary?
   visreg(fit,"age", by="Gender")
@@ -169,27 +188,34 @@ for (i in 1:length(texts)) {
     } else{}
   }
   
-  ttest <- t.test(res$residuals~res$flash)
+  ttestAD <- t.test(res$residuals~res$flash)
   # save ttest as a variable
-  name <- paste0(texts[i],"ttestAD")
-  assign(name,ttest)
+  sumAcc <- c(sumAcc,"ttestAD")
   
   # effect sizes
-  AD0 <- ttest$estimate[[1]]
-  AD1 <- ttest$estimate[[2]]
-  effsize <- abs(AD0-AD1)
-  name <- paste0(texts[i],"effsizeAD")
-  assign(name,effsize)
+  AD0 <- ttestAD$estimate[[1]]
+  AD1 <- ttestAD$estimate[[2]]
+  effsizeAD <- abs(AD0-AD1)
+  sumAcc <- c(sumAcc,"effsizeAD")
+  
+  # box plot
+  boxAD <- ggplot(res, aes(x=flash,y=residuals,group=flash)) +
+    geom_boxplot() +
+    labs(title = paste(textsAcc[i],"(All dates)"))
+  sumAcc <- c(sumAcc,"boxAD")
+  nAD <- res %>%
+    group_by(flash) %>%
+    summarise(mean=mean(residuals),median=median(residuals),n=n())
+  sumAcc <- c(sumAcc,"nAD")
   
   
   # lastyear
-  cutoff <- as.Date("2019-12-31")
   lastyear <- test[test$Dotest >= cutoff,]
   fit <- gam(Accuracy ~ s(age) + Gender, data = lastyear)
   
   # save summary of this model as a variable
-  name <- paste0(texts[i],"fitLY")
-  assign(name,summary(fit))
+  fitLY <- summary(fit)
+  sumAcc <- c(sumAcc,"fitLY")
   
   visreg(fit,"age", by="Gender")
   
@@ -208,27 +234,131 @@ for (i in 1:length(texts)) {
     } else{}
   }
   
-  ttest <- t.test(res$residuals~res$flash)
+  ttestLY <- t.test(res$residuals~res$flash)
   # save ttest as a variable
-  name <- paste0(texts[i],"ttestLY")
-  assign(name,ttest)
+  sumAcc <- c(sumAcc,"ttestLY")
   
   # effect sizes
-  LY0 <- ttest$estimate[[1]]
-  LY1 <- ttest$estimate[[2]]
-  effsize <- abs(LY0-LY1)
-  name <- paste0(texts[i],"effsizeLY")
-  assign(name,effsize)
+  LY0 <- ttestLY$estimate[[1]]
+  LY1 <- ttestLY$estimate[[2]]
+  effsizeLY <- abs(LY0-LY1)
+  sumAcc <- c(sumAcc,"effsizeLY")
+  
+  # box plot
+  boxLY <- ggplot(res, aes(x=flash,y=residuals, group=flash)) +
+    geom_boxplot() +
+    labs(title = paste(textsAcc[i],"(Last year)"))
+  sumAcc <- c(sumAcc,"boxLY")
+  nLY <- res %>%
+    group_by(flash) %>%
+    summarise(mean=mean(residuals),median=median(residuals),n=n())
+  sumAcc <- c(sumAcc,"nLY")
+  
+  sumAcc <- c(sumAcc[1],mget(sumAcc[-1]))
+  assign(name,sumAcc)
 }
 
-
-
-
-
-# * correlations ----
-
-
-
+# speed
+for (i in 1:length(texts)) {
+  test <- tests[[i]]
+  name <- paste0(texts[i],"sumSp")
+  sumSp <- c(texts[i])
+  
+  # alldates
+  fit <- gam(Speed ~ s(age) + Gender, data = test)
+  
+  # save summary of this model as a variable
+  fitAD <- summary(fit)
+  sumSp <- c(sumSp,"fitAD")
+  
+  # is this plot necessary?
+  visreg(fit,"age", by="Gender")
+  
+  res <- scale(resid(fit))   # scaled residuals
+  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$Gender),]
+  nflash <- newtest[newtest$flash==0,]
+  nfrownames <- row.names(nflash)
+  
+  res <- as.data.frame(res)
+  rownames(res) <- rownames(newtest)
+  names(res) <- "residuals"
+  res$flash <- 1
+  for (j in 1:nrow(res)) {
+    if (row.names(res[j,]) %in% nfrownames) {
+      res[j,]$flash <- 0
+    } else{}
+  }
+  
+  ttestAD <- t.test(res$residuals~res$flash)
+  # save ttest as a variable
+  sumSp <- c(sumSp,"ttestAD")
+  
+  # effect sizes
+  AD0 <- ttestAD$estimate[[1]]
+  AD1 <- ttestAD$estimate[[2]]
+  effsizeAD <- abs(AD0-AD1)
+  sumSp <- c(sumSp,"effsizeAD")
+  
+  # box plot
+  boxAD <- ggplot(res, aes(x=flash,y=residuals,group=flash)) +
+    geom_boxplot() +
+    labs(title = paste(texts[i],"(All dates)"))
+  sumSp <- c(sumSp,"boxAD")
+  nAD <- res %>%
+    group_by(flash) %>%
+    summarise(mean=mean(residuals),median=median(residuals),n=n())
+  sumSp <- c(sumSp,"nAD")
+  
+  if (texts[i]!="VSPLOT24") {
+    # lastyear
+    lastyear <- test[test$Dotest >= cutoff,]
+    fit <- gam(Speed ~ s(age) + Gender, data = lastyear)
+    
+    # save summary of this model as a variable
+    fitLY <- summary(fit)
+    sumSp <- c(sumSp,"fitLY")
+    
+    visreg(fit,"age", by="Gender")
+    
+    res <- scale(resid(fit))   # scaled residuals
+    newtest <- lastyear[!is.na(lastyear$Speed) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
+    nflash <- newtest[newtest$flash==0,]
+    nfrownames <- row.names(nflash)
+    
+    res <- as.data.frame(res)
+    rownames(res) <- rownames(newtest)
+    names(res) <- "residuals"
+    res$flash <- 1
+    for (j in 1:nrow(res)) {
+      if (row.names(res[j,]) %in% nfrownames) {
+        res[j,]$flash <- 0
+      } else{}
+    }
+    
+    ttestLY <- t.test(res$residuals~res$flash)
+    # save ttest as a variable
+    sumSp <- c(sumSp,"ttestLY")
+    
+    # effect sizes
+    LY0 <- ttestLY$estimate[[1]]
+    LY1 <- ttestLY$estimate[[2]]
+    effsizeLY <- abs(LY0-LY1)
+    sumSp <- c(sumSp,"effsizeLY")
+    
+    # box plot
+    boxLY <- ggplot(res, aes(x=flash,y=residuals, group=flash)) +
+      geom_boxplot() +
+      labs(title = paste(texts[i],"(Last year)"))
+    sumSp <- c(sumSp,"boxLY")
+    nLY <- res %>%
+      group_by(flash) %>%
+      summarise(mean=mean(residuals),median=median(residuals),n=n())
+    sumSp <- c(sumSp,"nLY")
+  }
+  
+  sumSp <- c(sumSp[1],mget(sumSp[-1]))
+  assign(name,sumSp)
+}
 
 
 
