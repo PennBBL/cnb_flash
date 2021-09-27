@@ -14,6 +14,8 @@ library(stringr)
 library(visreg)
 library(lubridate)
 library(mgcv)
+library(tidyr)
+library(reshape2)
 
 
 # Load and organize data ----
@@ -52,11 +54,11 @@ bigcnb <- bigcnb[order(bigcnb$Datasetid),]
 # nonflashmissdob <- bigcnb[is.na(bigcnb$Dob) & bigcnb$flash==0,] # 519 post demos merge, 5535 pre demos merge
 
 # * Separate into test versions ----
+# check if BART, DIGSYM, TRAIL exist
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 ADT60_A <- bigcnb[bigcnb$Version == "ADT60_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 
 AIM <- bigcnb[bigcnb$Version == "AIM" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
-AIMs <- bigcnb[bigcnb$Version == "AIM" & !is.na(bigcnb$Version) & !is.na(bigcnb$Speed),]
 
 CPF_A <- bigcnb[bigcnb$Version == "CPF_A" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
 CPF_B <- bigcnb[bigcnb$Version == "CPF_B" & !is.na(bigcnb$Version) & !is.na(bigcnb$Accuracy),]
@@ -145,8 +147,6 @@ tests <- mget(texts)
 # Models and Plotting ----
 
 # 9.16.21 implementing what I talked about with Kosha and Tyler
-
-
 
 # * two-factor FA, waiting itemwise data for this ----
 
@@ -360,16 +360,153 @@ for (i in 1:length(texts)) {
   assign(name,sumSp)
 }
 
+# checking for Ns making sure there are enough for a valid comparison
+# can also check for effect sizes
+
+tocheck <- as.data.frame(matrix(NA,length(textsAcc),5))
+rownames(tocheck) <- textsAcc
+names(tocheck) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
+
+sumAcc <- paste0(textsAcc,"sumAcc")
+sumAcc <- mget(sumAcc)
+# bloop <- c()
+
+for (i in 1:length(sumAcc)) {
+  dat <- sumAcc[[i]]
+  
+  nAD <- dat$nAD$n
+  nLY <- dat$nLY$n
+  # bloop <- c(bloop, nAD,nLY)
+  if (any(nAD<20)) {
+    tocheck$nAD[i] <- min(nAD)
+  }
+  if (any(nLY<20)) {
+    tocheck$nLY[i] <- min(nLY)
+  }
+  
+  effectAD <- dat$effsizeAD
+  effectLY <- dat$effsizeLY
+  
+  if (effectAD >= 0.15) {
+    tocheck$effsizeAD[i] <- effectAD
+  }
+  if (effectLY >= 0.15) {
+    tocheck$effsizeLY[i] <- effectLY
+  }
+}
+tocheck$problematic <- ifelse(!is.na(tocheck$nAD),1,
+                              ifelse(!is.na(tocheck$effsizeAD),1,
+                                     ifelse(!is.na(tocheck$nLY),1,
+                                            ifelse(!is.na(tocheck$effsizeLY),1,0))))
+problematic <- tocheck[tocheck$problematic==1,]
+allgood <- rownames(tocheck[tocheck$problematic==0,])
+# allgood <- c(allgood,"SPCET_A")
 
 
 
 # * flash/non-flash intra-subject correlations ----
 
+# separate by flash and compare IDs
+test <- "ADT36_A"
+test <- mget(test)[[1]]
+
+flash <- unique(test[test$flash==1 & !is.na(test$Bblid),2])
+nflash <- unique(test[test$flash==0 & !is.na(test$Bblid),2])
+
+both <- test[test$Bblid %in% intersect(flash,nflash),]
+both <- both[order(both$Bblid),c(2,5:7,14:17)]
+
+flash <- both[both$flash==1,]
+flash <- flash[order(flash$Bblid,flash$Dotest),]
+nflash <- both[both$flash==0,]
+nflash <- nflash[order(nflash$Bblid,nflash$Dotest),]
+
+flashcount <- flash %>%          # ayy glaze it
+  group_by(Bblid) %>%
+  summarise(n=n())
+nflashcount <- nflash %>%
+  group_by(Bblid) %>%
+  summarise(n=n())
+flashcount <- flashcount[order(flashcount$n, decreasing = T),]
+nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
+
+# df where rows are all unique Bblid and then columns for Dotest, age, speed and acc for each test point
+
+# wideboth <- both[,1:3]
+# wideboth <- wideboth[!duplicated(wideboth[,"Bblid"]),]
+# 
+# flash <- left_join(flash,flashcount,by="Bblid")
+# nflash <- left_join(nflash,nflashcount,by="Bblid")
+# 
+# wideflash <- spread(flash,Dotest,Accuracy)
+# wideflash2 <- dcast(melt(my.df, id.vars=c("ID", "TIME")),flash,Dotest,Accuracy)
+# dcast(melt(my.df, id.vars=c("ID", "TIME")), ID~variable+TIME)
+
+tpflash <- flash[,c(1,4,6:7)]    #[t]ime [p]oint [flash]
+tpflash$timepoint <- 1
+for (i in 1:(nrow(tpflash)-1)) {
+  if (tpflash$Bblid[i+1] == tpflash$Bblid[i]) {
+    tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
+  }
+}
+tpnflash <- nflash[,c(1,4,6:7)]    #[t]ime [p]oint [n]on-[flash]
+tpnflash$timepoint <- 1
+for (i in 1:(nrow(tpnflash)-1)) {
+  if (tpnflash$Bblid[i+1] == tpnflash$Bblid[i]) {
+    tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
+  }
+}
+
+wideflash <- reshape(tpflash,
+                    idvar = "Bblid",
+                    timevar = "timepoint",
+                    direction = "wide")
+widenflash <- reshape(tpnflash,
+                     idvar = "Bblid",
+                     timevar = "timepoint",
+                     direction = "wide")
+
+# make df with difference in score (diff) as well as days between test dates (interval)
+     # make new columns for difference in accuracy between test points
+wideflash$t2_t1diff <- ifelse(!is.na(wideflash$Accuracy.2),
+                              wideflash$Accuracy.2 - wideflash$Accuracy.1,NA)
+wideflash$t3_t2diff <- ifelse(!is.na(wideflash$Accuracy.3),
+                              wideflash$Accuracy.3 - wideflash$Accuracy.2,NA)
+wideflash$t4_t3diff <- ifelse(!is.na(wideflash$Accuracy.4),
+                              wideflash$Accuracy.4 - wideflash$Accuracy.3,NA)
+wideflash$t5_t4diff <- ifelse(!is.na(wideflash$Accuracy.5),
+                              wideflash$Accuracy.5 - wideflash$Accuracy.4,NA)
+wideflash$t6_t5diff <- ifelse(!is.na(wideflash$Accuracy.6),
+                              wideflash$Accuracy.6 - wideflash$Accuracy.5,NA)
+wideflash$t7_t6diff <- ifelse(!is.na(wideflash$Accuracy.7),
+                              wideflash$Accuracy.7 - wideflash$Accuracy.6,NA)
+     # make new columns for "interval" aka time difference (in days) between test points
+wideflash$t2_t1time <- ifelse(!is.na(wideflash$Accuracy.2),
+                              difftime(wideflash$Dotest.2,wideflash$Dotest.1,units = "days"),NA)
+wideflash$t3_t2time <- ifelse(!is.na(wideflash$Accuracy.3),
+                              difftime(wideflash$Dotest.3,wideflash$Dotest.2,units = "days"),NA)
+wideflash$t4_t3time <- ifelse(!is.na(wideflash$Accuracy.4),
+                              difftime(wideflash$Dotest.4,wideflash$Dotest.3,units = "days"),NA)
+wideflash$t5_t4time <- ifelse(!is.na(wideflash$Accuracy.5),
+                              difftime(wideflash$Dotest.5,wideflash$Dotest.4,units = "days"),NA)
+wideflash$t6_t5time <- ifelse(!is.na(wideflash$Accuracy.6),
+                              difftime(wideflash$Dotest.6,wideflash$Dotest.5,units = "days"),NA)
+wideflash$t7_t6time <- ifelse(!is.na(wideflash$Accuracy.7),
+                              difftime(wideflash$Dotest.7,wideflash$Dotest.6,units = "days"),NA)
+
+     # make sure all time differences of 0 are written as 1
+wideflash[wideflash$t2_t1time==0 & !is.na(wideflash$t2_t1time),"t2_t1time"] <- 1
+wideflash[wideflash$t3_t2time==0 & !is.na(wideflash$t3_t2time),"t3_t2time"] <- 1
+wideflash[wideflash$t4_t3time==0 & !is.na(wideflash$t4_t3time),"t4_t3time"] <- 1
+wideflash[wideflash$t5_t4time==0 & !is.na(wideflash$t5_t4time),"t5_t4time"] <- 1
+wideflash[wideflash$t6_t5time==0 & !is.na(wideflash$t6_t5time),"t6_t5time"] <- 1
+wideflash[wideflash$t7_t6time==0 & !is.na(wideflash$t7_t6time),"t7_t6time"] <- 1
 
 
-
-
-
+# code from Tyler
+diff <- T2_scores - T1_scores
+new_diff <- lm(diff~interval, data=diff_int)$residuals
+new_T2_scores <- T2_scores + new_diff
 
 
 
