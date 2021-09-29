@@ -19,47 +19,43 @@ library(reshape2)
 
 
 # Load and organize data ----
-bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))
+bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))  # 241,797 rows 9.28.21
 names(bigcnb)[2:3] <- c("datasetid", "bblid")
 demos <- read.csv("subjectdemosall_v.csv")
 
 bigcnb$bblid <- as.numeric(bigcnb$bblid)
-
-rm <- bigcnb[bigcnb$Bblid<10000 & !is.na(bigcnb$Bblid),]   # left with 241,797 rows 9.28.21
+rm <- bigcnb[bigcnb$bblid<10000 & !is.na(bigcnb$bblid),]   # left with 241,772 rows 9.28.21
 bigcnb <- setdiff(bigcnb,rm)
-# bigcnb <- bigcnb %>% 
-#   filter(Bblid > 9999)      # this code works, but it gets rid of subjects that don't have BBLids (that still have age, dotest, and acc which make them useful still)
 
-bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
-bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
-bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
+bigcnb$dotest <- as.Date(bigcnb$dotest, "%m/%d/%y")
+bigcnb$dob <- as.Date(bigcnb$dob, "%m/%d/%y")              # anything with Dob > 2013 should be 100 years earlier
+bigcnb <- bigcnb[order(bigcnb$dob, decreasing = T),]
 
      # move demos stuff here
 newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
-x <- left_join(bigcnb,newdemos,by=c("Bblid"="BBLID")) # 347,324 rows! yay
+x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 347,324 rows! yay
 x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
-x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-x <- x[,c(1:5,17,7:15)]
-names(x)[6]<- "Dob"
+x$newDOB <- if_else(is.na(x$dob),x$DOBIRTH,x$dob)
+x <- x[,c(1:6,18,8:16)]
+names(x)[7]<- "dob"
 bigcnb <- x
 
-temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
+temp <- bigcnb[bigcnb$dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$dob),]$dob
 temp <- temp %m-% years(100) 
-bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
-bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
+bigcnb[bigcnb$dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$dob),]$dob <- temp
+bigcnb[which(bigcnb$bblid==12344),7] <- bigcnb[which(bigcnb$bblid==12344),7] %m-% years(100)
 
-bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+bigcnb$age <- floor(as.numeric(bigcnb$dotest - bigcnb$dob, units = "weeks")/52.25)
 # fixing the 106 and 107 year olds
-temp <- bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$Dob
+temp <- bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$dob
 temp <- temp %m+% years(100) 
-bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$Dob <- temp
-bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
+bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$dob <- temp
+bigcnb$age <- floor(as.numeric(bigcnb$dotest - bigcnb$dob, units = "weeks")/52.25)
 
 bigcnb$flash <- 0
-bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
+bigcnb$flash[which(bigcnb$dotest <= as.Date("2020-12-31"))] <- 1
 
-bigcnb <- bigcnb[order(bigcnb$Datasetid),]
-# nonflashmissdob <- bigcnb[is.na(bigcnb$Dob) & bigcnb$flash==0,] # 519 post demos merge, 5535 pre demos merge
+bigcnb <- bigcnb[order(bigcnb$bblid),]
 
 # * Separate into test versions ----
 # check if BART, DIGSYM, TRAIL exist
@@ -126,7 +122,7 @@ for (i in 1:length(texts)){
 notthese <- c()
 for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
   test <- tests[[i]]
-  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Gender),]
+  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
   if (length(unique(newtest$flash))!=2) {
     notthese <- c(notthese,texts[i])
   } else if (nrow(newtest[newtest$flash==0,])<5) {
@@ -137,7 +133,7 @@ for (i in 1:length(texts)){   # catch the tests that don't have enough f==0
 nottheseSp <- c()
 for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
   test <- tests[[i]]
-  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$Gender),]
+  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
   if (length(unique(newtest$flash))!=2) {
     nottheseSp <- c(nottheseSp,texts[i])
   } else if (nrow(newtest[newtest$flash==0,])<5) {
@@ -146,8 +142,6 @@ for (i in 1:length(texts)){   # catch the tests that don't have enough f==0
 }
 
 notthese <- nottheseSp
-# adding SPLOT12 manually for now (for both accuracy and speed)
-notthese <- c(notthese, "SPLOT12")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 texts <- texts[texts %!in% notthese] # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
