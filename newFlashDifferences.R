@@ -448,13 +448,10 @@ allgood <- rownames(tochecksp[tochecksp$problematic==0,])
 test <- "ADT36_A"
 test <- mget(test)[[1]]
 
-# histogram to look at item acc frequency
-hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()
+hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
 
-# regress out age first
-##################!!!!
-fit <- gam(Accuracy ~ s(age), data = test)
 test <- test[!is.na(test$dob),]
+fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
 test$acc_res <- scale(resid(fit))
 fit <- gam(Speed ~ s(age), data = test)
 test$spe_res <- scale(resid(fit))
@@ -479,6 +476,9 @@ nflashcount <- nflash %>%
   summarise(n=n())
 flashcount <- flashcount[order(flashcount$n, decreasing = T),]
 nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
+
+maxflash <- flashcount$n[1]
+maxnflash <- nflashcount$n[1]
 
 # df where rows are all unique Bblid and then columns for Dotest, age, speed and acc for each test point
 tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
@@ -507,446 +507,80 @@ widenflash <- reshape(tpnflash[,3:8],
 
 # make df with difference in score (diff) as well as days between test dates (interval)
      # make new columns for difference in accuracy between test points
-wideflash$t2_t1diff <- ifelse(!is.na(wideflash$Accuracy.2),wideflash$Accuracy.2 - wideflash$Accuracy.1,NA)
-wideflash$t3_t2diff <- ifelse(!is.na(wideflash$Accuracy.3),wideflash$Accuracy.3 - wideflash$Accuracy.2,NA)
-wideflash$t4_t3diff <- ifelse(!is.na(wideflash$Accuracy.4),wideflash$Accuracy.4 - wideflash$Accuracy.3,NA)
-wideflash$t5_t4diff <- ifelse(!is.na(wideflash$Accuracy.5),wideflash$Accuracy.5 - wideflash$Accuracy.4,NA)
-wideflash$t6_t5diff <- ifelse(!is.na(wideflash$Accuracy.6),wideflash$Accuracy.6 - wideflash$Accuracy.5,NA)
-wideflash$t7_t6diff <- ifelse(!is.na(wideflash$Accuracy.7),wideflash$Accuracy.7 - wideflash$Accuracy.6,NA)
+widediff <- c()
+widetime <- c()
+for (i in 2:maxflash) {
+  diff <- ifelse(!is.na(wideflash[,(4*i)]),wideflash[,(4*i)] - wideflash[,(4*(i-1))],NA)
+  time <- ifelse(!is.na(wideflash[,(4*i)]),difftime(wideflash[,(4*i-2)],wideflash[,(4*i-6)],units = "days"),NA)
+  
+  widediff <- data.frame(cbind(widediff,diff))
+  widetime <- data.frame(cbind(widetime,time))
+  
+  names(widediff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+  names(widetime)[i-1] <- paste0("t",i,"_",i-1,"time")
+}
 
-widenflash$t2_t1diff <- ifelse(!is.na(widenflash$Accuracy.2),widenflash$Accuracy.2 - widenflash$Accuracy.1,NA)
-widenflash$t3_t2diff <- ifelse(!is.na(widenflash$Accuracy.3),widenflash$Accuracy.3 - widenflash$Accuracy.2,NA)
+widendiff <- c()
+widentime <- c()
+for (i in 2:maxnflash) {
+  diff <- ifelse(!is.na(widenflash[,(4*i)]),widenflash[,(4*i)] - widenflash[,(4*(i-1))],NA)
+  time <- ifelse(!is.na(widenflash[,(4*i)]),difftime(widenflash[,(4*i-2)],widenflash[,(4*i-6)],units = "days"),NA)
+  
+  widendiff <- data.frame(cbind(widendiff,diff))
+  widentime <- data.frame(cbind(widentime,time))
+  
+  names(widendiff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+  names(widentime)[i-1] <- paste0("t",i,"_",i-1,"time")
+}
 
+wideflash <- cbind(wideflash,widediff,widetime)
+widenflash <- cbind(widenflash,widendiff,widentime)
 
-     # make new columns for "interval" aka time difference (in days) between test points
-wideflash$t2_t1time <- ifelse(!is.na(wideflash$Accuracy.2),difftime(wideflash$Dotest.2,wideflash$Dotest.1,units = "days"),NA)
-wideflash$t3_t2time <- ifelse(!is.na(wideflash$Accuracy.3),difftime(wideflash$Dotest.3,wideflash$Dotest.2,units = "days"),NA)
-wideflash$t4_t3time <- ifelse(!is.na(wideflash$Accuracy.4),difftime(wideflash$Dotest.4,wideflash$Dotest.3,units = "days"),NA)
-wideflash$t5_t4time <- ifelse(!is.na(wideflash$Accuracy.5),difftime(wideflash$Dotest.5,wideflash$Dotest.4,units = "days"),NA)
-wideflash$t6_t5time <- ifelse(!is.na(wideflash$Accuracy.6),difftime(wideflash$Dotest.6,wideflash$Dotest.5,units = "days"),NA)
-wideflash$t7_t6time <- ifelse(!is.na(wideflash$Accuracy.7),difftime(wideflash$Dotest.7,wideflash$Dotest.6,units = "days"),NA)
-
-widenflash$t2_t1time <- ifelse(!is.na(widenflash$Accuracy.2),difftime(widenflash$Dotest.2,widenflash$Dotest.1,units = "days"),NA)
-widenflash$t3_t2time <- ifelse(!is.na(widenflash$Accuracy.3),difftime(widenflash$Dotest.3,widenflash$Dotest.2,units = "days"),NA)
-
-     # make sure all time differences of 0 are written as 1
-wideflash[wideflash$t2_t1time==0 & !is.na(wideflash$t2_t1time),"t2_t1time"] <- 1
-wideflash[wideflash$t3_t2time==0 & !is.na(wideflash$t3_t2time),"t3_t2time"] <- 1
-wideflash[wideflash$t4_t3time==0 & !is.na(wideflash$t4_t3time),"t4_t3time"] <- 1
-wideflash[wideflash$t5_t4time==0 & !is.na(wideflash$t5_t4time),"t5_t4time"] <- 1
-wideflash[wideflash$t6_t5time==0 & !is.na(wideflash$t6_t5time),"t6_t5time"] <- 1
-wideflash[wideflash$t7_t6time==0 & !is.na(wideflash$t7_t6time),"t7_t6time"] <- 1
-
-widenflash[widenflash$t2_t1time==0 & !is.na(widenflash$t2_t1time),"t2_t1time"] <- 1
-widenflash[widenflash$t3_t2time==0 & !is.na(widenflash$t3_t2time),"t3_t2time"] <- 1
-
-wideflash <- wideflash[order(wideflash$t7_t6time,wideflash$t6_t5time,wideflash$t5_t4time,wideflash$t4_t3time,wideflash$t3_t2time,wideflash$t2_t1time),]
-widenflash <- widenflash[order(widenflash$t3_t2time,widenflash$t2_t1time),]
+for (i in 1:(maxflash-1)) {
+  wideflash <- wideflash[order(wideflash[,(1+4*maxflash + i)]),]
+}
+for (i in 1:(maxnflash-1)) {
+  widenflash <- widenflash[order(widenflash[,(1+4*maxnflash + i)]),]
+}
 
 
 # new df for storing all scores (original and new)
 newflash <- wideflash[,1:22]
 
 # code from Tyler
-new_diff2_1 <- lm(t2_t1diff~t2_t1time, data=wideflash)$residuals
-newflash$newT2score <- NA
-newflash$newT2score[1:length(new_diff2_1)] <- wideflash[1:length(new_diff2_1),"Accuracy.2"] + new_diff2_1
-meandif <- mean(newflash$Accuracy.2,na.rm=T) - mean(newflash$Accuracy.1,na.rm=T)
-newflash$adj_newT2score <- newflash$newT2score - meandif
-
-new_diff3_2 <- lm(t3_t2diff~t3_t2time, data=wideflash)$residuals
-newflash$newT3score <- NA
-newflash$newT3score[1:length(new_diff3_2)] <- wideflash[1:length(new_diff3_2),"Accuracy.3"] + new_diff3_2
-meandif <- mean(newflash$Accuracy.3,na.rm=T) - mean(newflash$adj_newT2score,na.rm=T)
-newflash$adj_newT3score <- newflash$newT3score - meandif
-
-new_diff4_3 <- lm(t4_t3diff~t4_t3time, data=wideflash)$residuals
-newflash$newT4score <- NA
-newflash$newT4score[1:length(new_diff4_3)] <- wideflash[1:length(new_diff4_3),"Accuracy.4"] + new_diff4_3
-meandif <- mean(newflash$Accuracy.4,na.rm=T) - mean(newflash$adj_newT3score,na.rm=T)
-newflash$adj_newT4score <- newflash$newT4score - meandif
-
-new_diff5_4 <- lm(t5_t4diff~t5_t4time, data=wideflash)$residuals
-newflash$newT5score <- NA
-newflash$newT5score[1:length(new_diff5_4)] <- wideflash[1:length(new_diff5_4),"Accuracy.5"] + new_diff5_4
-meandif <- mean(newflash$Accuracy.5,na.rm=T) - mean(newflash$adj_newT4score,na.rm=T)
-newflash$adj_newT5score <- newflash$newT5score - meandif
-
-new_diff6_5 <- lm(t6_t5diff~t6_t5time, data=wideflash)$residuals
-newflash$newT6score <- NA
-newflash$newT6score[1:length(new_diff6_5)] <- wideflash[1:length(new_diff6_5),"Accuracy.6"] + new_diff6_5
-meandif <- mean(newflash$Accuracy.6,na.rm=T) - mean(newflash$adj_newT5score,na.rm=T)
-newflash$adj_newT6score <- newflash$newT6score - meandif
-
-new_diff7_6 <- lm(t7_t6diff~t7_t6time, data=wideflash)$residuals
-newflash$newT7score <- NA
-newflash$newT7score[1:length(new_diff7_6)] <- wideflash[1:length(new_diff7_6),"Accuracy.7"] + new_diff7_6
-meandif <- mean(newflash$Accuracy.7,na.rm=T) - mean(newflash$adj_newT6score,na.rm=T)
-newflash$adj_newT7score <- newflash$newT7score - meandif
-
-
-
-
-
-# old script only used siteid, bblid, age, dotest, gender, flash, CR, RTCR as the important columns
-# i can do that again here, or I can just call on the columns i need, leaving the 
-# unneeded ones in still.
-
-# * CPF_A (40 total) ----
-
-CPFAnoage <- CPF_A[which(is.na(CPF_A$age)),] # there are some missing ages
-CPF_A <- CPF_A[!is.na(CPF_A$Accuracy),]
-
-firstday <- min(CPF_A$Dotest)
-lastday <- max(CPF_A$Dotest)
-numdates <- as.numeric(CPF_A$Dotest)
-numdates <- numdates - min(numdates)
-CPF_A$Dotest <- numdates
-
-genfit <- lm(Accuracy ~ Dotest+flash, data=CPF_A)
-summary(genfit)
-visreg(genfit, "Dotest", by= "flash", overlay =T, gg=T) + 
-  theme_bw() +
-  theme(legend.position = "right",
-        plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(x = paste0("Date of test (with ", firstday, " as 0)"),
-       title = "Accuracy on CPF_A") +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5)) 
-
-# this one did not look ass well
-# fit <- lm(Accuracy ~ Dotest*flash, data=CPF_A)
-# summary(fit)
-# visreg(fit, "Dotest", by= "flash", overlay =T, ylab = "Score (out of 60)", xlab = "Date of test", main = "Accuracy on CPF_A")
-
-flashfit <- lm(Accuracy ~ flash, data=CPF_A)
-summary(flashfit)
-ad <- visreg(flashfit, "flash", gg=T) +
-  theme_bw() + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)",
-       title = "Accuracy on CPF_A depending on Flash/non-Flash") +
-  scale_x_continuous(name = "Date of test", breaks = seq(0,1,by=1))
-
-png(filename = "plots/CPF_A_general_alldates.png", height = 1000, width = 1000,res=160)
-ad
-dev.off()
-
-
-# flashfit but with only the last year of flash
-
-cutoff <- as.numeric(as.Date("2019-12-31"))-as.numeric(firstday)
-lastyear <- CPF_A[CPF_A$Dotest >= cutoff,]
-
-flashfit <- lm(Accuracy ~ flash, data=lastyear)
-summary(flashfit)
-ly <- visreg(flashfit, "flash", gg=T) +
-  theme_bw() + 
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)",
-       title = "Accuracy on CPF_A depending on Flash/non-Flash (only last year of Flash)") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1))
-
-png(filename = "plots/CPF_A_general_lastyear.png", height = 1000, width = 1000,res=160)
-ly
-dev.off()
-
-
-
-
-
-# looking at age-sex interaction
-
-agesexfit <- lm(Accuracy ~ flash + age + Gender, data=CPF_A)
-summary(agesexfit)
-v1 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T) +
-  theme_bw() +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)", 
-       title = "Male Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-v2 <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, gg=T) +
-  theme_bw() +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)",
-       title = "Female Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-
-png(filename = "plots/CPF_A_agesex_alldates_male.png", height = 1000, width = 500,res=100)
-v1
-dev.off()
-
-png(filename = "plots/CPF_A_agesex_alldates_female.png", height = 1000, width = 500,res=100)
-v2
-dev.off()
-
-
-# trying to put the above two plots in the same display
-v <- visregList(visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age", plot=FALSE),
-                visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age", plot=FALSE),
-                labels=c("Male", "Female"), collapse=TRUE)
-plot(v, ylab="Score (out of 40)")
-
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
-
-# using gg=T to fix x axis ticks
-v1p <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), gg=T) +
-  theme_bw() +
-  labs(title = "Male Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-v2p <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), gg=T) +
-  theme_bw() +
-  labs(title = "Female Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-
-png(filename = "plots/CPF_A_agesex_alldates_malepanels.png", height = 500, width = 1000,res=100)
-v1p
-dev.off()
-
-png(filename = "plots/CPF_A_agesex_alldates_femalepanels.png", height = 500, width = 1000,res=100)
-v2p
-dev.off()
-
-
-# trying to make the opposite happen
-# looks like I need to make an agegroup variable to make this happen smoother. this would make it more challenging to generalize tho
-v <- visregList(visreg(agesexfit, "flash", by= "Gender", cond = list(age=7:18), overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 7 to 18", plot=FALSE),
-                visreg(agesexfit, "flash", by= "Gender", cond = list(age=19:26), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 19 to 26", plot=FALSE),
-                visreg(agesexfit, "flash", by= "Gender", cond = list(age=27:35), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 27 to 35", plot=FALSE),
-                visreg(agesexfit, "flash", by= "Gender", cond = list(age=36:46), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 36 to 46", plot=FALSE),
-                visreg(agesexfit, "flash", by= "Gender", cond = list(age=47:62), breaks = 2, layout = c(2,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Accuracy on CPF_A ages 47 to 62", plot=FALSE),
-                labels=c("7 to 18", "19 to 26", "27 to 35","36 to 46", "47 to 62"), collapse=TRUE)
-plot(v, ylab="Score (out of 40)")
-
-# age-sex but only for the last year of flash
-agesexfit <- lm(Accuracy ~ flash + age + Gender, data=lastyear)
-summary(agesexfit)
-
-v1ly <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, gg=T) +
-  theme_bw() +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)", 
-       title = "Male Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-v2ly <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, gg=T) +
-  theme_bw() +
-  theme(plot.margin=unit(c(1,2,1.5,1.2),"cm")) +
-  labs(y = "Score (out of 40)",
-       title = "Female Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-
-png(filename = "plots/CPF_A_agesex_lastyear_male.png", height = 1000, width = 500,res=100)
-v1ly
-dev.off()
-
-png(filename = "plots/CPF_A_agesex_lastyear_female.png", height = 1000, width = 500,res=100)
-v2ly
-dev.off()
-
-# lastyear panels
-v1ply <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), gg=T) +
-  theme_bw() +
-  labs(title = "Male Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-v2ply <- visreg(agesexfit, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), gg=T) +
-  theme_bw() +
-  labs(title = "Female Accuracy on CPF_A by age") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42, by=5))
-
-png(filename = "plots/CPF_A_agesex_lastyear_malepanels.png", height = 500, width = 1000,res=100)
-v1ply
-dev.off()
-
-png(filename = "plots/CPF_A_agesex_lastyear_femalepanels.png", height = 500, width = 1000,res=100)
-v2ply
-dev.off()
-
-
-# looking at threeway interaction plots
-asf <- lm(Accuracy ~ flash * age * Gender, data=lastyear)
-summary(asf)
-visreg(asf, "flash", by= "age", cond = list(Gender="M"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(asf, "flash", by= "age", cond = list(Gender="F"), breaks = 5, overlay =T, ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
-
-visreg(asf, "flash", by= "age", cond = list(Gender="M"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Male Accuracy on CPF_A by age")
-visreg(asf, "flash", by= "age", cond = list(Gender="F"), breaks = 5, layout = c(5,1), ylab = "Score (out of 40)", xlab = "Flash?", main = "Female Accuracy on CPF_A by age")
-
-
-
-# looking at site differences
-
-sitefit <- lm(Accuracy ~ flash*Siteid, data=CPF_A)
-summary(sitefit)
-# EFR01, EVOLPSY, LiBI, MOTIVE, PAISA are the only ones with flash interaction (actual data for non-flash)
-sites <- c("EFR01", "EVOLPSY", "LiBI", "MOTIVE", "PAISA")
-sCPFA <- CPF_A[which(CPF_A$Siteid %in% sites),]
-sitefit <- lm(Accuracy ~ flash*Siteid, data=sCPFA)
-summary(sitefit)
-sites <- visreg(sitefit, "flash", by= "Siteid", gg=T) +
-  theme_bw() +
-  labs(title = "Site differencess in Accuracy on CPF_A") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42,by=5))
-
-png(filename = "plots/CPF_A_sites_alldates.png", height = 500, width = 1000,res=100)
-sites
-dev.off()
-
-sCPFAly <- lastyear[which(lastyear$Siteid %in% sites),]
-sitefit <- lm(Accuracy ~ flash*Siteid, data=sCPFAly)
-summary(sitefit)
-sites <- visreg(sitefit, "flash", by= "Siteid", gg=T) +
-  theme_bw() +
-  labs(title = "Site differencess in Accuracy on CPF_A (only last year of Flash)") +
-  scale_x_continuous(name = "Flash", breaks = seq(0,1,by=1)) +
-  scale_y_continuous(name = "Score (out of 40)", breaks = seq(10,42,by=5))
-
-png(filename = "plots/CPF_A_sites_lastyear.png", height = 500, width = 1000,res=100)
-sites
-dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# test ----
-
-demos <- read.csv("subjectdemosall_v.csv")
-sum(is.na(demos$AGE_INTAKE))
-sum(is.na(demos$DOBIRTH))
-sum(is.na(demos$DOINTAKE))
-
-noDOB <- SVOLT_A$Bblid[is.na(SVOLT_A$Dob) & SVOLT_A$flash==0]
-
-DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)] # extract bblid and dob from demos
-DOBfromdemos <- distinct(DOBfromdemos)
-DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
-
-x <- left_join(SVOLT_A,DOBfromdemos,by=c("Bblid"="BBLID"))
-x$newDOB <- ifelse(is.na(x$Dob),x$DOBIRTH,x$Dob)
-x <- x%>%
-  mutate(newdob = if_else(is.na(Dob),DOBIRTH,Dob))
-
-# comparing bigcnb and demos DOB directly
-x <- left_join(bigcnb,demos[,c(1,21)],by=c("Bblid"="BBLID"))
-
-# this is giving me 388,323 obs. when I should only have 247,324
-noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
-DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
-DOBfromdemos <- distinct(DOBfromdemos)
-DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
-x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
-x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-View(x[,c(6,18:19)])
-
-
-# checking to see if my code in the beginning is actually adding any DOB from demos
-bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
-demos <- read.csv("subjectdemosall_v.csv")
-
-bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
-bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
-bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
-
-temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
-temp <- temp %m-% years(100) 
-bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
-bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
-
-bigcnb$flash <- 0
-bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
-
-oldcnb <- bigcnb
-oldcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
-
-oldcnb <- oldcnb[order(oldcnb$Datasetid),]
-
-# check distinct BBLids in demos
-demosbblid <- sort(unique(demos$BBLID))    # 19366 
-bblidsum <- sum(!is.na(demos$BBLID))       # 23355
-repbblid <- bblidsum - length(demosbblid)  # 3989
-
-noDOB <- bigcnb$Bblid[is.na(bigcnb$Dob) & bigcnb$flash==0]
-DOBfromdemos <- demos[demos$BBLID %in% noDOB, c(1,21)]
-DOBfromdemos$DOBIRTH <- as.Date(DOBfromdemos$DOBIRTH,"%d-%b-%y")
-x <- left_join(bigcnb,DOBfromdemos,by=c("Bblid"="BBLID"))
-x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-View(x[,c(6,17,18)])
-x <- x[,c(1:5,18,7:16)]
-names(x)[6]<- "Dob"
-bigcnb <- x
-
-bigcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
-bigcnb <- bigcnb[order(bigcnb$Datasetid),]
-
-oldDOB <- sort(unique(oldcnb$Dob))  # 10912
-newDOB <- sort(unique(bigcnb$Dob))  # 10948 (difference of 36)
-
-old0DOB <- sort(unique(oldcnb[oldcnb$flash==0,6]))  # 1370
-new0DOB <- sort(unique(bigcnb[bigcnb$flash==0,6]))  # 1561 (difference of 191)
-
-oldbbl <- sort(unique(oldcnb$Bblid))
-newbbl <- sort(unique(bigcnb$Bblid)) # both 12623
-
-
-
-bigcnb <- read.csv("bigcnb_14Sep21.csv", na=c("",".","NA",NA))
-demos <- read.csv("subjectdemosall_v.csv")
-
-bigcnb$Dotest <- as.Date(bigcnb$Dotest, "%m/%d/%y")
-bigcnb$Dob <- as.Date(bigcnb$Dob, "%m/%d/%y")   # anything with Dob > 2013 should be 100 years earlier
-bigcnb <- bigcnb[order(bigcnb$Dob, decreasing = T),]
-
-temp <- bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob
-temp <- temp %m-% years(100) 
-bigcnb[bigcnb$Dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$Dob),]$Dob <- temp
-bigcnb[which(bigcnb$Bblid==12344),6] <- bigcnb[which(bigcnb$Bblid==12344),6] %m-% years(100)
-
-bigcnb$flash <- 0
-bigcnb$flash[which(bigcnb$Dotest <= as.Date("2020-12-31"))] <- 1
-
-oldcnb <- bigcnb
-oldcnb$age <- floor(as.numeric(bigcnb$Dotest - bigcnb$Dob, units = "weeks")/52.25)
-
-oldcnb <- oldcnb[order(oldcnb$Datasetid),]
-
-# check distinct BBLids in demos
-demosbblid <- sort(unique(demos$BBLID))    # 19366 
-bblidsum <- sum(!is.na(demos$BBLID))       # 23355
-repbblid <- bblidsum - length(demosbblid)  # 3989
-
-# getting rid of duplicate BBLids in demos
-newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
-x <- left_join(bigcnb,newdemos,by=c("Bblid"="BBLID")) # 347,324 rows! yay
-x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
-x$newDOB <- if_else(is.na(x$Dob),x$DOBIRTH,x$Dob)
-View(x[,c(2,6,17,18,16)])
-newnonflash <- x[is.na(x$Dob) & !is.na(x$DOBIRTH) & x$flash==0,] # 5016 birthdays added to nonfash
-nobbliddup <- newnonflash[!duplicated(newnonflash$Bblid),] # demos file has added DOBs to 238 distinct non-flash BBLids
-x <- x[,c(1:5,18,7:16)]
-names(x)[6]<- "Dob"
-bigcnb <- x
+new1 <- c()
+new2 <- c()
+for (i in 2:maxflash-1) {
+  diff <- lm(widediff[,i]~widetime[,i])$residuals
+  newscore1 <- c(wideflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(wideflash) - length(diff)))
+  meandif <- mean(wideflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(wideflash[,paste0("acc_res.",i)],na.rm=T)
+  newscore2 <- wideflash[,paste0("acc_res.",i+1)] + meandif
+  
+  new1 <- data.frame(cbind(new1,newscore1))
+  new2 <- data.frame(cbind(new2,newscore2))
+  
+  names(new1)[i] <- paste0("t",i+1,"_",i,"newscore1")
+  names(new2)[i] <- paste0("t",i+1,"_",i,"newscore2")
+}
+
+wideflash <- cbind(wideflash,new1,new2)
+
+newn1 <- c()
+newn2 <- c()
+for (i in 2:maxnflash-1) {
+  diff <- lm(widendiff[,i]~widentime[,i])$residuals
+  newscore1 <- c(widenflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(widenflash) - length(diff)))
+  meandif <- mean(widenflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(widenflash[,paste0("acc_res.",i)],na.rm=T)
+  newscore2 <- widenflash[,paste0("acc_res.",i+1)] + meandif
+  
+  newn1 <- data.frame(cbind(newn1,newscore1))
+  newn2 <- data.frame(cbind(newn2,newscore2))
+  
+  names(newn1)[i] <- paste0("t",i+1,"_",i,"newscore1")
+  names(newn2)[i] <- paste0("t",i+1,"_",i,"newscore2")
+}
+
+widenflash <- cbind(widenflash,newn1,newn2)
 
 
 
