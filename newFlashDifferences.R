@@ -1,5 +1,4 @@
 # new script for flash no flash project
-# awaiting new data from Mrugank
 #
 # 09.10.21 Akira Di Sandro
 
@@ -23,7 +22,7 @@ bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))  # 241,797 rows 9
 names(bigcnb)[2:3] <- c("datasetid", "bblid")
 demos <- read.csv("subjectdemosall_v.csv")
 
-bigcnb$bblid <- as.numeric(bigcnb$bblid)
+bigcnb$bblid <- as.numeric(bigcnb$bblid)                   # getting rid of fake bblids
 rm <- bigcnb[bigcnb$bblid<10000 & !is.na(bigcnb$bblid),]   # left with 241,772 rows 9.28.21
 bigcnb <- setdiff(bigcnb,rm)
 
@@ -31,9 +30,8 @@ bigcnb$dotest <- as.Date(bigcnb$dotest, "%m/%d/%y")
 bigcnb$dob <- as.Date(bigcnb$dob, "%m/%d/%y")              # anything with Dob > 2013 should be 100 years earlier
 bigcnb <- bigcnb[order(bigcnb$dob, decreasing = T),]
 
-     # move demos stuff here
 newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
-x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 347,324 rows! yay
+x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 241,772 rows!
 x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
 x$newDOB <- if_else(is.na(x$dob),x$DOBIRTH,x$dob)
 x <- x[,c(1:6,18,8:16)]
@@ -142,8 +140,7 @@ for (i in 1:length(texts)){   # catch the tests that don't have enough f==0
 }
 
 notthese <- nottheseSp
-'%!in%' <- function(x,y)!('%in%'(x,y))
-texts <- texts[texts %!in% notthese] # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
+texts <- setdiff(texts, notthese) # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
 
 # Models and Plotting ----
@@ -156,7 +153,7 @@ tests <- mget(texts)
 # * t-tests ----
 
 # general code for t-tests
-textsAcc <- texts[texts %!in% c("MPRACT","SCTAP")]
+textsAcc <- setdiff(texts, c("MPRACT","SCTAP"))
 testsAcc <- mget(textsAcc)
 cutoff <- as.Date("2019-12-31")
 for (i in 1:length(textsAcc)) {
@@ -166,17 +163,17 @@ for (i in 1:length(textsAcc)) {
   
   
   # alldates
-  fit <- gam(Accuracy ~ s(age) + Gender, data = test)
+  fit <- gam(Accuracy ~ s(age) + gender, data = test)
   
   # save summary of this model as a variable
   fitAD <- summary(fit)
   sumAcc <- c(sumAcc,"fitAD")
   
   # is this plot necessary?
-  visreg(fit,"age", by="Gender")
+  visreg(fit,"age", by="gender")
   
   res <- scale(resid(fit))   # scaled residuals
-  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Gender),]
+  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
   nflash <- newtest[newtest$flash==0,]
   nfrownames <- row.names(nflash)
   
@@ -212,17 +209,17 @@ for (i in 1:length(textsAcc)) {
   
   
   # lastyear
-  lastyear <- test[test$Dotest >= cutoff,]
-  fit <- gam(Accuracy ~ s(age) + Gender, data = lastyear)
+  lastyear <- test[test$dotest >= cutoff,]
+  fit <- gam(Accuracy ~ s(age) + gender, data = lastyear)
   
   # save summary of this model as a variable
   fitLY <- summary(fit)
   sumAcc <- c(sumAcc,"fitLY")
   
-  visreg(fit,"age", by="Gender")
+  visreg(fit,"age", by="gender")
   
   res <- scale(resid(fit))   # scaled residuals
-  newtest <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
+  newtest <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$gender),]
   nflash <- newtest[newtest$flash==0,]
   nfrownames <- row.names(nflash)
   
@@ -267,17 +264,17 @@ for (i in 1:length(texts)) {
   sumSp <- c(texts[i])
   
   # alldates
-  fit <- gam(Speed ~ s(age) + Gender, data = test)
+  fit <- gam(Speed ~ s(age) + gender, data = test)
   
   # save summary of this model as a variable
   fitAD <- summary(fit)
   sumSp <- c(sumSp,"fitAD")
   
   # is this plot necessary?
-  visreg(fit,"age", by="Gender")
+  visreg(fit,"age", by="gender")
   
   res <- scale(resid(fit))   # scaled residuals
-  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$Gender),]
+  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
   nflash <- newtest[newtest$flash==0,]
   nfrownames <- row.names(nflash)
   
@@ -313,17 +310,17 @@ for (i in 1:length(texts)) {
   
   if (texts[i]!="VSPLOT24") {
     # lastyear
-    lastyear <- test[test$Dotest >= cutoff,]
-    fit <- gam(Speed ~ s(age) + Gender, data = lastyear)
+    lastyear <- test[test$dotest >= cutoff,]
+    fit <- gam(Speed ~ s(age) + gender, data = lastyear)
     
     # save summary of this model as a variable
     fitLY <- summary(fit)
     sumSp <- c(sumSp,"fitLY")
     
-    visreg(fit,"age", by="Gender")
+    visreg(fit,"age", by="gender")
     
     res <- scale(resid(fit))   # scaled residuals
-    newtest <- lastyear[!is.na(lastyear$Speed) & !is.na(lastyear$age) & !is.na(lastyear$Gender),]
+    newtest <- lastyear[!is.na(lastyear$Speed) & !is.na(lastyear$age) & !is.na(lastyear$gender),]
     nflash <- newtest[newtest$flash==0,]
     nfrownames <- row.names(nflash)
     
@@ -402,7 +399,46 @@ tocheck$problematic <- ifelse(!is.na(tocheck$nAD),1,
                                             ifelse(!is.na(tocheck$effsizeLY),1,0))))
 problematic <- tocheck[tocheck$problematic==1,]
 allgood <- rownames(tocheck[tocheck$problematic==0,])
-# allgood <- c(allgood,"SPCET_A")
+
+
+# checking the same thing for speed 
+tochecksp <- as.data.frame(matrix(NA,length(texts),5))
+rownames(tochecksp) <- texts
+names(tochecksp) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
+
+sumSp <- paste0(texts,"sumSp")
+sumSp <- mget(sumSp)
+# bloop <- c()
+
+for (i in 1:length(sumSp)) {
+  dat <- sumSp[[i]]
+  
+  nAD <- dat$nAD$n
+  nLY <- dat$nLY$n
+  # bloop <- c(bloop, nAD,nLY)
+  if (any(nAD<20)) {
+    tochecksp$nAD[i] <- min(nAD)
+  }
+  if (any(nLY<20)) {
+    tochecksp$nLY[i] <- min(nLY)
+  }
+  
+  effectAD <- dat$effsizeAD
+  effectLY <- dat$effsizeLY
+  
+  if (effectAD >= 0.15) {
+    tochecksp$effsizeAD[i] <- effectAD
+  }
+  if (effectLY >= 0.15) {
+    tochecksp$effsizeLY[i] <- effectLY
+  }
+}
+tochecksp$problematic <- ifelse(!is.na(tochecksp$nAD),1,
+                              ifelse(!is.na(tochecksp$effsizeAD),1,
+                                     ifelse(!is.na(tochecksp$nLY),1,
+                                            ifelse(!is.na(tochecksp$effsizeLY),1,0))))
+problematic <- tochecksp[tochecksp$problematic==1,]
+allgood <- rownames(tochecksp[tochecksp$problematic==0,])
 
 
 
@@ -416,50 +452,56 @@ test <- mget(test)[[1]]
 hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()
 
 # regress out age first
+##################!!!!
+fit <- gam(Accuracy ~ s(age), data = test)
+test <- test[!is.na(test$dob),]
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)
+test$spe_res <- scale(resid(fit))
 
+flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
+nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
 
-flash <- unique(test[test$flash==1 & !is.na(test$Bblid),2])
-nflash <- unique(test[test$flash==0 & !is.na(test$Bblid),2])
-
-both <- test[test$Bblid %in% intersect(flash,nflash),]
-both <- both[order(both$Bblid),c(2,5:7,14:17)]
+both <- intersect(flash$bblid, nflash$bblid)
+both <- test[test$bblid %in% both,]
+both <- both[order(both$bblid),]
 
 flash <- both[both$flash==1,]
-flash <- flash[order(flash$Bblid,flash$Dotest),]
+flash <- flash[order(flash$bblid,flash$dotest),]
 nflash <- both[both$flash==0,]
-nflash <- nflash[order(nflash$Bblid,nflash$Dotest),]
+nflash <- nflash[order(nflash$bblid,nflash$dotest),]
 
 flashcount <- flash %>%          # only made to check the max, not necessary
-  group_by(Bblid) %>%
+  group_by(bblid) %>%
   summarise(n=n())
 nflashcount <- nflash %>%
-  group_by(Bblid) %>%
+  group_by(bblid) %>%
   summarise(n=n())
 flashcount <- flashcount[order(flashcount$n, decreasing = T),]
 nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
 
 # df where rows are all unique Bblid and then columns for Dotest, age, speed and acc for each test point
-tpflash <- flash[,c(1,4,6:7)]    #[t]ime [p]oint [flash]
+tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
 tpflash$timepoint <- 1
 for (i in 1:(nrow(tpflash)-1)) {
-  if (tpflash$Bblid[i+1] == tpflash$Bblid[i]) {
+  if (tpflash$bblid[i+1] == tpflash$bblid[i]) {
     tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
   }
 }
-tpnflash <- nflash[,c(1,4,6:7)]    #[t]ime [p]oint [n]on-[flash]
+tpnflash <- nflash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [n]on-[flash] used to be columns 1,4,6:7
 tpnflash$timepoint <- 1
 for (i in 1:(nrow(tpnflash)-1)) {
-  if (tpnflash$Bblid[i+1] == tpnflash$Bblid[i]) {
+  if (tpnflash$bblid[i+1] == tpnflash$bblid[i]) {
     tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
   }
 }
 
-wideflash <- reshape(tpflash,
-                    idvar = "Bblid",
+wideflash <- reshape(tpflash[,3:8],
+                    idvar = "bblid",
                     timevar = "timepoint",
                     direction = "wide")
-widenflash <- reshape(tpnflash,
-                     idvar = "Bblid",
+widenflash <- reshape(tpnflash[,3:8],
+                     idvar = "bblid",
                      timevar = "timepoint",
                      direction = "wide")
 
