@@ -15,6 +15,7 @@ library(lubridate)
 library(mgcv)
 library(tidyr)
 library(reshape2)
+library(irr)
 
 
 # Load and organize data ----
@@ -54,6 +55,9 @@ bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$dotest <= as.Date("2020-12-31"))] <- 1
 
 bigcnb <- bigcnb[order(bigcnb$bblid),]
+
+
+
 
 # * Separate into test versions ----
 # check if BART, DIGSYM, TRAIL exist
@@ -143,16 +147,17 @@ notthese <- nottheseSp
 texts <- setdiff(texts, notthese) # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
 tests <- mget(texts)
 
-# Models and Plotting ----
 
-# 9.16.21 implementing what I talked about with Kosha and Tyler
+
+
+# Models and Plotting ----
 
 # * two-factor FA, waiting itemwise data for this ----
 
 
 # * t-tests ----
 
-# general code for t-tests
+# ** difference in accuracy means ----
 textsAcc <- setdiff(texts, c("MPRACT","SCTAP"))
 testsAcc <- mget(textsAcc)
 cutoff <- as.Date("2019-12-31")
@@ -161,7 +166,6 @@ for (i in 1:length(textsAcc)) {
   name <- paste0(textsAcc[i],"sumAcc")
   sumAcc <- c(textsAcc[i])
   
-  
   # alldates
   fit <- gam(Accuracy ~ s(age) + gender, data = test)
   
@@ -169,7 +173,6 @@ for (i in 1:length(textsAcc)) {
   fitAD <- summary(fit)
   sumAcc <- c(sumAcc,"fitAD")
   
-  # is this plot necessary?
   visreg(fit,"age", by="gender")
   
   res <- scale(resid(fit))   # scaled residuals
@@ -188,7 +191,6 @@ for (i in 1:length(textsAcc)) {
   }
   
   ttestAD <- t.test(res$residuals~res$flash)
-  # save ttest as a variable
   sumAcc <- c(sumAcc,"ttestAD")
   
   # effect sizes
@@ -234,7 +236,6 @@ for (i in 1:length(textsAcc)) {
   }
   
   ttestLY <- t.test(res$residuals~res$flash)
-  # save ttest as a variable
   sumAcc <- c(sumAcc,"ttestLY")
   
   # effect sizes
@@ -257,7 +258,7 @@ for (i in 1:length(textsAcc)) {
   assign(name,sumAcc)
 }
 
-# speed
+# ** difference in speed means ----
 for (i in 1:length(texts)) {
   test <- tests[[i]]
   name <- paste0(texts[i],"sumSp")
@@ -266,11 +267,9 @@ for (i in 1:length(texts)) {
   # alldates
   fit <- gam(Speed ~ s(age) + gender, data = test)
   
-  # save summary of this model as a variable
   fitAD <- summary(fit)
   sumSp <- c(sumSp,"fitAD")
   
-  # is this plot necessary?
   visreg(fit,"age", by="gender")
   
   res <- scale(resid(fit))   # scaled residuals
@@ -289,7 +288,6 @@ for (i in 1:length(texts)) {
   }
   
   ttestAD <- t.test(res$residuals~res$flash)
-  # save ttest as a variable
   sumSp <- c(sumSp,"ttestAD")
   
   # effect sizes
@@ -313,7 +311,6 @@ for (i in 1:length(texts)) {
     lastyear <- test[test$dotest >= cutoff,]
     fit <- gam(Speed ~ s(age) + gender, data = lastyear)
     
-    # save summary of this model as a variable
     fitLY <- summary(fit)
     sumSp <- c(sumSp,"fitLY")
     
@@ -335,7 +332,6 @@ for (i in 1:length(texts)) {
     }
     
     ttestLY <- t.test(res$residuals~res$flash)
-    # save ttest as a variable
     sumSp <- c(sumSp,"ttestLY")
     
     # effect sizes
@@ -359,23 +355,20 @@ for (i in 1:length(texts)) {
   assign(name,sumSp)
 }
 
-# checking for Ns making sure there are enough for a valid comparison
-# can also check for effect sizes
-
+# ** check that there's enough N's and low effect sizes ----
 tocheck <- as.data.frame(matrix(NA,length(textsAcc),5))
 rownames(tocheck) <- textsAcc
 names(tocheck) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
 
 sumAcc <- paste0(textsAcc,"sumAcc")
 sumAcc <- mget(sumAcc)
-# bloop <- c()
 
 for (i in 1:length(sumAcc)) {
   dat <- sumAcc[[i]]
   
   nAD <- dat$nAD$n
   nLY <- dat$nLY$n
-  # bloop <- c(bloop, nAD,nLY)
+
   if (any(nAD<20)) {
     tocheck$nAD[i] <- min(nAD)
   }
@@ -408,14 +401,13 @@ names(tochecksp) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
 
 sumSp <- paste0(texts,"sumSp")
 sumSp <- mget(sumSp)
-# bloop <- c()
 
 for (i in 1:length(sumSp)) {
   dat <- sumSp[[i]]
   
   nAD <- dat$nAD$n
   nLY <- dat$nLY$n
-  # bloop <- c(bloop, nAD,nLY)
+  
   if (any(nAD<20)) {
     tochecksp$nAD[i] <- min(nAD)
   }
@@ -437,150 +429,186 @@ tochecksp$problematic <- ifelse(!is.na(tochecksp$nAD),1,
                               ifelse(!is.na(tochecksp$effsizeAD),1,
                                      ifelse(!is.na(tochecksp$nLY),1,
                                             ifelse(!is.na(tochecksp$effsizeLY),1,0))))
-problematic <- tochecksp[tochecksp$problematic==1,]
-allgood <- rownames(tochecksp[tochecksp$problematic==0,])
+problematicsp <- tochecksp[tochecksp$problematic==1,]
+allgoodsp <- rownames(tochecksp[tochecksp$problematic==0,])
+
+
+
+
+# checking medians for problematic ones
+tocheck <- union(rownames(problematic),rownames(problematicsp))
+testcheck <- mget(tocheck)
+
+stats <- c()
+for (i in 1:length(tocheck)){
+  test <- testcheck[[i]]
+  
+  median <- test %>% 
+    group_by(flash) %>% 
+    summarise(meanAcc = mean(Accuracy,na.rm=T),meanSp = mean(Speed,na.rm=T),
+              medianAcc = median(Accuracy,na.rm=T),medianSp = median(Speed,na.rm=T),n = n())
+  temp <- data.frame(cbind(rep(tocheck[i],2),median))
+  temp <- temp[,c(1:2,7,3,5,4,6)]
+  stats <- rbind(stats,temp)
+}
+names(stats)[1] <- "test"
+
+ADT_LY <- ADT36_A[ADT36_A$dotest >= cutoff,]     # ADT36 A is the only test that has a problematic LY comparison
+median <- ADT_LY %>% 
+  group_by(flash) %>% 
+  summarise(meanAcc = mean(Accuracy,na.rm=T),meanSp = mean(Speed,na.rm=T),
+            medianAcc = median(Accuracy,na.rm=T),medianSp = median(Speed,na.rm=T),n = n())
+temp <- data.frame(cbind(rep("ADT36_A",2),median))
+temp <- temp[,c(1:2,7,3,5,4,6)]
+stats[stats$test=="ADT36_A",] <-temp
 
 
 
 # * flash/non-flash intra-subject correlations ----
 
-# separate by flash and compare IDs
-test <- "ADT36_A"
-test <- mget(test)[[1]]
-
-hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
-
-test <- test[!is.na(test$dob),]
-fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)
-test$spe_res <- scale(resid(fit))
-
-flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
-nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
-
-both <- intersect(flash$bblid, nflash$bblid)
-both <- test[test$bblid %in% both,]
-both <- both[order(both$bblid),]
-
-flash <- both[both$flash==1,]
-flash <- flash[order(flash$bblid,flash$dotest),]
-nflash <- both[both$flash==0,]
-nflash <- nflash[order(nflash$bblid,nflash$dotest),]
-
-flashcount <- flash %>%          # only made to check the max, not necessary
-  group_by(bblid) %>%
-  summarise(n=n())
-nflashcount <- nflash %>%
-  group_by(bblid) %>%
-  summarise(n=n())
-flashcount <- flashcount[order(flashcount$n, decreasing = T),]
-nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
-
-maxflash <- flashcount$n[1]
-maxnflash <- nflashcount$n[1]
-
-# df where rows are all unique Bblid and then columns for Dotest, age, speed and acc for each test point
-tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
-tpflash$timepoint <- 1
-for (i in 1:(nrow(tpflash)-1)) {
-  if (tpflash$bblid[i+1] == tpflash$bblid[i]) {
-    tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
+for (j in 1:length(textsAcc)){
+  test <- testsAcc[[i]]
+  
+  hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
+  
+  test <- test[!is.na(test$dob),]
+  fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
+  test$acc_res <- scale(resid(fit))
+  fit <- gam(Speed ~ s(age), data = test)
+  test$spe_res <- scale(resid(fit))
+  
+  flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
+  nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
+  
+  both <- intersect(flash$bblid, nflash$bblid)
+  both <- test[test$bblid %in% both,]
+  both <- both[order(both$bblid),]
+  
+  flash <- both[both$flash==1,]
+  flash <- flash[order(flash$bblid,flash$dotest),]
+  nflash <- both[both$flash==0,]
+  nflash <- nflash[order(nflash$bblid,nflash$dotest),]
+  
+  flashcount <- flash %>%          # only made to check the max, not necessary
+    group_by(bblid) %>%
+    summarise(n=n())
+  nflashcount <- nflash %>%
+    group_by(bblid) %>%
+    summarise(n=n())
+  flashcount <- flashcount[order(flashcount$n, decreasing = T),]
+  nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
+  
+  maxflash <- na.omit(flashcount)$n[1]
+  maxnflash <- na.omit(nflashcount)$n[1]
+  
+  # df where rows are all unique Bblid and then columns for Dotest, age, speed and acc for each test point
+  tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
+  tpflash$timepoint <- 1
+  for (i in 1:(nrow(tpflash)-1)) {
+    if (tpflash$bblid[i+1] == tpflash$bblid[i]) {
+      tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
+    }
   }
-}
-tpnflash <- nflash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [n]on-[flash] used to be columns 1,4,6:7
-tpnflash$timepoint <- 1
-for (i in 1:(nrow(tpnflash)-1)) {
-  if (tpnflash$bblid[i+1] == tpnflash$bblid[i]) {
-    tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
+  tpnflash <- nflash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [n]on-[flash] used to be columns 1,4,6:7
+  tpnflash$timepoint <- 1
+  for (i in 1:(nrow(tpnflash)-1)) {
+    if (tpnflash$bblid[i+1] == tpnflash$bblid[i]) {
+      tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
+    }
   }
+  
+  wideflash <- reshape(tpflash[,3:8],
+                       idvar = "bblid",
+                       timevar = "timepoint",
+                       direction = "wide")
+  widenflash <- reshape(tpnflash[,3:8],
+                        idvar = "bblid",
+                        timevar = "timepoint",
+                        direction = "wide")
+  
+  
+  if (maxflash > 1){
+    widediff <- c()
+    widetime <- c()
+    for (i in 2:maxflash) {
+      diff <- ifelse(!is.na(wideflash[,(4*i)]),wideflash[,(4*i)] - wideflash[,(4*(i-1))],NA)
+      time <- ifelse(!is.na(wideflash[,(4*i)]),difftime(wideflash[,(4*i-2)],wideflash[,(4*i-6)],units = "days"),NA)
+      
+      widediff <- data.frame(cbind(widediff,diff))
+      widetime <- data.frame(cbind(widetime,time))
+      
+      names(widediff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+      names(widetime)[i-1] <- paste0("t",i,"_",i-1,"time")
+    }
+    
+    wideflash <- cbind(wideflash,widediff,widetime)
+    for (i in 1:(maxflash-1)) {
+      wideflash <- wideflash[order(wideflash[,(1+4*maxflash + i)]),]
+    }
+    
+    new1 <- c()
+    new2 <- c()
+    for (i in 2:maxflash-1) {
+      diff <- lm(widediff[,i]~widetime[,i])$residuals
+      newscore1 <- c(wideflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(wideflash) - length(diff)))
+      meandif <- mean(wideflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(wideflash[,paste0("acc_res.",i)],na.rm=T)
+      newscore2 <- wideflash[,paste0("acc_res.",i+1)] + meandif
+      
+      new1 <- data.frame(cbind(new1,newscore1))
+      new2 <- data.frame(cbind(new2,newscore2))
+      
+      names(new1)[i] <- paste0("t",i+1,"_",i,"newscore1")
+      names(new2)[i] <- paste0("t",i+1,"_",i,"newscore2")
+    }
+    
+    wideflash <- cbind(wideflash,new1,new2)
+  }
+  
+  
+  if (maxnflash > 1) {
+    widendiff <- c()
+    widentime <- c()
+    for (i in 2:maxnflash) {
+      diff <- ifelse(!is.na(widenflash[,(4*i)]),widenflash[,(4*i)] - widenflash[,(4*(i-1))],NA)
+      time <- ifelse(!is.na(widenflash[,(4*i)]),difftime(widenflash[,(4*i-2)],widenflash[,(4*i-6)],units = "days"),NA)
+      
+      widendiff <- data.frame(cbind(widendiff,diff))
+      widentime <- data.frame(cbind(widentime,time))
+      
+      names(widendiff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+      names(widentime)[i-1] <- paste0("t",i,"_",i-1,"time")
+    }
+    
+    widenflash <- cbind(widenflash,widendiff,widentime)
+    for (i in 1:(maxnflash-1)) {
+      widenflash <- widenflash[order(widenflash[,(1+4*maxnflash + i)]),]
+    }
+    
+    newn1 <- c()
+    newn2 <- c()
+    for (i in 2:maxnflash-1) {
+      diff <- lm(widendiff[,i]~widentime[,i])$residuals
+      newscore1 <- c(widenflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(widenflash) - length(diff)))
+      meandif <- mean(widenflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(widenflash[,paste0("acc_res.",i)],na.rm=T)
+      newscore2 <- widenflash[,paste0("acc_res.",i+1)] + meandif
+      
+      newn1 <- data.frame(cbind(newn1,newscore1))
+      newn2 <- data.frame(cbind(newn2,newscore2))
+      
+      names(newn1)[i] <- paste0("t",i+1,"_",i,"newscore1")
+      names(newn2)[i] <- paste0("t",i+1,"_",i,"newscore2")
+    }
+    
+    widenflash <- cbind(widenflash,newn1,newn2)
+  }
+  
+  
+  accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+  accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+  acc <- merge(accflash,accnflash, by=1)
+  acc_cor <- cor(acc[,-1], use="pairwise.complete.obs")
+  # acc_ICC <- ICC(acc[,-1])
 }
-
-wideflash <- reshape(tpflash[,3:8],
-                    idvar = "bblid",
-                    timevar = "timepoint",
-                    direction = "wide")
-widenflash <- reshape(tpnflash[,3:8],
-                     idvar = "bblid",
-                     timevar = "timepoint",
-                     direction = "wide")
-
-# make df with difference in score (diff) as well as days between test dates (interval)
-     # make new columns for difference in accuracy between test points
-widediff <- c()
-widetime <- c()
-for (i in 2:maxflash) {
-  diff <- ifelse(!is.na(wideflash[,(4*i)]),wideflash[,(4*i)] - wideflash[,(4*(i-1))],NA)
-  time <- ifelse(!is.na(wideflash[,(4*i)]),difftime(wideflash[,(4*i-2)],wideflash[,(4*i-6)],units = "days"),NA)
-  
-  widediff <- data.frame(cbind(widediff,diff))
-  widetime <- data.frame(cbind(widetime,time))
-  
-  names(widediff)[i-1] <- paste0("t",i,"_",i-1,"diff")
-  names(widetime)[i-1] <- paste0("t",i,"_",i-1,"time")
-}
-
-widendiff <- c()
-widentime <- c()
-for (i in 2:maxnflash) {
-  diff <- ifelse(!is.na(widenflash[,(4*i)]),widenflash[,(4*i)] - widenflash[,(4*(i-1))],NA)
-  time <- ifelse(!is.na(widenflash[,(4*i)]),difftime(widenflash[,(4*i-2)],widenflash[,(4*i-6)],units = "days"),NA)
-  
-  widendiff <- data.frame(cbind(widendiff,diff))
-  widentime <- data.frame(cbind(widentime,time))
-  
-  names(widendiff)[i-1] <- paste0("t",i,"_",i-1,"diff")
-  names(widentime)[i-1] <- paste0("t",i,"_",i-1,"time")
-}
-
-wideflash <- cbind(wideflash,widediff,widetime)
-widenflash <- cbind(widenflash,widendiff,widentime)
-
-for (i in 1:(maxflash-1)) {
-  wideflash <- wideflash[order(wideflash[,(1+4*maxflash + i)]),]
-}
-for (i in 1:(maxnflash-1)) {
-  widenflash <- widenflash[order(widenflash[,(1+4*maxnflash + i)]),]
-}
-
-
-# new df for storing all scores (original and new)
-newflash <- wideflash[,1:22]
-
-# code from Tyler
-new1 <- c()
-new2 <- c()
-for (i in 2:maxflash-1) {
-  diff <- lm(widediff[,i]~widetime[,i])$residuals
-  newscore1 <- c(wideflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(wideflash) - length(diff)))
-  meandif <- mean(wideflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(wideflash[,paste0("acc_res.",i)],na.rm=T)
-  newscore2 <- wideflash[,paste0("acc_res.",i+1)] + meandif
-  
-  new1 <- data.frame(cbind(new1,newscore1))
-  new2 <- data.frame(cbind(new2,newscore2))
-  
-  names(new1)[i] <- paste0("t",i+1,"_",i,"newscore1")
-  names(new2)[i] <- paste0("t",i+1,"_",i,"newscore2")
-}
-
-wideflash <- cbind(wideflash,new1,new2)
-
-newn1 <- c()
-newn2 <- c()
-for (i in 2:maxnflash-1) {
-  diff <- lm(widendiff[,i]~widentime[,i])$residuals
-  newscore1 <- c(widenflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(widenflash) - length(diff)))
-  meandif <- mean(widenflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(widenflash[,paste0("acc_res.",i)],na.rm=T)
-  newscore2 <- widenflash[,paste0("acc_res.",i+1)] + meandif
-  
-  newn1 <- data.frame(cbind(newn1,newscore1))
-  newn2 <- data.frame(cbind(newn2,newscore2))
-  
-  names(newn1)[i] <- paste0("t",i+1,"_",i,"newscore1")
-  names(newn2)[i] <- paste0("t",i+1,"_",i,"newscore2")
-}
-
-widenflash <- cbind(widenflash,newn1,newn2)
 
 
 
