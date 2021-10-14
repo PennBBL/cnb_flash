@@ -21,6 +21,13 @@ bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))  # 241,797 rows 9
 names(bigcnb)[2:3] <- c("datasetid", "bblid")
 demos <- read.csv("subjectdemosall_v.csv")
 
+pcpt <- read.csv("cnb_pivot_spctn.csv")
+pcpt <- pcpt[!is.na(pcpt$TP),c(15,17,16,2,7,12,8:9,20,18,19,20,21,23,23,22,6)]
+names(pcpt)[1:16] <- names(bigcnb)
+pcpt$bblid <- as.numeric(pcpt$bblid)
+pcpt$dotest <- as.Date(pcpt$dotest, "%m/%d/%y")
+pcpt$dob <- as.Date(pcpt$dob, "%m/%d/%y")
+
 bigcnb$bblid <- as.numeric(bigcnb$bblid)                   # getting rid of fake bblids
 rm <- bigcnb[bigcnb$bblid<10000 & !is.na(bigcnb$bblid),]   # left with 241,772 rows 9.28.21
 bigcnb <- setdiff(bigcnb,rm)
