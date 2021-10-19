@@ -620,8 +620,8 @@ for (j in 1:length(textsAcc)){
     
     widenflash <- cbind(widenflash,newn1,newn2)
   }
-  assign(paste0(texts[j],"wideflash"),wideflash)
-  assign(paste0(texts[j],"widenflash"),widenflash)
+  assign(paste0(textsAcc[j],"wideflash"),wideflash)
+  assign(paste0(textsAcc[j],"widenflash"),widenflash)
 }
 
 # ** getting rid of outliers, test by test ----
@@ -868,14 +868,28 @@ for (i in 1:length(acctxt)) {
   try(icc_f12_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc))],type="agreement",model="twoway")$value)
   try(icc_f13_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc))],type="agreement",model="twoway")$value)
   try(icc_f14_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc)) | grepl("f_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n12_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n13_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc)) | grepl("n_t3newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n14_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc)) | grepl("n_t3newscore1",colnames(acc)) | grepl("n_t4newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n12_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n13_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc)) | grepl("n_t3newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+  try(icc_n14_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc)) | grepl("n_t3newscore2",colnames(acc)) | grepl("n_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
   
-  icc <- data.frame(icc_fnf)
-  try(if (icc_f12_1) {icc <- cbind(icc, icc_f12_1)})
-  try(if (icc_f13_1) {icc <- cbind(icc, icc_f13_1)})
-  try(if (icc_f14_1) {icc <- cbind(icc, icc_f14_1)})
-  try(if (icc_f12_2) {icc <- cbind(icc, icc_f12_2)})
-  try(if (icc_f13_2) {icc <- cbind(icc, icc_f13_2)})
-  try(if (icc_f14_2) {icc <- cbind(icc, icc_f14_2)})
+  icc <- data.frame(matrix(c(icc_fnf,rep(NA,13)),nrow=2))
+  names(icc) <- c("icc_fnf","icc_f12_1","icc_f13_1","icc_f14_1","icc_f12_2","icc_f13_2","icc_f14_2")
+  try(if (icc_f12_1) {icc[1,2] <- icc_f12_1})
+  try(if (icc_f13_1) {icc[1,3] <- icc_f13_1})
+  try(if (icc_f14_1) {icc[1,4] <- icc_f14_1})
+  try(if (icc_f12_2) {icc[1,5] <- icc_f12_2})
+  try(if (icc_f13_2) {icc[1,6] <- icc_f13_2})
+  try(if (icc_f14_2) {icc[1,7] <- icc_f14_2})
+  try(if (icc_n12_1) {icc[2,2] <- icc_n12_1})
+  try(if (icc_n13_1) {icc[2,3] <- icc_n13_1})
+  try(if (icc_n14_1) {icc[2,4] <- icc_n14_1})
+  try(if (icc_n12_2) {icc[2,5] <- icc_n12_2})
+  try(if (icc_n13_2) {icc[2,6] <- icc_n13_2})
+  try(if (icc_n14_2) {icc[2,7] <- icc_n14_2})
+  
   assign(paste0(textsAcc[i],"icc"),icc)
 }
 
@@ -1088,259 +1102,305 @@ pairs.panels(spe[,c(2,11)],lm=TRUE)
 AIM_spe <- spe  
 spetxt <- c(spetxt,"AIM_acc")
 
-wideflash <- CPF_Bwideflash
-widenflash <- CPF_Bwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-CPF_B_acc <- acc  
-acctxt <- c(acctxt,"CPF_B_acc")
+wideflash <- CPF_BSpwideflash
+widenflash <- CPF_BSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+CPF_B_spe <- spe  
+spetxt <- c(spetxt,"CPF_B_spe")
 
-wideflash <- ER40_Dwideflash
-widenflash <- ER40_Dwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-ER40_D_acc <- acc  
-acctxt <- c(acctxt,"ER40_D_acc")
+wideflash <- ER40_DSpwideflash
+widenflash <- ER40_DSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+ER40_D_spe <- spe  
+spetxt <- c(spetxt,"ER40_D_spe")
 
-wideflash <- GNG150wideflash
-widenflash <- GNG150widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-GNG150_acc <- acc  
-acctxt <- c(acctxt,"GNG150_acc")
+wideflash <-  GNG150Spwideflash
+widenflash <- GNG150Spwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,13)],lm=TRUE)
+GNG150_spe <- spe  
+spetxt <- c(spetxt,"GNG150_spe")
 
-wideflash <- KCPW_Awideflash
-widenflash <- KCPW_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-KCPW_A_acc <- acc  
-acctxt <- c(acctxt,"KCPW_A_acc")
+wideflash <-  KCPW_ASpwideflash
+widenflash <- KCPW_ASpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+KCPW_A_spe <- spe  
+spetxt <- c(spetxt,"KCPW_A_spe")
 
-wideflash <- KSPVRT_Dwideflash
-widenflash <- KSPVRT_Dwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-KSPVRT_D_acc <- acc  
-acctxt <- c(acctxt,"KSPVRT_D_acc")
+wideflash <-  KSPVRT_DSpwideflash
+widenflash <- KSPVRT_DSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+KSPVRT_D_spe <- spe  
+spetxt <- c(spetxt,"KSPVRT_D_spe")
 
-wideflash <- MEDF36_Awideflash
-widenflash <- MEDF36_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-MEDF36_A_acc <- acc  
-acctxt <- c(acctxt,"MEDF36_A_acc")
+wideflash <-  MEDF36_ASpwideflash
+widenflash <- MEDF36_ASpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+MEDF36_A_spe <- spe  
+spetxt <- c(spetxt,"MEDF36_A_spe")
 
-wideflash <- PCET_Awideflash
-widenflash <- PCET_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-PCET_A_acc <- acc  
-acctxt <- c(acctxt,"PCET_A_acc")
+wideflash <-  MPRACTSpwideflash
+widenflash <- MPRACTSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,15)],lm=TRUE)
+MPRACT_spe <- spe  
+spetxt <- c(spetxt,"MPRACT_spe")
 
-wideflash <- PMAT24_Awideflash
-widenflash <- PMAT24_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-PMAT24_A_acc <- acc  
-acctxt <- c(acctxt,"PMAT24_A_acc")
+wideflash <-  PCET_ASpwideflash
+widenflash <- PCET_ASpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,13)],lm=TRUE)
+PCET_A_spe <- spe  
+spetxt <- c(spetxt,"PCET_A_spe")
 
-wideflash <- SLNB2_90wideflash
-widenflash <- SLNB2_90widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-SLNB2_90_acc <- acc  
-acctxt <- c(acctxt,"SLNB2_90_acc")
+wideflash <-  PMAT24_ASpwideflash
+widenflash <- PMAT24_ASpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+PMAT24_A_spe <- spe  
+spetxt <- c(spetxt,"PMAT24_A_spe")
 
-# wideflash <- SPCPTN90wideflash                   # SPCPTN90 only has two participants that have taken both flash and non-flash
-# widenflash <- SPCPTN90widenflash
-# accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-# names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-# accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-# names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-# acc <- merge(accflash,accnflash, by=1)
-# acc_cor <- cor(acc[,-1], use="pairwise")
-# pairs.panels(acc[,c(2,3)],lm=TRUE)    # looking at t1 flash vs nflash
-# acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-# acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-# pairs.panels(acc[,c(2,15)],lm=TRUE)
-# SLNB2_90_acc <- acc  
-# acctxt <- c(acctxt,"SLNB2_90_acc")
+wideflash <-  SCTAPSpwideflash
+widenflash <- SCTAPSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,15)],lm=TRUE)
+SCTAP_spe <- spe  
+spetxt <- c(spetxt,"SCTAP_spe")
 
-wideflash <- SPCPTNLwideflash
-widenflash <- SPCPTNLwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,17)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,17)],lm=TRUE)
-SPCPTNL_acc <- acc  
-acctxt <- c(acctxt,"SPCPTNL_acc")
+wideflash <-  SLNB2_90Spwideflash
+widenflash <- SLNB2_90Spwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+SLNB2_90_spe <- spe  
+spetxt <- c(spetxt,"SLNB2_90_spe")
 
-wideflash <- SVOLT_Awideflash
-widenflash <- SVOLT_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-SVOLT_A_acc <- acc  
-acctxt <- c(acctxt,"SVOLT_A_acc")
+# wideflash <-  SPCPTN90Spwideflash                   # SPCPTN90 only has two participants that have taken both flash and non-flash
+# widenflash <- SPCPTN90Spwidenflash
+# speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+# names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+# spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+# names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+# spe <- merge(speflash,spenflash, by=1)
+# spe_cor <- cor(spe[,-1], use="pairwise")
+# pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+# spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+# spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+# pairs.panels(spe[,c(2,11)],lm=TRUE)
+# SLNB2_90_spe <- spe
+# spetxt <- c(spetxt,"SLNB2_90_spe")
 
-wideflash <- VSPLOT15wideflash
-widenflash <- VSPLOT15widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,9)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-pairs.panels(acc[,c(2,9)],lm=TRUE)
-VSPLOT15_acc <- acc  
-acctxt <- c(acctxt,"VSPLOT15_acc")
+wideflash <-  SPCPTNLSpwideflash
+widenflash <- SPCPTNLSpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+SPCPTNL_spe <- spe  
+spetxt <- c(spetxt,"SPCPTNL_spe")
 
-accs <- mget(acctxt)
+wideflash <-  SVOLT_ASpwideflash
+widenflash <- SVOLT_ASpwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,11)],lm=TRUE)
+SVOLT_A_spe <- spe  
+spetxt <- c(spetxt,"SVOLT_A_spe")
+
+wideflash <- VSPLOT15Spwideflash
+widenflash <- VSPLOT15Spwidenflash
+speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
+spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
+spe <- merge(speflash,spenflash, by=1)
+spe_cor <- cor(spe[,-1], use="pairwise")
+pairs.panels(spe[,c(2,9)],lm=TRUE)    # looking at t1 flash vs nflash
+spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
+spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
+pairs.panels(spe[,c(2,9)],lm=TRUE)
+VSPLOT15_spe <- spe  
+spetxt <- c(spetxt,"VSPLOT15_spe")
+
+spes <- mget(spetxt)
 
 # ** spe_cor and icc for each test ----
-textsAcc <- setdiff(textsAcc, c("SPCPTN90"))
-testsAcc <- mget(textsAcc)
-for (i in 1:length(acctxt)) {
-  acc <- accs[[i]]
-  acc_cor <- cor(acc[,-1], use="pairwise")
+texts <- setdiff(texts, c("SPCPTN90"))
+tests <- mget(texts)
+for (i in 1:length(spetxt)) {
+  spe <- spes[[i]]
+  spe_cor <- cor(spe[,-1], use="pairwise")
   
-  assign(paste0(textsAcc[i],"acc_cor"),acc_cor)
+  assign(paste0(texts[i],"spe_cor"),spe_cor)
   # wrap icc stuff in try()
-  icc_fnf <- icc(acc[,grepl("acc_res",colnames(acc))],type="agreement",model="twoway")$value
-  try(icc_f12_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc))],type="agreement",model="twoway")$value)
-  try(icc_f13_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc)) | grepl("f_t3newscore1",colnames(acc))],type="agreement",model="twoway")$value)
-  try(icc_f14_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc)) | grepl("f_t3newscore1",colnames(acc)) | grepl("f_t4newscore1",colnames(acc))],type="agreement",model="twoway")$value)
-  try(icc_f12_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc))],type="agreement",model="twoway")$value)
-  try(icc_f13_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc))],type="agreement",model="twoway")$value)
-  try(icc_f14_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc)) | grepl("f_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+  icc_fnf <- icc(spe[,grepl("spe_res",colnames(spe))],type="agreement",model="twoway")$value
+  try(icc_f12_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f13_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe)) | grepl("f_t3newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f14_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe)) | grepl("f_t3newscore1",colnames(spe)) | grepl("f_t4newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f12_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f13_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe)) | grepl("f_t3newscore2",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f14_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe)) | grepl("f_t3newscore2",colnames(spe)) | grepl("f_t4newscore2",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n12_1 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n13_1 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore1",colnames(spe)) | grepl("n_t3newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n14_1 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore1",colnames(spe)) | grepl("n_t3newscore1",colnames(spe)) | grepl("n_t4newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n12_2 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore2",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n13_2 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore2",colnames(spe)) | grepl("n_t3newscore2",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_n14_2 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore2",colnames(spe)) | grepl("n_t3newscore2",colnames(spe)) | grepl("n_t4newscore2",colnames(spe))],type="agreement",model="twoway")$value)
   
-  icc <- data.frame(icc_fnf)
-  try(if (icc_f12_1) {icc <- cbind(icc, icc_f12_1)})
-  try(if (icc_f13_1) {icc <- cbind(icc, icc_f13_1)})
-  try(if (icc_f14_1) {icc <- cbind(icc, icc_f14_1)})
-  try(if (icc_f12_2) {icc <- cbind(icc, icc_f12_2)})
-  try(if (icc_f13_2) {icc <- cbind(icc, icc_f13_2)})
-  try(if (icc_f14_2) {icc <- cbind(icc, icc_f14_2)})
-  assign(paste0(textsAcc[i],"icc"),icc)
+  icc <- data.frame(matrix(c(icc_fnf,rep(NA,13)),nrow=2))
+  names(icc) <- c("icc_fnf","icc_f12_1","icc_f13_1","icc_f14_1","icc_f12_2","icc_f13_2","icc_f14_2")
+  try(if (icc_f12_1) {icc[1,2] <- icc_f12_1})
+  try(if (icc_f13_1) {icc[1,3] <- icc_f13_1})
+  try(if (icc_f14_1) {icc[1,4] <- icc_f14_1})
+  try(if (icc_f12_2) {icc[1,5] <- icc_f12_2})
+  try(if (icc_f13_2) {icc[1,6] <- icc_f13_2})
+  try(if (icc_f14_2) {icc[1,7] <- icc_f14_2})
+  try(if (icc_n12_1) {icc[2,2] <- icc_n12_1})
+  try(if (icc_n13_1) {icc[2,3] <- icc_n13_1})
+  try(if (icc_n14_1) {icc[2,4] <- icc_n14_1})
+  try(if (icc_n12_2) {icc[2,5] <- icc_n12_2})
+  try(if (icc_n13_2) {icc[2,6] <- icc_n13_2})
+  try(if (icc_n14_2) {icc[2,7] <- icc_n14_2})
+  assign(paste0(texts[i],"spe_icc"),icc)
 }
 
-write.csv(ADT36_Aacc_cor,"myresults/instrasubject_corr/ADT36_Aacc_cor.csv")
-write.csv(AIMacc_cor,"myresults/instrasubject_corr/AIMacc_cor.csv")
-write.csv(CPF_Bacc_cor,"myresults/instrasubject_corr/CPF_Bacc_cor.csv")
-write.csv(ER40_Dacc_cor,"myresults/instrasubject_corr/ER40_Dacc_cor.csv")
-write.csv(GNG150acc_cor,"myresults/instrasubject_corr/GNG150acc_cor.csv")
-write.csv(KCPW_Aacc_cor,"myresults/instrasubject_corr/KCPW_Aacc_cor.csv")
-write.csv(KSPVRT_Dacc_cor,"myresults/instrasubject_corr/KSPVRT_Dacc_cor.csv")
-write.csv(MEDF36_Aacc_cor,"myresults/instrasubject_corr/MEDF36_Aacc_cor.csv")
-write.csv(PCET_Aacc_cor,"myresults/instrasubject_corr/PCET_Aacc_cor.csv")
-write.csv(PMAT24_Aacc_cor,"myresults/instrasubject_corr/PMAT24_Aacc_cor.csv")
-write.csv(SLNB2_90acc_cor,"myresults/instrasubject_corr/SLNB2_90acc_cor.csv")
-write.csv(SPCPTNLacc_cor,"myresults/instrasubject_corr/SPCPTNLacc_cor.csv")
-write.csv(SVOLT_Aacc_cor,"myresults/instrasubject_corr/SVOLT_Aacc_cor.csv")
-write.csv(VSPLOT15acc_cor,"myresults/instrasubject_corr/VSPLOT15acc_cor.csv")
+write.csv( ADT36_Aspe_cor,"myresults/instrasubject_corr/spe/ADT36_Aspe_cor.csv")
+write.csv(     AIMspe_cor,"myresults/instrasubject_corr/spe/AIMspe_cor.csv")
+write.csv(   CPF_Bspe_cor,"myresults/instrasubject_corr/spe/CPF_Bspe_cor.csv")
+write.csv(  ER40_Dspe_cor,"myresults/instrasubject_corr/spe/ER40_Dspe_cor.csv")
+write.csv(  GNG150spe_cor,"myresults/instrasubject_corr/spe/GNG150spe_cor.csv")
+write.csv(  KCPW_Aspe_cor,"myresults/instrasubject_corr/spe/KCPW_Aspe_cor.csv")
+write.csv(KSPVRT_Dspe_cor,"myresults/instrasubject_corr/spe/KSPVRT_Dspe_cor.csv")
+write.csv(MEDF36_Aspe_cor,"myresults/instrasubject_corr/spe/MEDF36_Aspe_cor.csv")
+write.csv(  MPRACTspe_cor,"myresults/instrasubject_corr/spe/MPRACTspe_cor.csv")
+write.csv(  PCET_Aspe_cor,"myresults/instrasubject_corr/spe/PCET_Aspe_cor.csv")
+write.csv(PMAT24_Aspe_cor,"myresults/instrasubject_corr/spe/PMAT24_Aspe_cor.csv")
+write.csv(   SCTAPspe_cor,"myresults/instrasubject_corr/spe/SCTAPspe_cor.csv")
+write.csv( SPCPTNLspe_cor,"myresults/instrasubject_corr/spe/SPCPTNLspe_cor.csv")
+write.csv( SVOLT_Aspe_cor,"myresults/instrasubject_corr/spe/SVOLT_Aspe_cor.csv")
+write.csv(VSPLOT15spe_cor,"myresults/instrasubject_corr/spe/VSPLOT15spe_cor.csv")
 
-write.csv( ADT36_Aicc, "myresults/instrasubject_corr/ADT36_Aicc.csv")
-write.csv(     AIMicc,     "myresults/instrasubject_corr/AIMicc.csv")
-write.csv(   CPF_Bicc,   "myresults/instrasubject_corr/CPF_Bicc.csv")
-write.csv(  ER40_Dicc,  "myresults/instrasubject_corr/ER40_Dicc.csv")
-write.csv(  GNG150icc,  "myresults/instrasubject_corr/GNG150icc.csv")
-write.csv(  KCPW_Aicc,  "myresults/instrasubject_corr/KCPW_Aicc.csv")
-write.csv(KSPVRT_Dicc,"myresults/instrasubject_corr/KSPVRT_Dicc.csv")
-write.csv(MEDF36_Aicc,"myresults/instrasubject_corr/MEDF36_Aicc.csv")
-write.csv(  PCET_Aicc,  "myresults/instrasubject_corr/PCET_Aicc.csv")
-write.csv(PMAT24_Aicc,"myresults/instrasubject_corr/PMAT24_Aicc.csv")
-write.csv(SLNB2_90icc,"myresults/instrasubject_corr/SLNB2_90icc.csv")
-write.csv( SPCPTNLicc, "myresults/instrasubject_corr/SPCPTNLicc.csv")
-write.csv( SVOLT_Aicc, "myresults/instrasubject_corr/SVOLT_Aicc.csv")
-write.csv(VSPLOT15icc,"myresults/instrasubject_corr/VSPLOT15icc.csv")
+write.csv( ADT36_Aspe_icc,"myresults/instrasubject_corr/spe/ADT36_Aspe_icc.csv")
+write.csv(     AIMspe_icc,"myresults/instrasubject_corr/spe/AIMspe_icc.csv")
+write.csv(   CPF_Bspe_icc,"myresults/instrasubject_corr/spe/CPF_Bspe_icc.csv")
+write.csv(  ER40_Dspe_icc,"myresults/instrasubject_corr/spe/ER40_Dspe_icc.csv")
+write.csv(  GNG150spe_icc,"myresults/instrasubject_corr/spe/GNG150spe_icc.csv")
+write.csv(  KCPW_Aspe_icc,"myresults/instrasubject_corr/spe/KCPW_Aspe_icc.csv")
+write.csv(KSPVRT_Dspe_icc,"myresults/instrasubject_corr/spe/KSPVRT_Dspe_icc.csv")
+write.csv(  MPRACTspe_icc,"myresults/instrasubject_corr/spe/MPRACTspe_icc.csv")
+write.csv(MEDF36_Aspe_icc,"myresults/instrasubject_corr/spe/MEDF36_Aspe_icc.csv")
+write.csv(  PCET_Aspe_icc,"myresults/instrasubject_corr/spe/PCET_Aspe_icc.csv")
+write.csv(PMAT24_Aspe_icc,"myresults/instrasubject_corr/spe/PMAT24_Aspe_icc.csv")
+write.csv(   SCTAPspe_icc,"myresults/instrasubject_corr/spe/SCTAPspe_icc.csv")
+write.csv(SLNB2_90spe_icc,"myresults/instrasubject_corr/spe/SLNB2_90spe_icc.csv")
+write.csv( SPCPTNLspe_icc,"myresults/instrasubject_corr/spe/SPCPTNLspe_icc.csv")
+write.csv( SVOLT_Aspe_icc,"myresults/instrasubject_corr/spe/SVOLT_Aspe_icc.csv")
+write.csv(VSPLOT15spe_icc,"myresults/instrasubject_corr/spe/VSPLOT15spe_icc.csv")
 
 
 
