@@ -14,6 +14,9 @@ library(mgcv)
 library(tidyr)
 library(reshape2)
 library(irr)
+library(plotly)
+library(tidyverse)
+library(htmlwidgets)
 
 
 # Load and reorganize data ----
@@ -487,15 +490,18 @@ textsAcc <- setdiff(textsAcc, c("CPF_A"))
 testsAcc <- mget(textsAcc)
 for (j in 1:length(textsAcc)){
   test <- testsAcc[[j]]
-  test <- test[!is.na(test$bblid) & !is.na(test$Speed),]
+  test <- test[!is.na(test$bblid) & !is.na(test$Accuracy),]
   
   hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
   hist
   
   test <- test[!is.na(test$age),]
   fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
+  visreg(fit)
   test$acc_res <- scale(resid(fit))
   test$spe_res <- 0 # spe_res doesn't matter here
+  
+  test <- test[abs(test$acc_res)<3,]
   
   flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
   nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
@@ -634,8 +640,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 ADT36_A_acc <- acc  
 acctxt <- c("ADT36_A_acc")
@@ -649,8 +656,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,11)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,11)],lm=TRUE)
 AIM_acc <- acc  
 acctxt <- c(acctxt,"AIM_acc")
@@ -664,8 +672,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,11)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,11)],lm=TRUE)
 CPF_B_acc <- acc  
 acctxt <- c(acctxt,"CPF_B_acc")
@@ -679,8 +688,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 ER40_D_acc <- acc  
 acctxt <- c(acctxt,"ER40_D_acc")
@@ -694,8 +704,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 GNG150_acc <- acc  
 acctxt <- c(acctxt,"GNG150_acc")
@@ -709,8 +720,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,15)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,15)],lm=TRUE)
 KCPW_A_acc <- acc  
 acctxt <- c(acctxt,"KCPW_A_acc")
@@ -724,8 +736,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 KSPVRT_D_acc <- acc  
 acctxt <- c(acctxt,"KSPVRT_D_acc")
@@ -739,8 +752,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 MEDF36_A_acc <- acc  
 acctxt <- c(acctxt,"MEDF36_A_acc")
@@ -754,8 +768,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 PCET_A_acc <- acc  
 acctxt <- c(acctxt,"PCET_A_acc")
@@ -769,8 +784,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,11)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,11)],lm=TRUE)
 PMAT24_A_acc <- acc  
 acctxt <- c(acctxt,"PMAT24_A_acc")
@@ -784,8 +800,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,15)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,15)],lm=TRUE)
 SLNB2_90_acc <- acc  
 acctxt <- c(acctxt,"SLNB2_90_acc")
@@ -814,8 +831,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,17)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,17)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,17)],lm=TRUE)
 SPCPTNL_acc <- acc  
 acctxt <- c(acctxt,"SPCPTNL_acc")
@@ -829,8 +847,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,15)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,15)],lm=TRUE)
 SVOLT_A_acc <- acc  
 acctxt <- c(acctxt,"SVOLT_A_acc")
@@ -844,8 +863,9 @@ names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
 acc <- merge(accflash,accnflash, by=1)
 acc_cor <- cor(acc[,-1], use="pairwise")
 pairs.panels(acc[,c(2,9)],lm=TRUE)    # looking at t1 flash vs nflash
-acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,9)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 pairs.panels(acc[,c(2,9)],lm=TRUE)
 VSPLOT15_acc <- acc  
 acctxt <- c(acctxt,"VSPLOT15_acc")
@@ -934,6 +954,7 @@ tests <- mget(texts)
 for (j in 1:length(texts)){
   test <- tests[[j]]
   test <- test[!is.na(test$bblid) & !is.na(test$Speed),]
+  test$Speed <- log(test$Speed)
   
   hist <- ggplot(test,aes(x=Speed)) + geom_histogram()    # histogram to look at item acc frequency
   hist
@@ -943,6 +964,7 @@ for (j in 1:length(texts)){
   test$spe_res <- scale(resid(fit))
   test$acc_res <- 0 # acc_res doesn't matter
   
+  test <- test[abs(test$spe_res)<3,]
   
   flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
   nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
@@ -1100,7 +1122,7 @@ spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
 spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
 pairs.panels(spe[,c(2,11)],lm=TRUE)
 AIM_spe <- spe  
-spetxt <- c(spetxt,"AIM_acc")
+spetxt <- c(spetxt,"AIM_spe")
 
 wideflash <- CPF_BSpwideflash
 widenflash <- CPF_BSpwidenflash
@@ -1125,10 +1147,10 @@ spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1
 names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
 spe <- merge(speflash,spenflash, by=1)
 spe_cor <- cor(spe[,-1], use="pairwise")
-pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
-spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
-pairs.panels(spe[,c(2,11)],lm=TRUE)
+pairs.panels(spe[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
+spe <- spe[abs(spe$f_spe_res.1-spe$n_spe_res.1)<2,]
+pairs.panels(spe[,c(2,13)],lm=TRUE)
+spe <- winsor(spe, trim=0.05)
 ER40_D_spe <- spe  
 spetxt <- c(spetxt,"ER40_D_spe")
 
@@ -1234,6 +1256,7 @@ pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
 spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
 spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
 pairs.panels(spe[,c(2,11)],lm=TRUE)
+spe <- winsor(spe, trim=0.05)
 PMAT24_A_spe <- spe  
 spetxt <- c(spetxt,"PMAT24_A_spe")
 
@@ -1381,7 +1404,8 @@ write.csv(  MPRACTspe_cor,"myresults/instrasubject_corr/spe/MPRACTspe_cor.csv")
 write.csv(  PCET_Aspe_cor,"myresults/instrasubject_corr/spe/PCET_Aspe_cor.csv")
 write.csv(PMAT24_Aspe_cor,"myresults/instrasubject_corr/spe/PMAT24_Aspe_cor.csv")
 write.csv(   SCTAPspe_cor,"myresults/instrasubject_corr/spe/SCTAPspe_cor.csv")
-write.csv( SPCPTNLspe_cor,"myresults/instrasubject_corr/spe/SPCPTNLspe_cor.csv")
+write.csv(SLNB2_90spe_cor,"myresults/instrasubject_corr/spe/SLNB2_90spe_icc.csv")
+write.csv( SPCPTNLspe_cor,"myresults/instrasubject_corr/spe/SLNB2_90spe_cor.csv")
 write.csv( SVOLT_Aspe_cor,"myresults/instrasubject_corr/spe/SVOLT_Aspe_cor.csv")
 write.csv(VSPLOT15spe_cor,"myresults/instrasubject_corr/spe/VSPLOT15spe_cor.csv")
 
@@ -1408,6 +1432,424 @@ write.csv(VSPLOT15spe_icc,"myresults/instrasubject_corr/spe/VSPLOT15spe_icc.csv"
 
 
 
+
+# Site Differences ----
+
+# Tests of interests are: CPF A (40), ER40 D (40), SPCPTNL (60), GNG150 (150), SCTAP, PMAT24 A, 
+#                         SVOLT A, MPRACT, MEDF36 A, SLNB2 90
+
+# CPF_A Accuracy
+test <- CPF_A
+test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+
+sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) #+ geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# ER40_D Accuracy
+test <- ER40_D
+test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+
+sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+  #geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# SPCPTNL Accuracy
+test <- SPCPTNL
+test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+
+sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+#geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# GNG150 Accuracy
+test <- GNG150
+test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+
+sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+#geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+
+# GNG150 Speed
+test <- GNG150
+test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+#geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+
+# SCTAP Speed
+test <- SCTAP
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[test$bblid!=21789,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+#geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+
+# PMAT24_A Speed
+test <- PMAT24_A
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[test$spe_res<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) 
+#geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# SVOLT_A Speed
+test <- SVOLT_A
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[abs(test$spe_res)<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) + geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# ER40_D Speed
+test <- ER40_D
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[abs(test$spe_res)<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) #+ geom_smooth()
+#geom_jitter() +
+
+sites
+ggplotly(sites)
+
+
+# MPRACT Speed
+test <- MPRACT
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[abs(test$spe_res)<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) #+ geom_smooth()
+#geom_jitter() +
+
+ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5)
+
+sites
+ggplotly(sites)
+
+
+# MEDF36_A Speed
+test <- MEDF36_A
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[abs(test$spe_res)<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) #+ geom_smooth()
+#geom_jitter() +
+
+ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5)
+
+sites
+ggplotly(sites)
+
+
+# SLNB2_90 Speed
+test <- SLNB2_90
+test <- test[!is.na(test$age) & !is.na(test$Speed),]
+fit <- gam(Accuracy ~ s(age), data = test)
+test$acc_res <- scale(resid(fit))
+fit <- gam(Speed ~ s(age), data = test)    # regress out age first
+test$spe_res <- scale(resid(fit))
+test <- test[abs(test$spe_res)<10,]
+
+sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5) #+ geom_smooth()
+#geom_jitter() +
+
+ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
+  geom_point(alpha=0.5)
+
+sites
+ggplotly(sites)
+
+
+
+
+
+
+
+
+
+
+
+
+# trying stuff
+
+for (j in 1:length(textsAcc)){
+  test <- testsAcc[[j]]
+  test <- test[!is.na(test$bblid) & !is.na(test$Accuracy),]
+  
+  hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
+  hist
+  
+  test <- test[!is.na(test$age),]
+  fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
+  visreg(fit)
+  test$acc_res <- scale(resid(fit))
+  test$spe_res <- 0 # spe_res doesn't matter here
+  
+  test <- test[abs(test$acc_res)<3,]
+  
+  flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
+  nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
+  
+  both <- intersect(flash$bblid, nflash$bblid)
+  both <- test[test$bblid %in% both,]
+  both <- both[order(both$bblid),]
+  
+  flash <- both[both$flash==1,]
+  flash <- flash[order(flash$bblid,flash$dotest),]
+  nflash <- both[both$flash==0,]
+  nflash <- nflash[order(nflash$bblid,nflash$dotest),]
+  
+  flashcount <- flash %>%          
+    group_by(bblid) %>%
+    summarise(n=n())
+  nflashcount <- nflash %>%
+    group_by(bblid) %>%
+    summarise(n=n())
+  flashcount <- flashcount[order(flashcount$n, decreasing = T),]
+  nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
+  
+  maxflash <- na.omit(flashcount)$n[1]
+  maxnflash <- na.omit(nflashcount)$n[1]
+  
+  tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
+  tpflash$timepoint <- 1
+  for (i in 1:(nrow(tpflash)-1)) {
+    if (tpflash$bblid[i+1] == tpflash$bblid[i]) {
+      tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
+    }
+  }
+  tpnflash <- nflash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [n]on-[flash] used to be columns 1,4,6:7
+  tpnflash$timepoint <- 1
+  for (i in 1:(nrow(tpnflash)-1)) {
+    if (tpnflash$bblid[i+1] == tpnflash$bblid[i]) {
+      tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
+    }
+  }
+  
+  wideflash <- reshape(tpflash[,3:8],
+                       idvar = "bblid",
+                       timevar = "timepoint",
+                       direction = "wide")
+  widenflash <- reshape(tpnflash[,3:8],
+                        idvar = "bblid",
+                        timevar = "timepoint",
+                        direction = "wide")
+  
+  
+  if (maxflash > 1){
+    widediff <- c()
+    widetime <- c()
+    for (i in 2:maxflash) {
+      diff <- ifelse(!is.na(wideflash[,(4*i)]),wideflash[,(4*i)] - wideflash[,(4*(i-1))],NA)
+      time <- ifelse(!is.na(wideflash[,(4*i)]),difftime(wideflash[,(4*i-2)],wideflash[,(4*i-6)],units = "days"),NA)
+      
+      widediff <- data.frame(cbind(widediff,diff))
+      widetime <- data.frame(cbind(widetime,time))
+      
+      names(widediff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+      names(widetime)[i-1] <- paste0("t",i,"_",i-1,"time")
+    }
+    
+    wideflash <- cbind(wideflash,widediff,widetime)
+    for (i in 1:(maxflash-1)) {
+      wideflash <- wideflash[order(wideflash[,(1+4*maxflash + i)]),]
+    }
+    
+    new1 <- c()
+    new2 <- c()
+    for (i in 2:maxflash-1) {
+      diff <- lm(widediff[,i]~widetime[,i])$residuals
+      newscore1 <- c(wideflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(wideflash) - length(diff)))
+      meandif <- mean(wideflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(wideflash[,paste0("acc_res.",i)],na.rm=T)
+      newscore2 <- wideflash[,paste0("acc_res.",i+1)] + meandif
+      
+      new1 <- data.frame(cbind(new1,newscore1))
+      new2 <- data.frame(cbind(new2,newscore2))
+      
+      names(new1)[i] <- paste0("t",i+1,"newscore1")
+      names(new2)[i] <- paste0("t",i+1,"newscore2")
+    }
+    
+    wideflash <- cbind(wideflash,new1,new2)
+  }
+  
+  
+  if (maxnflash > 1) {
+    widendiff <- c()
+    widentime <- c()
+    for (i in 2:maxnflash) {
+      diff <- ifelse(!is.na(widenflash[,(4*i)]),widenflash[,(4*i)] - widenflash[,(4*(i-1))],NA)
+      time <- ifelse(!is.na(widenflash[,(4*i)]),difftime(widenflash[,(4*i-2)],widenflash[,(4*i-6)],units = "days"),NA)
+      
+      widendiff <- data.frame(cbind(widendiff,diff))
+      widentime <- data.frame(cbind(widentime,time))
+      
+      names(widendiff)[i-1] <- paste0("t",i,"_",i-1,"diff")
+      names(widentime)[i-1] <- paste0("t",i,"_",i-1,"time")
+    }
+    
+    widenflash <- cbind(widenflash,widendiff,widentime)
+    for (i in 1:(maxnflash-1)) {
+      widenflash <- widenflash[order(widenflash[,(1+4*maxnflash + i)]),]
+    }
+    
+    newn1 <- c()
+    newn2 <- c()
+    for (i in 2:maxnflash-1) {
+      diff <- lm(widendiff[,i]~widentime[,i])$residuals
+      newscore1 <- c(widenflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(widenflash) - length(diff)))
+      meandif <- mean(widenflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(widenflash[,paste0("acc_res.",i)],na.rm=T)
+      newscore2 <- widenflash[,paste0("acc_res.",i+1)] + meandif
+      
+      newn1 <- data.frame(cbind(newn1,newscore1))
+      newn2 <- data.frame(cbind(newn2,newscore2))
+      
+      names(newn1)[i] <- paste0("t",i+1,"newscore1")
+      names(newn2)[i] <- paste0("t",i+1,"newscore2")
+    }
+    
+    widenflash <- cbind(widenflash,newn1,newn2)
+  }
+  assign(paste0(textsAcc[j],"wideflash"),wideflash)
+  assign(paste0(textsAcc[j],"widenflash"),widenflash)
+}
+
+# ** getting rid of outliers, test by test ----
+wideflash <- ADT36_Awideflash
+widenflash <- ADT36_Awidenflash
+accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
+accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
+acc <- merge(accflash,accnflash, by=1)
+acc_cor <- cor(acc[,-1], use="pairwise")
+pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
+
+
+wideflash <- ER40_Dwideflash
+widenflash <- ER40_Dwidenflash
+accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
+accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
+acc <- merge(accflash,accnflash, by=1)
+acc_cor <- cor(acc[,-1], use="pairwise")
+pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,13)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
+
+
+wideflash <- SPCPTNLwideflash
+widenflash <- SPCPTNLwidenflash
+accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
+names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
+accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
+names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
+acc <- merge(accflash,accnflash, by=1)
+acc_cor <- cor(acc[,-1], use="pairwise")
+pairs.panels(acc[,c(2,17)],lm=TRUE)    # looking at t1 flash vs nflash
+acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
+pairs.panels(acc[,c(2,17)],lm=TRUE)
+acc <- winsor(acc,trim=0.05)
 
 
 
