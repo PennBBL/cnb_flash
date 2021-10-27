@@ -937,236 +937,163 @@ write.csv( SVOLT_Aicc,"myresults/instrasubject_corr/acc/SVOLT_Aicc.csv")
 write.csv(VSPLOT15icc,"myresults/instrasubject_corr/acc/VSPLOT15icc.csv")
 
 
-# TO WORK ON: site differences ----
+# site differences ----
 pairs.panels(ADT36_A_acc[,c(2,13)],lm=TRUE)
 ADT36_A_acc <- left_join(ADT36_A_acc,ADT36_Asiteid,by="bblid")
-sites <- ggplot(data=ADT36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + geom_point()
+
+adtsites <- ggplot(data=ADT36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+adtsites
+adtsitepanels <- adtsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+adtsitepanels
+
+# using face wrap instead to adjust coordinates + only show plots with real data
+adtsites + facet_wrap(vars(fsiteid, nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
 
 
-wideflash <- AIMwideflash
-widenflash <- AIMwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-AIM_acc <- acc  
-acctxt <- c(acctxt,"AIM_acc")
+pairs.panels(AIM_acc[,c(2,11)],lm=TRUE)
+AIM_acc <- left_join(AIM_acc,AIMsiteid,by="bblid")
 
-wideflash <- CPF_Bwideflash
-widenflash <- CPF_Bwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-CPF_B_acc <- acc  
-acctxt <- c(acctxt,"CPF_B_acc")
-
-wideflash <- ER40_Dwideflash
-widenflash <- ER40_Dwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-ER40_D_acc <- acc  
-acctxt <- c(acctxt,"ER40_D_acc")
-
-wideflash <- GNG150wideflash
-widenflash <- GNG150widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-GNG150_acc <- acc  
-acctxt <- c(acctxt,"GNG150_acc")
-
-wideflash <- KCPW_Awideflash
-widenflash <- KCPW_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-KCPW_A_acc <- acc  
-acctxt <- c(acctxt,"KCPW_A_acc")
-
-wideflash <- KSPVRT_Dwideflash
-widenflash <- KSPVRT_Dwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-KSPVRT_D_acc <- acc  
-acctxt <- c(acctxt,"KSPVRT_D_acc")
-
-wideflash <- MEDF36_Awideflash
-widenflash <- MEDF36_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-MEDF36_A_acc <- acc  
-acctxt <- c(acctxt,"MEDF36_A_acc")
-
-wideflash <- PCET_Awideflash
-widenflash <- PCET_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,13)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,13)],lm=TRUE)
-PCET_A_acc <- acc  
-acctxt <- c(acctxt,"PCET_A_acc")
-
-wideflash <- PMAT24_Awideflash
-widenflash <- PMAT24_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,11)],lm=TRUE)
-PMAT24_A_acc <- acc  
-acctxt <- c(acctxt,"PMAT24_A_acc")
-
-wideflash <- SLNB2_90wideflash
-widenflash <- SLNB2_90widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-SLNB2_90_acc <- acc  
-acctxt <- c(acctxt,"SLNB2_90_acc")
-
-# wideflash <- SPCPTN90wideflash                   # SPCPTN90 only has two participants that have taken both flash and non-flash
-# widenflash <- SPCPTN90widenflash
-# accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-# names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-# accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-# names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-# acc <- merge(accflash,accnflash, by=1)
-# acc_cor <- cor(acc[,-1], use="pairwise")
-# pairs.panels(acc[,c(2,3)],lm=TRUE)    # looking at t1 flash vs nflash
-# acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-# acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-# pairs.panels(acc[,c(2,15)],lm=TRUE)
-# SLNB2_90_acc <- acc  
-# acctxt <- c(acctxt,"SLNB2_90_acc")
-
-wideflash <- SPCPTNLwideflash
-widenflash <- SPCPTNLwidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,17)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,17)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,17)],lm=TRUE)
-SPCPTNL_acc <- acc  
-acctxt <- c(acctxt,"SPCPTNL_acc")
-
-wideflash <- SVOLT_Awideflash
-widenflash <- SVOLT_Awidenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,15)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,15)],lm=TRUE)
-SVOLT_A_acc <- acc  
-acctxt <- c(acctxt,"SVOLT_A_acc")
-
-wideflash <- VSPLOT15wideflash
-widenflash <- VSPLOT15widenflash
-accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-acc <- merge(accflash,accnflash, by=1)
-acc_cor <- cor(acc[,-1], use="pairwise")
-pairs.panels(acc[,c(2,9)],lm=TRUE)    # looking at t1 flash vs nflash
-acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
-pairs.panels(acc[,c(2,9)],lm=TRUE)
-acc <- winsor(acc,trim=0.05)
-pairs.panels(acc[,c(2,9)],lm=TRUE)
-VSPLOT15_acc <- acc  
-acctxt <- c(acctxt,"VSPLOT15_acc")
+aimsites <- ggplot(data=AIM_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+aimsites
+aimsitepanels <- aimsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+aimsitepanels
 
 
+pairs.panels(CPF_B_acc[,c(2,11)],lm=TRUE)
+CPF_B_acc <- left_join(CPF_B_acc,CPF_Bsiteid,by="bblid")
+
+cpfsites <- ggplot(data=CPF_B_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+cpfsites
+cpfsitepanels <- cpfsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+cpfsitepanels
+
+
+pairs.panels(ER40_D_acc[,c(2,13)],lm=TRUE)
+ER40_D_acc <- left_join(ER40_D_acc,ER40_Dsiteid,by="bblid")
+
+sites <- ggplot(data=ER40_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(GNG150_acc[,c(2,13)],lm=TRUE)
+GNG150_acc <- left_join(GNG150_acc,GNG150siteid,by="bblid")
+
+sites <- ggplot(data=GNG150_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(KCPW_A_acc[,c(2,15)],lm=TRUE)
+KCPW_A_acc <- left_join(KCPW_A_acc,KCPW_Asiteid,by="bblid")
+
+sites <- ggplot(data=KCPW_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(KSPVRT_D_acc[,c(2,13)],lm=TRUE)
+KSPVRT_D_acc <- left_join(KSPVRT_D_acc,KSPVRT_Dsiteid,by="bblid")
+
+sites <- ggplot(data=KSPVRT_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2.5))
+sitepanels
+
+
+pairs.panels(MEDF36_A_acc[,c(2,13)],lm=TRUE)
+MEDF36_A_acc <- left_join(MEDF36_A_acc,MEDF36_Asiteid,by="bblid")
+
+sites <- ggplot(data=MEDF36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2))
+sitepanels
+
+
+pairs.panels(PCET_A_acc[,c(2,5)],lm=TRUE)
+PCET_A_acc <- left_join(PCET_A_acc,PCET_Asiteid,by="bblid")
+
+sites <- ggplot(data=PCET_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(PMAT24_A_acc[,c(2,11)],lm=TRUE)
+PMAT24_A_acc <- left_join(PMAT24_A_acc,PMAT24_Asiteid,by="bblid")
+
+sites <- ggplot(data=PMAT24_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-3, 2.5),xlim = c(-2.5, 2.5))
+sitepanels
+
+
+pairs.panels(SLNB2_90_acc[,c(2,15)],lm=TRUE)
+SLNB2_90_acc <- left_join(SLNB2_90_acc,SLNB2_90siteid,by="bblid")
+
+sites <- ggplot(data=SLNB2_90_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2))
+sitepanels
+
+
+pairs.panels(SPCPTNL_acc[,c(2,17)],lm=TRUE)
+SPCPTNL_acc <- left_join(SPCPTNL_acc,SPCPTNLsiteid,by="bblid")
+
+sites <- ggplot(data=SPCPTNL_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(SVOLT_A_acc[,c(2,9)],lm=TRUE)
+SVOLT_A_acc <- left_join(SVOLT_A_acc,SVOLT_Asiteid,by="bblid")
+
+sites <- ggplot(data=SVOLT_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2))
+sitepanels
+
+
+pairs.panels(VSPLOT15_acc[,c(2,9)],lm=TRUE)
+VSPLOT15_acc <- left_join(VSPLOT15_acc,VSPLOT15siteid,by="bblid")
+
+sites <- ggplot(data=VSPLOT15_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
 
 
 
@@ -1699,226 +1626,190 @@ write.csv(VSPLOT15spe_icc,"myresults/instrasubject_corr/spe/VSPLOT15spe_icc.csv"
 
 
 
-# Site Differences ----
+# site differences ----
 
 # Tests of interests are: CPF A (40), ER40 D (40), SPCPTNL (60), GNG150 (150), SCTAP, PMAT24 A, 
 #                         SVOLT A, MPRACT, MEDF36 A, SLNB2 90
 
-# CPF_A Accuracy
-test <- CPF_A
-test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
+pairs.panels(ADT36_A_spe[,c(2,13)],lm=TRUE)
+ADT36_A_spe <- left_join(ADT36_A_spe,ADT36_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) #+ geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=ADT36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2))
+sitepanels
+
+# using face wrap instead to adjust coordinates + only show plots with real data
+sites + facet_wrap(vars(fsiteid, nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
 
 
-# ER40_D Accuracy
-test <- ER40_D
-test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
+pairs.panels(AIM_spe[,c(2,13)],lm=TRUE)
+AIM_spe <- left_join(AIM_spe,AIMSpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-  #geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=AIM_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
 
 
-# SPCPTNL Accuracy
-test <- SPCPTNL
-test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
+pairs.panels(CPF_B_spe[,c(2,11)],lm=TRUE)
+CPF_B_spe <- left_join(CPF_B_spe,CPF_BSpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-#geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=CPF_B_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
 
 
-# GNG150 Accuracy
-test <- GNG150
-test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
+pairs.panels(ER40_D_spe[,c(2,13)],lm=TRUE)
+ER40_D_spe <- left_join(ER40_D_spe,ER40_DSpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=acc_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-#geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=ER40_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2))
+sitepanels
 
 
+pairs.panels(GNG150_spe[,c(2,13)],lm=TRUE)
+GNG150_spe <- left_join(GNG150_spe,GNG150Spsiteid,by="bblid")
 
-# GNG150 Speed
-test <- GNG150
-test <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-#geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=GNG150_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-3, 2),xlim = c(-2, 2))
+sitepanels
 
 
+pairs.panels(KCPW_A_spe[,c(2,15)],lm=TRUE)
+KCPW_A_spe <- left_join(KCPW_A_spe,KCPW_ASpsiteid,by="bblid")
 
-# SCTAP Speed
-test <- SCTAP
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[test$bblid!=21789,]
-
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-#geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=KCPW_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2.2),xlim = c(-2, 3))
+sitepanels
 
 
+pairs.panels(KSPVRT_D_spe[,c(2,13)],lm=TRUE)
+KSPVRT_D_spe <- left_join(KSPVRT_D_spe,KSPVRT_DSpsiteid,by="bblid")
 
-# PMAT24_A Speed
-test <- PMAT24_A
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[test$spe_res<10,]
-
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) 
-#geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=KSPVRT_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2.2),xlim = c(-2, 2.5))
+sitepanels
 
 
-# SVOLT_A Speed
-test <- SVOLT_A
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[abs(test$spe_res)<10,]
+pairs.panels(MEDF36_A_spe[,c(2,13)],lm=TRUE)
+MEDF36_A_spe <- left_join(MEDF36_A_spe,MEDF36_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) + geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=MEDF36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.1, 2),xlim = c(-2, 2))
+sitepanels
 
 
-# ER40_D Speed
-test <- ER40_D
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[abs(test$spe_res)<10,]
+pairs.panels(MPRACT_spe[,c(2,15)],lm=TRUE)
+MPRACT_spe <- left_join(MPRACT_spe,MPRACTSpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) #+ geom_smooth()
-#geom_jitter() +
-
+sites <- ggplot(data=MPRACT_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
 
 
-# MPRACT Speed
-test <- MPRACT
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[abs(test$spe_res)<10,]
+pairs.panels(PCET_A_spe[,c(2,5)],lm=TRUE)
+PCET_A_spe <- left_join(PCET_A_spe,PCET_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) #+ geom_smooth()
-#geom_jitter() +
-
-ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5)
-
+sites <- ggplot(data=PCET_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
 
 
-# MEDF36_A Speed
-test <- MEDF36_A
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[abs(test$spe_res)<10,]
+pairs.panels(PMAT24_A_spe[,c(2,11)],lm=TRUE)
+PMAT24_A_spe <- left_join(PMAT24_A_spe,PMAT24_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) #+ geom_smooth()
-#geom_jitter() +
-
-ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5)
-
+sites <- ggplot(data=PMAT24_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2.7),xlim = c(-2, 2))
+sitepanels
 
 
-# SLNB2_90 Speed
-test <- SLNB2_90
-test <- test[!is.na(test$age) & !is.na(test$Speed),]
-fit <- gam(Accuracy ~ s(age), data = test)
-test$acc_res <- scale(resid(fit))
-fit <- gam(Speed ~ s(age), data = test)    # regress out age first
-test$spe_res <- scale(resid(fit))
-test <- test[abs(test$spe_res)<10,]
+pairs.panels(SCTAP_spe[,c(2,15)],lm=TRUE)
+SCTAP_spe <- left_join(SCTAP_spe,SCTAPSpsiteid,by="bblid")
 
-sites <- ggplot(data=test, aes(x=dotest,y=spe_res,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5) #+ geom_smooth()
-#geom_jitter() +
-
-ggplot(data=test, aes(x=dotest,y=Speed,shape=factor(flash),color=siteid,group=interaction(flash, siteid))) +
-  geom_point(alpha=0.5)
-
+sites <- ggplot(data=SCTAP_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
 sites
-ggplotly(sites)
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.5))
+sitepanels
+
+
+pairs.panels(SLNB2_90_spe[,c(2,15)],lm=TRUE)
+SLNB2_90_spe <- left_join(SLNB2_90_spe,SLNB2_90Spsiteid,by="bblid")
+
+sites <- ggplot(data=SLNB2_90_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.2))
+sitepanels
+
+
+pairs.panels(SPCPTNL_spe[,c(2,17)],lm=TRUE)
+SPCPTNL_spe <- left_join(SPCPTNL_spe,SPCPTNLSpsiteid,by="bblid")
+
+sites <- ggplot(data=SPCPTNL_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.2, 2.7))
+sitepanels
+
+
+pairs.panels(SVOLT_A_spe[,c(2,9)],lm=TRUE)
+SVOLT_A_spe <- left_join(SVOLT_A_spe,SVOLT_ASpsiteid,by="bblid")
+
+sites <- ggplot(data=SVOLT_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
+
+pairs.panels(VSPLOT15_spe[,c(2,9)],lm=TRUE)
+VSPLOT15_spe <- left_join(VSPLOT15_spe,VSPLOT15Spsiteid,by="bblid")
+
+sites <- ggplot(data=VSPLOT15_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+  geom_point() + geom_smooth(method = lm)
+sites
+sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+sitepanels
+
 
 
 
