@@ -31,19 +31,17 @@ pcpt$dotest <- as.Date(pcpt$dotest)
 pcpt$dob <- as.Date(pcpt$dob)
 pcpt$Accuracy <- as.numeric(pcpt$Accuracy)
 pcpt$age <- as.numeric(pcpt$age)
-rm <- pcpt[pcpt$bblid<10000,]
-pcpt <- setdiff(pcpt,rm)
+pcpt <- pcpt[pcpt$bblid>=10000,] # 64272 x 17
 
 bigcnb$bblid <- as.numeric(bigcnb$bblid)                   # getting rid of fake bblids
-rm <- bigcnb[bigcnb$bblid<10000 & !is.na(bigcnb$bblid),]   # left with 241,772 rows 9.28.21
-bigcnb <- setdiff(bigcnb,rm)
+bigcnb <- bigcnb[bigcnb$bblid>=10000 & !is.na(bigcnb$bblid),]   # left with 173,556 rows
 
 bigcnb$dotest <- as.Date(bigcnb$dotest, "%m/%d/%y")
 bigcnb$dob <- as.Date(bigcnb$dob, "%m/%d/%y")              # anything with Dob > 2013 should be 100 years earlier
 bigcnb <- bigcnb[order(bigcnb$dob, decreasing = T),]
 
 newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
-x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 241,772 rows!
+x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 173,556 rows!
 x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
 x$newDOB <- if_else(is.na(x$dob),x$DOBIRTH,x$dob)
 x <- x[,c(1:6,18,8:16)]
@@ -62,13 +60,13 @@ temp <- temp %m+% years(100)
 bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$dob <- temp
 bigcnb$age <- floor(as.numeric(bigcnb$dotest - bigcnb$dob, units = "weeks")/52.25)
 
-bigcnb <- rbind(bigcnb,pcpt)    # now 306,044
+bigcnb <- rbind(bigcnb,pcpt)    # now 237,828
 bigcnb$flash <- 0
 bigcnb$flash[which(bigcnb$dotest <= as.Date("2020-12-31"))] <- 1
 
 bigcnb <- bigcnb[order(bigcnb$bblid),]
 
-bigcnb <- bigcnb[!is.na(bigcnb$Version),] # 304,777
+bigcnb <- bigcnb[!is.na(bigcnb$Version),] # 210,509
 
 
 # * Separate into test versions ----
@@ -945,7 +943,8 @@ adtsites <- ggplot(data=ADT36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) +
   geom_point() + geom_smooth(method = lm)
 adtsites
 adtsitepanels <- adtsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="ADT36 Accuracy site differences")
 adtsitepanels
 
 # using face wrap instead to adjust coordinates + only show plots with real data
@@ -960,7 +959,8 @@ aimsites <- ggplot(data=AIM_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) +
   geom_point() + geom_smooth(method = lm)
 aimsites
 aimsitepanels <- aimsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="AIM Accuracy site differences")
 aimsitepanels
 
 
@@ -971,129 +971,141 @@ cpfsites <- ggplot(data=CPF_B_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) +
   geom_point() + geom_smooth(method = lm)
 cpfsites
 cpfsitepanels <- cpfsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="CPF Accuracy site differences")
 cpfsitepanels
 
 
 pairs.panels(ER40_D_acc[,c(2,13)],lm=TRUE)
 ER40_D_acc <- left_join(ER40_D_acc,ER40_Dsiteid,by="bblid")
 
-sites <- ggplot(data=ER40_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+er40sites <- ggplot(data=ER40_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+er40sites
+er40sitepanels <- er40sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="ER40 Accuracy site differences")
+er40sitepanels
 
 
 pairs.panels(GNG150_acc[,c(2,13)],lm=TRUE)
 GNG150_acc <- left_join(GNG150_acc,GNG150siteid,by="bblid")
 
-sites <- ggplot(data=GNG150_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+gngsites <- ggplot(data=GNG150_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+gngsites
+gngsitepanels <- gngsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="GNG150 Accuracy site differences")
+gngsitepanels
 
 
 pairs.panels(KCPW_A_acc[,c(2,15)],lm=TRUE)
 KCPW_A_acc <- left_join(KCPW_A_acc,KCPW_Asiteid,by="bblid")
 
-sites <- ggplot(data=KCPW_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+kcpwsites <- ggplot(data=KCPW_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+kcpwsites
+kcpwsitepanels <- kcpwsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="KCPW Accuracy site differences")
+kcpwsitepanels
 
 
 pairs.panels(KSPVRT_D_acc[,c(2,13)],lm=TRUE)
 KSPVRT_D_acc <- left_join(KSPVRT_D_acc,KSPVRT_Dsiteid,by="bblid")
 
-sites <- ggplot(data=KSPVRT_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+pvrtsites <- ggplot(data=KSPVRT_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2.5))
-sitepanels
+pvrtsites
+pvrtsitepanels <- pvrtsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2.5)) +
+  labs(title="PVRT Accuracy site differences")
+pvrtsitepanels
 
 
 pairs.panels(MEDF36_A_acc[,c(2,13)],lm=TRUE)
 MEDF36_A_acc <- left_join(MEDF36_A_acc,MEDF36_Asiteid,by="bblid")
 
-sites <- ggplot(data=MEDF36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+medfsites <- ggplot(data=MEDF36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2))
-sitepanels
+medfsites
+medfsitepanels <- medfsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2)) +
+  labs(title="MEDF Accuracy site differences")
+medfsitepanels
 
 
 pairs.panels(PCET_A_acc[,c(2,5)],lm=TRUE)
 PCET_A_acc <- left_join(PCET_A_acc,PCET_Asiteid,by="bblid")
 
-sites <- ggplot(data=PCET_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+pcetsites <- ggplot(data=PCET_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+pcetsites
+pcetsitepanels <- pcetsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="PCET Accuracy site differences")
+pcetsitepanels
 
 
 pairs.panels(PMAT24_A_acc[,c(2,11)],lm=TRUE)
 PMAT24_A_acc <- left_join(PMAT24_A_acc,PMAT24_Asiteid,by="bblid")
 
-sites <- ggplot(data=PMAT24_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+pmatsites <- ggplot(data=PMAT24_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-3, 2.5),xlim = c(-2.5, 2.5))
-sitepanels
+pmatsites
+pmatsitepanels <- pmatsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-3, 2.5),xlim = c(-2.5, 2.5)) +
+  labs(title="PMAT Accuracy site differences")
+pmatsitepanels
 
 
 pairs.panels(SLNB2_90_acc[,c(2,15)],lm=TRUE)
 SLNB2_90_acc <- left_join(SLNB2_90_acc,SLNB2_90siteid,by="bblid")
 
-sites <- ggplot(data=SLNB2_90_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+slnbsites <- ggplot(data=SLNB2_90_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2))
-sitepanels
+slnbsites
+slnbsitepanels <- slnbsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2)) +
+  labs(title="SLNB2 90 Accuracy site differences")
+slnbsitepanels
 
 
 pairs.panels(SPCPTNL_acc[,c(2,17)],lm=TRUE)
 SPCPTNL_acc <- left_join(SPCPTNL_acc,SPCPTNLsiteid,by="bblid")
 
-sites <- ggplot(data=SPCPTNL_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+cptsites <- ggplot(data=SPCPTNL_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+cptsites
+cptsitepanels <- cptsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="SPCPTNL Accuracy site differences")
+cptsitepanels
 
 
 pairs.panels(SVOLT_A_acc[,c(2,9)],lm=TRUE)
 SVOLT_A_acc <- left_join(SVOLT_A_acc,SVOLT_Asiteid,by="bblid")
 
-sites <- ggplot(data=SVOLT_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+votsites <- ggplot(data=SVOLT_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2))
-sitepanels
+votsites
+voltsitepanels <- votsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2)) +
+  labs(title="VOLT Accuracy site differences")
+voltsitepanels
 
 
 pairs.panels(VSPLOT15_acc[,c(2,9)],lm=TRUE)
 VSPLOT15_acc <- left_join(VSPLOT15_acc,VSPLOT15siteid,by="bblid")
 
-sites <- ggplot(data=VSPLOT15_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
+plotsites <- ggplot(data=VSPLOT15_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+plotsites
+plotsitepanels <- plotsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="PLOT Accuracy site differences")
+plotsitepanels
 
 
 
@@ -1609,8 +1621,8 @@ write.csv(  ER40_Dspe_icc,"myresults/instrasubject_corr/spe/ER40_Dspe_icc.csv")
 write.csv(  GNG150spe_icc,"myresults/instrasubject_corr/spe/GNG150spe_icc.csv")
 write.csv(  KCPW_Aspe_icc,"myresults/instrasubject_corr/spe/KCPW_Aspe_icc.csv")
 write.csv(KSPVRT_Dspe_icc,"myresults/instrasubject_corr/spe/KSPVRT_Dspe_icc.csv")
-write.csv(  MPRACTspe_icc,"myresults/instrasubject_corr/spe/MPRACTspe_icc.csv")
 write.csv(MEDF36_Aspe_icc,"myresults/instrasubject_corr/spe/MEDF36_Aspe_icc.csv")
+write.csv(  MPRACTspe_icc,"myresults/instrasubject_corr/spe/MPRACTspe_icc.csv")
 write.csv(  PCET_Aspe_icc,"myresults/instrasubject_corr/spe/PCET_Aspe_icc.csv")
 write.csv(PMAT24_Aspe_icc,"myresults/instrasubject_corr/spe/PMAT24_Aspe_icc.csv")
 write.csv(   SCTAPspe_icc,"myresults/instrasubject_corr/spe/SCTAPspe_icc.csv")
@@ -1634,12 +1646,13 @@ write.csv(VSPLOT15spe_icc,"myresults/instrasubject_corr/spe/VSPLOT15spe_icc.csv"
 pairs.panels(ADT36_A_spe[,c(2,13)],lm=TRUE)
 ADT36_A_spe <- left_join(ADT36_A_spe,ADT36_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=ADT36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+adtspsites <- ggplot(data=ADT36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2))
-sitepanels
+adtspsites
+adtspsitepanels <- adtspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2)) +
+  labs(title="ADT Speed site differences")
+adtspsitepanels
 
 # using face wrap instead to adjust coordinates + only show plots with real data
 sites + facet_wrap(vars(fsiteid, nfsiteid)) +
@@ -1649,166 +1662,181 @@ sites + facet_wrap(vars(fsiteid, nfsiteid)) +
 pairs.panels(AIM_spe[,c(2,13)],lm=TRUE)
 AIM_spe <- left_join(AIM_spe,AIMSpsiteid,by="bblid")
 
-sites <- ggplot(data=AIM_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+aimspsites <- ggplot(data=AIM_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+aimspsites
+aimspsitepanels <- aimspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="AIM Speed site differences")
+aimspsitepanels
 
 
 pairs.panels(CPF_B_spe[,c(2,11)],lm=TRUE)
 CPF_B_spe <- left_join(CPF_B_spe,CPF_BSpsiteid,by="bblid")
 
-sites <- ggplot(data=CPF_B_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+cpfspsites <- ggplot(data=CPF_B_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+cpfspsites
+cpfspsitepanels <- cpfspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="CPF Speed site differences")
+cpfspsitepanels
 
 
 pairs.panels(ER40_D_spe[,c(2,13)],lm=TRUE)
 ER40_D_spe <- left_join(ER40_D_spe,ER40_DSpsiteid,by="bblid")
 
-sites <- ggplot(data=ER40_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+ersspsites <- ggplot(data=ER40_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2))
-sitepanels
+ersspsites
+erspsitepanels <- ersspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2)) +
+  labs(title="ER40 Speed site differences")
+erspsitepanels
 
 
 pairs.panels(GNG150_spe[,c(2,13)],lm=TRUE)
 GNG150_spe <- left_join(GNG150_spe,GNG150Spsiteid,by="bblid")
 
-sites <- ggplot(data=GNG150_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+gngspsites <- ggplot(data=GNG150_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-3, 2),xlim = c(-2, 2))
-sitepanels
+gngspsites
+gngspsitepanels <- gngspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-3, 2),xlim = c(-2, 2)) +
+  labs(title="GNG150 Speed site differences")
+gngspsitepanels
 
 
 pairs.panels(KCPW_A_spe[,c(2,15)],lm=TRUE)
 KCPW_A_spe <- left_join(KCPW_A_spe,KCPW_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=KCPW_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+cpwspsites <- ggplot(data=KCPW_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2.2),xlim = c(-2, 3))
-sitepanels
+cpwspsites
+cpwspsitepanels <- cpwspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.5, 2.2),xlim = c(-2, 3)) +
+  labs(title="KCPW Speed site differences")
+cpwspsitepanels
 
 
 pairs.panels(KSPVRT_D_spe[,c(2,13)],lm=TRUE)
 KSPVRT_D_spe <- left_join(KSPVRT_D_spe,KSPVRT_DSpsiteid,by="bblid")
 
-sites <- ggplot(data=KSPVRT_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+pvrtspsites <- ggplot(data=KSPVRT_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2.2),xlim = c(-2, 2.5))
-sitepanels
+pvrtspsites
+pvrtspsitepanels <- pvrtspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2.2),xlim = c(-2, 2.5)) +
+  labs(title="KSPVRT Speed site differences")
+pvrtspsitepanels
 
 
 pairs.panels(MEDF36_A_spe[,c(2,13)],lm=TRUE)
 MEDF36_A_spe <- left_join(MEDF36_A_spe,MEDF36_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=MEDF36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+medfspsites <- ggplot(data=MEDF36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.1, 2),xlim = c(-2, 2))
-sitepanels
+medfspsites
+medfspsitepanels <- medfspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2.1, 2),xlim = c(-2, 2)) +
+  labs(title="MEDF36 Speed site differences")
+medfspsitepanels
 
 
 pairs.panels(MPRACT_spe[,c(2,15)],lm=TRUE)
 MPRACT_spe <- left_join(MPRACT_spe,MPRACTSpsiteid,by="bblid")
 
-sites <- ggplot(data=MPRACT_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+mpractsites <- ggplot(data=MPRACT_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+mpractsites
+mpractsitepanels <- mpractsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="MPRACT Speed site differences")
+mpractsitepanels
 
 
 pairs.panels(PCET_A_spe[,c(2,5)],lm=TRUE)
 PCET_A_spe <- left_join(PCET_A_spe,PCET_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=PCET_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+pcetspsites <- ggplot(data=PCET_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+pcetspsites
+pcetspsitepanels <- pcetspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="PCET Speed site differences")
+pcetspsitepanels
 
 
 pairs.panels(PMAT24_A_spe[,c(2,11)],lm=TRUE)
 PMAT24_A_spe <- left_join(PMAT24_A_spe,PMAT24_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=PMAT24_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+pmatspsites <- ggplot(data=PMAT24_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2.7),xlim = c(-2, 2))
-sitepanels
+pmatspsites
+pmatspsitepanels <- pmatspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2.7),xlim = c(-2, 2)) +
+  labs(title="PMAT24 Speed site differences")
+pmatspsitepanels
 
 
 pairs.panels(SCTAP_spe[,c(2,15)],lm=TRUE)
 SCTAP_spe <- left_join(SCTAP_spe,SCTAPSpsiteid,by="bblid")
 
-sites <- ggplot(data=SCTAP_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+sctapsites <- ggplot(data=SCTAP_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.5))
-sitepanels
+sctapsites
+sctapsitepanels <- sctapsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.5)) +
+  labs(title="SCTAP Speed site differences")
+sctapsitepanels
 
 
 pairs.panels(SLNB2_90_spe[,c(2,15)],lm=TRUE)
 SLNB2_90_spe <- left_join(SLNB2_90_spe,SLNB2_90Spsiteid,by="bblid")
 
-sites <- ggplot(data=SLNB2_90_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+slnbspsites <- ggplot(data=SLNB2_90_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.2))
-sitepanels
+slnbspsites
+slnbspsitepanels <- slnbspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.2)) +
+  labs(title="SLNB2 90 Speed site differences")
+slnbspsitepanels
 
 
 pairs.panels(SPCPTNL_spe[,c(2,17)],lm=TRUE)
 SPCPTNL_spe <- left_join(SPCPTNL_spe,SPCPTNLSpsiteid,by="bblid")
 
-sites <- ggplot(data=SPCPTNL_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+cptspsites <- ggplot(data=SPCPTNL_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.2, 2.7))
-sitepanels
+cptspsites
+cptspsitepanels <- cptspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.2, 2.7)) +
+  labs(title="SPCPTNL Speed site differences")
+cptspsitepanels
 
 
 pairs.panels(SVOLT_A_spe[,c(2,9)],lm=TRUE)
 SVOLT_A_spe <- left_join(SVOLT_A_spe,SVOLT_ASpsiteid,by="bblid")
 
-sites <- ggplot(data=SVOLT_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+voltspsites <- ggplot(data=SVOLT_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+voltspsites
+voltspsitepanels <- voltspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="SVOLT Speed site differences")
+voltspsitepanels
 
 
 pairs.panels(VSPLOT15_spe[,c(2,9)],lm=TRUE)
 VSPLOT15_spe <- left_join(VSPLOT15_spe,VSPLOT15Spsiteid,by="bblid")
 
-sites <- ggplot(data=VSPLOT15_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
+plotspsites <- ggplot(data=VSPLOT15_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
   geom_point() + geom_smooth(method = lm)
-sites
-sitepanels <- sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-sitepanels
+plotspsites
+plotspsitepanels <- plotspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
+  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
+  labs(title="VSPLOT15 Speed site differences")
+plotspsitepanels
 
 
 
@@ -1819,6 +1847,9 @@ sitepanels
 
 
 
+
+gg <- ggplot(data=ADT36_A,aes(x=dotest, y=Accuracy, color=siteid, shape=factor(flash))) +
+  geom_point(alpha=0.5)
 
 
 
