@@ -2025,63 +2025,71 @@ for (j in 1:length(textsAcc)){
 
 # new site difference plot that Kosha wanted ----
 
-# GNG150 speed
-test <- GNG150[GNG150$dotest>cutoff,]
-fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
-summary(fit)
-visreg(fit,"age", by="gender", main="GNG150 Speed AD")
+sitetextsAcc <- sort(c("KSPVRT_D","PCET_A","SPCPTNL","GNG150"))
+sitetestsAcc <- mget(sitetextsAcc)
 
-res <- scale(resid(fit))   # scaled residuals
-newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
-nflash <- newtest[newtest$flash==0,]
-nfrownames <- row.names(nflash)
+for (i in length(sitetextsAcc)){
+  test <- sitetestsAcc[[i]]
+  test <- test[test$dotest>cutoff & !is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
+  
+  fit <- gam(Accuracy ~ s(age,k=3) + gender, data = test)
+  res <- data.frame(scale(resid(fit)))
+  
+  names <- data.frame(matrix(rownames(test),ncol = 1))
+  res <- cbind(names,res)
+  names(res) <- c("row","Residuals")
+  
+  test <- cbind(names,test)
+  names(test)[1] <- "row"
+  test <- left_join(test,res)
+  test <- test[abs(test$Residuals)<5,]
+  
+  gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
+    geom_boxplot(outlier.shape=NA) +
+    geom_point(position=position_jitterdodge()) +
+    theme_bw() + xlab("Site ID") +
+    scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
+    labs(title = paste("Flash difference of", sitetextsAcc[i], "Accuracy Residuals at different sites"))
+  
+  assign(paste0(sitetextsAcc[i],"_sitedif"),gg)
+}
 
-res <- as.data.frame(res)
-names <- data.frame(matrix(rownames(test),ncol = 1))
-res <- cbind(names,res)
-names(res) <- c("row","Residuals")
-gng <- cbind(names,test)
-names(gng)[1] <- "row"
-gng <- left_join(gng,res)
-gng <- gng[abs(gng$Residuals)<5,]
 
-gng_site <- ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_jitter()
 
-ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_point()
 
-ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_boxplot(outlier.shape=NA) +
-  geom_point(position=position_jitterdodge())
+sitetexts <- sort(c("MPRACT","SPCPTNL","GNG150"))
+sitetests <- mget(sitetexts)
 
-# spcptnl acc
+for (i in length(sitetexts)){
+  test <- sitetests[[i]]
+  test <- test[test$dotest>cutoff & !is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
+  
+  fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
+  res <- data.frame(scale(resid(fit)))
+  
+  names <- data.frame(matrix(rownames(test),ncol = 1))
+  res <- cbind(names,res)
+  names(res) <- c("row","Residuals")
+  
+  test <- cbind(names,test)
+  names(test)[1] <- "row"
+  test <- left_join(test,res)
+  test <- test[abs(test$Residuals)<5,]
+  
+  gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
+    geom_boxplot(outlier.shape=NA) +
+    geom_point(position=position_jitterdodge()) +
+    theme_bw() + xlab("Site ID") +
+    scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
+    labs(title = paste("Flash difference of", sitetextsAcc[i], "Speed Residuals at different sites"))
+  
+  assign(paste0(sitetexts[i],"_sitedifSp"),gg)
+}
 
-test <- SPCPTNL[SPCPTNL$dotest>cutoff,]
-fit <- gam(Accuracy ~ s(age,k=3) + gender, data = test)
-summary(fit)
-visreg(fit,"age", by="gender", main="SPCPTNL Accuracy AD")
 
-res <- scale(resid(fit))   # scaled residuals
-newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
-nflash <- newtest[newtest$flash==0,]
-nfrownames <- row.names(nflash)
 
-res <- as.data.frame(res)
-names <- data.frame(matrix(rownames(test),ncol = 1))
-res <- cbind(names,res)
-names(res) <- c("row","Residuals")
-cpt <- cbind(names,test)
-names(cpt)[1] <- "row"
-cpt <- left_join(cpt,res)
-cpt <- cpt[abs(cpt$Residuals)<5,]
 
-cpt_site <- ggplot(cpt, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_jitter()
 
-ggplot(cpt, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_boxplot(outlier.shape=NA) +
-  geom_point(position=position_jitterdodge())
 
 
 

@@ -2046,4 +2046,16 @@ round(VSPLOT15spe_icc,3) %>%
 
 
 
+## Site Differences
+
+We also looked at test accuracy and speed comparison across the different administration sites. This was done to see if some sites in particular showed big differences between Flash and non-Flash groups. At the same time, we checked for any sites that drove the mean up or down in each group.
+
+```{r site diff primer, include=FALSE}
+sitetexts <- 
+```
+
+
+
+
+
 
