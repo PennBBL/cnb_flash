@@ -146,8 +146,8 @@ for (i in 1:length(textsAcc)) {
   lastyear <- lastyear[!is.na(lastyear$Accuracy) & !is.na(lastyear$age) & !is.na(lastyear$gender),]
   
   # use newtest to figure out proportion of participants included in both Flash and non-Flash groups
-  f_sub <- unique(newtest[newtest$flash==1,3])               # subjects in the flash group
-  both_sub <- intersect(f_sub, newtest[newtest$flash==0,3])  # subjects included in both groups
+  f_sub <- unique(lastyear[lastyear$flash==1,3])               # subjects in the flash group
+  both_sub <- intersect(f_sub, lastyear[lastyear$flash==0,3])  # subjects included in both groups
   sumAcc <- c(sumAcc,"both_sub")
   lastyear <- lastyear[!(lastyear$bblid%in%both_sub),]
   
@@ -204,300 +204,188 @@ for (i in 1:length(textsAcc)) {
 
 ### ADT36 A
 
-The mean accuracy on the ADT36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ADT36_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean accuracy on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(ADT36_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-ADT36_AsumAcc$ttestAD
-ADT36_AsumAcc$boxAD
-```
-
-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r ADT36 A Accuracy t-test, echo=FALSE}
 ADT36_AsumAcc$ttestLY
 ADT36_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[1,4])`)
 
 
 
 ### AIM
 
-The mean accuracy on the AIM of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the AIM of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(AIMsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-AIMsumAcc$ttestAD
-AIMsumAcc$boxAD
-```
-
-Flash (n=`r as.numeric(AIMsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(AIMsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r AIM Accuracy t-test, echo=FALSE}
 AIMsumAcc$ttestLY
 AIMsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(AIMsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(AIMsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumAcc$nLY[1,4])`)
 
 
 ### CPF B
 
-The mean accuracy on the CPF B of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r CPF_BsumAcc$effsizeAD`. On the other hand, the mean accuracy on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+The mean accuracy on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(CPF_BsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-CPF_BsumAcc$ttestAD
-CPF_BsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r CPF B Accuracy t-test, echo=FALSE}
 CPF_BsumAcc$ttestLY
 CPF_BsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[1,4])`)
 
 
 ### ER40 D
 
-The mean accuracy on the ER40 D of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the ER40 D of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(ER40_DsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-ER40_DsumAcc$ttestAD
-ER40_DsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(ER40_DsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r ER40 D Accuracy t-test, echo=FALSE}
 ER40_DsumAcc$ttestLY
 ER40_DsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(ER40_DsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(ER40_DsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumAcc$nLY[1,4])`)
 
 
 ### GNG150
 
-The mean accuracy on the GNG150 of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the GNG150 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(GNG150sumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-GNG150sumAcc$ttestAD
-GNG150sumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(GNG150sumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(GNG150sumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r GNG150 Accuracy t-test, echo=FALSE}
 GNG150sumAcc$ttestLY
 GNG150sumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(GNG150sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(GNG150sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumAcc$nLY[1,4])`)
 
 
 ### KCPW A
 
-The mean accuracy on the KCPW A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r KCPW_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the KCPW A of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+The mean accuracy on the KCPW A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(KCPW_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-KCPW_AsumAcc$ttestAD
-KCPW_AsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r KCPW A Accuracy t-test, echo=FALSE}
 KCPW_AsumAcc$ttestLY
 KCPW_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(KCPW_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(KCPW_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumAcc$nLY[1,4])`)
 
 
 ### KSPVRT D
 
-The mean accuracy on the KSPVRT D of the Flash group is not significantly different from that of the non-Flash group in the AD analysis. On the other hand, the mean accuracy on the KSPVRT D of the Flash group is statistically **significantly different** from that of the non-Flash group in the LY analysis with an effect size of `r KSPVRT_DsumAcc$effsizeLY`.
+The mean accuracy on the KSPVRT D of the Flash group is statistically **significantly different** from the non-Flash group in the LY analysis with an effect size of `r round(KSPVRT_DsumAcc$effsizeLY,3)`. Though the difference between means is statistically significant, the box plots shows that their medians overall distribution are very similar. `r length(KSPVRT_DsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-KSPVRT_DsumAcc$ttestAD
-KSPVRT_DsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r KSPVRT D Accuracy t-test, echo=FALSE}
 KSPVRT_DsumAcc$ttestLY
 KSPVRT_DsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(KSPVRT_DsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+Last year of Flash (n=`r as.numeric(KSPVRT_DsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumAcc$nLY[1,4])`)
 
 
 ### MEDF36 A
 
-The mean accuracy on the MEDF36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r MEDF36_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the MEDF36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+The mean accuracy on the KCPW A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(KCPW_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-MEDF36_AsumAcc$ttestAD
-MEDF36_AsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r MEDF36 A Accuracy t-test, echo=FALSE}
 MEDF36_AsumAcc$ttestLY
 MEDF36_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(MEDF36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(MEDF36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumAcc$nLY[1,4])`)
 
 
 ### PCET A
 
-The mean accuracy on the PCET A of the Flash group is not significantly different from that of the non-Flash group in the AD analysis. On the other hand, the mean accuracy on the PCET A of the Flash group is statistically **significantly different** from that of the non-Flash group in the LY analysis with an effect size of `r PCET_AsumAcc$effsizeLY`.
+The mean accuracy on the PCET A of the Flash group is statistically **significantly different** from the non-Flash group in the LY analysis with an effect size of `r PCET_AsumAcc$effsizeLY`. This may be caused by the fact that we only have `r as.numeric(PCET_AsumAcc$nLY[1,4])` participants in the non-Flash group. `r length(PCET_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-PCET_AsumAcc$ttestAD
-PCET_AsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(PCET_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r PCET A Accuracy t-test, echo=FALSE}
 PCET_AsumAcc$ttestLY
 PCET_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(PCET_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(PCET_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumAcc$nLY[1,4])`)
 
-The box plots look **different** enough that warrant more testing. One thing to note here is that the non-Flash group consists of `r as.numeric(PCET_AsumAcc$nAD[1,4])` (on the smaller side) participants for both AD and LY.
 
 
 ### PMAT24 A
 
-The mean accuracy on the PMAT24 A of the Flash group is not significantly different from the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the PMAT24 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(PMAT24_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-PMAT24_AsumAcc$ttestAD
-PMAT24_AsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(PMAT24_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r PMAT24 A Accuracy t-test, echo=FALSE}
 PMAT24_AsumAcc$ttestLY
 PMAT24_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(PMAT24_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(PMAT24_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumAcc$nLY[1,4])`)
 
 
 ### SLNB2 90
 
-The mean accuracy on the SLNB2 90 of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the SLNB2 90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SLNB2_90sumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SLNB2_90sumAcc$ttestAD
-SLNB2_90sumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SLNB2_90sumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SLNB2 90 Accuracy t-test, echo=FALSE}
 SLNB2_90sumAcc$ttestLY
 SLNB2_90sumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SLNB2_90sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SLNB2_90sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumAcc$nLY[1,4])`)
 
 
 ### SPCPTN90
 
-The mean accuracy on the SPCPTN90 of the Flash group is not significantly different from the non-Flash group in the AD and LY analysis.
+The mean accuracy on the SPCPTN90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SPCPTN90sumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SPCPTN90sumAcc$ttestAD
-SPCPTN90sumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SPCPTN90sumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(SPCPTN90sumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SPCPTN90 Accuracy t-test, echo=FALSE}
 SPCPTN90sumAcc$ttestLY
 SPCPTN90sumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SPCPTN90sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTN90sumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SPCPTN90sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTN90sumAcc$nLY[1,4])`)
 
 
 ### SPCPTNL
 
-The mean accuracy on the SPCPTNL of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the SPCPTNL of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SPCPTNLsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SPCPTNLsumAcc$ttestAD
-SPCPTNLsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SPCPTNLsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SPCPTNL Accuracy t-test, echo=FALSE}
 SPCPTNLsumAcc$ttestLY
 SPCPTNLsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SPCPTNLsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SPCPTNLsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumAcc$nLY[1,4])`)
 
 
 ### SVOLT A
 
-The mean accuracy on the SVOLT A of the Flash group is not significantly different from the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the SVOLT A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SVOLT_AsumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task. *Note: the non-Flash group sample size is on the lower side.*
 
-```{r, echo=FALSE}
-SVOLT_AsumAcc$ttestAD
-SVOLT_AsumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SVOLT_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SVOLT A Accuracy t-test, echo=FALSE}
 SVOLT_AsumAcc$ttestLY
 SVOLT_AsumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SVOLT_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SVOLT_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumAcc$nLY[1,4])`)
 
 
 ### VSPLOT15
 
-The mean accuracy on the VSPLOT15 of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean accuracy on the VSPLOT15 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(VSPLOT15sumAcc$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-VSPLOT15sumAcc$ttestAD
-VSPLOT15sumAcc$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(VSPLOT15sumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumAcc$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r VSPLOT15 Accuracy t-test, echo=FALSE}
 VSPLOT15sumAcc$ttestLY
 VSPLOT15sumAcc$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(VSPLOT15sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumAcc$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(VSPLOT15sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumAcc$nLY[1,4])`)
+
+
+
+
 
 
 
@@ -505,7 +393,7 @@ Last year of Flash (n=`r as.numeric(VSPLOT15sumAcc$nLY[2,4])`), non-Flash (n=`r 
 
 ## Differences in Speed Means
 
-These are the results from t-tests for each task looking for differences between mean speed in the flash and non-flash groups. Age and sex were regressed out prior to the t-test. There are two results for each task: one comparison uses all available data for both Flash and non-Flash (all dates, AD), and the other compares all non-Flash data with only the last year's worth of available Flash data with all non-Flash data (last year, LY).
+These are the results from t-tests for each task looking for differences between mean speed in the flash and non-flash groups. Age and sex were regressed out prior to the t-test. We started with two types of comparisons for each task: one comparison uses all available data for both Flash and non-Flash (all dates, AD), and the other compares all non-Flash data with only the last year's worth of available Flash data with all non-Flash data (last year, LY). We ultimately decided to stick with the LY analysis as the large sample size of the AD data has a strong effect on p-value. 
 
 ```{r speed means, include=FALSE}
 for (i in 1:length(texts)) {
@@ -513,55 +401,62 @@ for (i in 1:length(texts)) {
   name <- paste0(texts[i],"sumSp")
   sumSp <- c(texts[i])
   
-  # alldates
-  fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
-  
-  fitAD <- summary(fit)
-  sumSp <- c(sumSp,"fitAD")
-  
-  visreg(fit,"age", by="gender", main=paste(texts[i],"AD"))
-  
-  res <- scale(resid(fit))   # scaled residuals
-  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
-  nflash <- newtest[newtest$flash==0,]
-  nfrownames <- row.names(nflash)
-  
-  res <- as.data.frame(res)
-  rownames(res) <- rownames(newtest)
-  names(res) <- "residuals"
-  res$flash <- 1
-  for (j in 1:nrow(res)) {
-    if (row.names(res[j,]) %in% nfrownames) {
-      res[j,]$flash <- 0
-    } else{}
-  }
-  res <- res[abs(res$residuals) <= 5,]
-  
-  ttestAD <- t.test(res$residuals~res$flash)
-  sumSp <- c(sumSp,"ttestAD")
-  
-  # effect sizes
-  AD0 <- ttestAD$estimate[[1]]
-  AD1 <- ttestAD$estimate[[2]]
-  effsizeAD <- abs(AD0-AD1)
-  sumSp <- c(sumSp,"effsizeAD")
-  
-  # box plot
-  boxAD <- ggplot(res, aes(x=factor(flash),y=residuals,group=flash)) +
-    geom_boxplot() +
-    labs(title = paste("Speed Differences in",texts[i],"(All dates)")) +
-    ylab("Residuals") +
-    scale_x_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
-    ylim(-5,5)
-  sumSp <- c(sumSp,"boxAD")
-  nAD <- res %>%
-    group_by(flash) %>%
-    summarise(mean=mean(residuals),median=median(residuals),n=n())
-  sumSp <- c(sumSp,"nAD")
+  # # alldates
+  # fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
+  # 
+  # fitAD <- summary(fit)
+  # sumSp <- c(sumSp,"fitAD")
+  # 
+  # visreg(fit,"age", by="gender", main=paste(texts[i],"AD"))
+  # 
+  # res <- scale(resid(fit))   # scaled residuals
+  # newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
+  # nflash <- newtest[newtest$flash==0,]
+  # nfrownames <- row.names(nflash)
+  # 
+  # res <- as.data.frame(res)
+  # rownames(res) <- rownames(newtest)
+  # names(res) <- "residuals"
+  # res$flash <- 1
+  # for (j in 1:nrow(res)) {
+  #   if (row.names(res[j,]) %in% nfrownames) {
+  #     res[j,]$flash <- 0
+  #   } else{}
+  # }
+  # res <- res[abs(res$residuals) <= 5,]
+  # 
+  # ttestAD <- t.test(res$residuals~res$flash)
+  # sumSp <- c(sumSp,"ttestAD")
+  # 
+  # # effect sizes
+  # AD0 <- ttestAD$estimate[[1]]
+  # AD1 <- ttestAD$estimate[[2]]
+  # effsizeAD <- abs(AD0-AD1)
+  # sumSp <- c(sumSp,"effsizeAD")
+  # 
+  # # box plot
+  # boxAD <- ggplot(res, aes(x=factor(flash),y=residuals,group=flash)) +
+  #   geom_boxplot() +
+  #   labs(title = paste("Speed Differences in",texts[i],"(All dates)")) +
+  #   ylab("Residuals") +
+  #   scale_x_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
+  #   ylim(-5,5)
+  # sumSp <- c(sumSp,"boxAD")
+  # nAD <- res %>%
+  #   group_by(flash) %>%
+  #   summarise(mean=mean(residuals),median=median(residuals),n=n())
+  # sumSp <- c(sumSp,"nAD")
   
   if (texts[i]!="VSPLOT24") {
-    # lastyear
     lastyear <- test[test$dotest >= cutoff,]
+    lastyear <- lastyear[!is.na(lastyear$Speed) & !is.na(lastyear$age) & !is.na(lastyear$gender),]
+    
+    # use newtest to figure out proportion of participants included in both Flash and non-Flash groups
+    f_sub <- unique(lastyear[lastyear$flash==1,3])               # subjects in the flash group
+    both_sub <- intersect(f_sub, lastyear[lastyear$flash==0,3])  # subjects included in both groups
+    sumSp <- c(sumSp,"both_sub")
+    lastyear <- lastyear[!(lastyear$bblid%in%both_sub),]
+    
     fit <- gam(Speed ~ s(age,k=3) + gender, data = lastyear)
     
     fitLY <- summary(fit)
@@ -570,12 +465,11 @@ for (i in 1:length(texts)) {
     visreg(fit,"age", by="gender", main=paste(texts[i],"LY"))
     
     res <- scale(resid(fit))   # scaled residuals
-    newtest <- lastyear[!is.na(lastyear$Speed) & !is.na(lastyear$age) & !is.na(lastyear$gender),]
-    nflash <- newtest[newtest$flash==0,]
+    nflash <- lastyear[lastyear$flash==0,]
     nfrownames <- row.names(nflash)
     
     res <- as.data.frame(res)
-    rownames(res) <- rownames(newtest)
+    rownames(res) <- rownames(lastyear)
     names(res) <- "residuals"
     res$flash <- 1
     for (j in 1:nrow(res)) {
@@ -616,340 +510,207 @@ for (i in 1:length(texts)) {
 
 ### ADT36 A
 
-The mean speed on the ADT36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ADT36_AsumSp$effsizeAD`. On the other hand, the mean speed on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(ADT36_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-ADT36_AsumSp$ttestAD
-ADT36_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(ADT36_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r ADT36 A Speed t-test, echo=FALSE}
 ADT36_AsumSp$ttestLY
 ADT36_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(ADT36_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(ADT36_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumSp$nLY[1,4])`)
 
 
 
 ### AIM
 
-The mean speed on the AIM of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean speed on the AIM of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(AIMsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task. *Note: the Flash group sample size is on the lower side.*
 
-```{r, echo=FALSE}
-AIMsumSp$ttestAD
-AIMsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(AIMsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r AIM Speed t-test, echo=FALSE}
 AIMsumSp$ttestLY
 AIMsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(AIMsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(AIMsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nLY[1,4])`)
 
 
 ### CPF B
 
-The mean speed on the CPF B of the Flash group is statistically **significantly different** from that of that of the non-Flash group in the AD analysis with an effect size of `r CPF_BsumSp$effsizeAD`. On the other hand, the mean speed on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(CPF_BsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task. 
 
-```{r, echo=FALSE}
-CPF_BsumSp$ttestAD
-CPF_BsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(CPF_BsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(CPF_BsumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r CPF B Speed t-test, echo=FALSE}
 CPF_BsumSp$ttestLY
 CPF_BsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(CPF_BsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(CPF_BsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(CPF_BsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(CPF_BsumSp$nLY[1,4])`)
 
 
 ### ER40 D
 
-The mean speed on the ER40 D of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ER40_DsumSp$effsizeAD`. On the other hand, the mean speed on the ER40 D of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the ER40 D of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(ER40_DsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-ER40_DsumSp$ttestAD
-ER40_DsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(ER40_DsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r ER40 D Speed t-test, echo=FALSE}
 ER40_DsumSp$ttestLY
 ER40_DsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(ER40_DsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(ER40_DsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumSp$nLY[1,4])`)
 
 
 ### GNG150
 
-The mean speed on the GNG150 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r GNG150sumSp$effsizeAD`. On the other hand, the mean speed on the GNG150 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the GNG150 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(GNG150sumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-GNG150sumSp$ttestAD
-GNG150sumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(GNG150sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(GNG150sumSp$nAD[1,4])`)
-
-The box plots show a **difference** between the two groups, big enough to warrant futher investigation.
-
-```{r, echo=FALSE}
+```{r GNG150 Speed t-test, echo=FALSE}
 GNG150sumSp$ttestLY
 GNG150sumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(GNG150sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(GNG150sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumSp$nLY[1,4])`)
 
 
 ### KCPW A
 
-The mean speed on the KCPW A of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean speed on the KCPW A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(KCPW_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-KCPW_AsumSp$ttestAD
-KCPW_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(KCPW_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r KCPW A Speed t-test, echo=FALSE}
 KCPW_AsumSp$ttestLY
 KCPW_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(KCPW_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(KCPW_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumSp$nLY[1,4])`)
 
 
 ### KSPVRT D
 
-The mean speed on the KSPVRT D of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+The mean speed on the KSPVRT D of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(KSPVRT_DsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-KSPVRT_DsumSp$ttestAD
-KSPVRT_DsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(KSPVRT_DsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r KSPVRT D Speed t-test, echo=FALSE}
 KSPVRT_DsumSp$ttestLY
 KSPVRT_DsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(KSPVRT_DsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(KSPVRT_DsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumSp$nLY[1,4])`)
 
 
 ### MEDF36 A
 
-The mean speed on the MEDF36 A of the Flash group is not significantly different from that of the non-Flash group in the AD and LY analysis.
+The mean speed on the MEDF36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(MEDF36_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-MEDF36_AsumSp$ttestAD
-MEDF36_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(MEDF36_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r MEDF36 A Speed t-test, echo=FALSE}
 MEDF36_AsumSp$ttestLY
 MEDF36_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(MEDF36_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(MEDF36_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumSp$nLY[1,4])`)
 
 
 ### MPRACT
 
-The mean speed on the MPRACT of the Flash group is not significantly different from that of the non-Flash group in the AD and LY analysis. 
+The mean speed on the MPRACT of the Flash group is statistically **significantly different** from the non-Flash group in the LY analysis with an effect size of `r round(MPRACTsumSp$effsizeLY,3)`. Though the difference between means is statistically significant, the box plots shows that their medians overall distribution are very similar. `r length(MPRACTsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-MPRACTsumSp$ttestAD
-MPRACTsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(MPRACTsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(MPRACTsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r MPRACT Speed t-test, echo=FALSE}
 MPRACTsumSp$ttestLY
 MPRACTsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(MPRACTsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(MPRACTsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(MPRACTsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(MPRACTsumSp$nLY[1,4])`)
 
 
 ### PCET A
 
-The mean speed on the PCET A of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses. 
+The mean speed on the PCET A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(PCET_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task. *Note: the non-Flash group sample size is on the lower side.*
 
-```{r, echo=FALSE}
-PCET_AsumSp$ttestAD
-PCET_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(PCET_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r PCET A Speed t-test, echo=FALSE}
 PCET_AsumSp$ttestLY
 PCET_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(PCET_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(PCET_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumSp$nLY[1,4])`)
 
 
 ### PMAT24 A
 
-The mean speed on the PMAT24 A of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses. 
+The mean speed on the PMAT24 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(PMAT24_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-PMAT24_AsumSp$ttestAD
-PMAT24_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(PMAT24_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r PMAT24 A Speed t-test, echo=FALSE}
 PMAT24_AsumSp$ttestLY
 PMAT24_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(PMAT24_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(PMAT24_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(PMAT24_AsumSp$nLY[1,4])`)
 
 
 ### SCTAP
 
-The mean speed on the SCTAP of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses. 
+The mean speed on the SCTAP of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SCTAPsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SCTAPsumSp$ttestAD
-SCTAPsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(AIMsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SCTAP Speed t-test, echo=FALSE}
 SCTAPsumSp$ttestLY
 SCTAPsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(AIMsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SCTAPsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SCTAPsumSp$nLY[1,4])`)
 
 
 ### SLNB2 90
 
-The mean speed on the SLNB2 90 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r SLNB2_90sumSp$effsizeAD`. On the other hand, the mean speed on the SLNB2 90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the SLNB2 90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SLNB2_90sumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SLNB2_90sumSp$ttestAD
-SLNB2_90sumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r SLNB2 90 Speed t-test, echo=FALSE}
 SLNB2_90sumSp$ttestLY
 SLNB2_90sumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SLNB2_90sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SLNB2_90sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumSp$nLY[1,4])`)
 
 
 ### SPCPTN90
 
-The mean speed on the SPCPTN90 of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses. 
+The mean speed on the SPCPTN90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SPCPTN90sumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SPCPTN90sumSp$ttestAD
-SPCPTN90sumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(AIMsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SPCPTN90 Speed t-test, echo=FALSE}
 SPCPTN90sumSp$ttestLY
 SPCPTN90sumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(AIMsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(AIMsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SPCPTN90sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTN90sumSp$nLY[1,4])`)
 
 
 ### SPCPTNL
 
-The mean speed on the SPCPTNL of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r SPCPTNLsumSp$effsizeAD`. On the other hand, the mean speed on the SPCPTNL of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the SPCPTNL of the Flash group is statistically **significantly different** from the non-Flash group in the LY analysis with an effect size of `r SPCPTNLsumSp$effsizeLY`. Though the difference between means is statistically significant, the box plots shows that their medians overall distribution are very similar. `r length(SPCPTNLsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-SPCPTNLsumSp$ttestAD
-SPCPTNLsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r SPCPTNL Speed t-test, echo=FALSE}
 SPCPTNLsumSp$ttestLY
 SPCPTNLsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SPCPTNLsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SPCPTNLsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumSp$nLY[1,4])`)
 
 
 ### SVOLT A
 
-The mean speed on the SVOLT A of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses. 
+The mean speed on the SVOLT A of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(SVOLT_AsumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task. *Note: the non-Flash group sample size is on the lower side.*
 
-```{r, echo=FALSE}
-SVOLT_AsumSp$ttestAD
-SVOLT_AsumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(SVOLT_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumSp$nAD[1,4])`)
-
-```{r, echo=FALSE}
+```{r SVOLT A Speed t-test, echo=FALSE}
 SVOLT_AsumSp$ttestLY
 SVOLT_AsumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(SVOLT_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(SVOLT_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SVOLT_AsumSp$nLY[1,4])`)
 
 
 ### VSPLOT15
 
-The mean speed on the VSPLOT15 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r VSPLOT15sumSp$effsizeAD`. On the other hand, the mean speed on the VSPLOT15 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+The mean speed on the VSPLOT15 of the Flash group is not significantly different from the non-Flash group in the LY analysis. `r length(VSPLOT15sumSp$both_sub)` participants were removed because they were administered both the Flash and non-Flash version of this task.
 
-```{r, echo=FALSE}
-VSPLOT15sumSp$ttestAD
-VSPLOT15sumSp$boxAD
-```
-
-All dates of Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[1,4])`)
-
-Though the means are significantly different, the box plots show that the two groups are not too different from one another.
-
-```{r, echo=FALSE}
+```{r VSPLOT15 Speed t-test, echo=FALSE}
 VSPLOT15sumSp$ttestLY
 VSPLOT15sumSp$boxLY
 ```
 
-Last year of Flash (n=`r as.numeric(VSPLOT15sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[1,4])`)
+Last year of Flash (n=`r as.numeric(VSPLOT15sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumSp$nLY[1,4])`)
 
 
 
@@ -967,7 +728,7 @@ The same analysis was done for Speed as well.
 
 ### Accuracy
 
-```{r, include=FALSE}
+```{r Accuracy Intrasubject Analysis, include=FALSE}
 for (j in 1:length(textsAcc)){
   test <- testsAcc[[j]]
   test <- test[!is.na(test$bblid) & !is.na(test$Accuracy),]
@@ -1120,7 +881,7 @@ for (j in 1:length(textsAcc)){
 }
 ```
 
-```{r, include=FALSE}
+```{r Removing Outliers, include=FALSE}
 wideflash <- ADT36_Awideflash
 widenflash <- ADT36_Awidenflash
 accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -1362,7 +1123,7 @@ acctxt <- c(acctxt,"VSPLOT15_acc")
 accs <- mget(acctxt)
 ```
 
-```{r, include=FALSE}
+```{r ICC Tables, include=FALSE}
 textsAcc <- setdiff(textsAcc, c("SPCPTN90"))
 testsAcc <- mget(textsAcc)    # 14 tests
 for (i in 1:length(acctxt)) {
@@ -1408,9 +1169,9 @@ for (i in 1:length(acctxt)) {
 
 #### ADT36 A
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(ADT36_A_acc)`)
 
-```{r, echo=FALSE}
+```{r ADT36 A Accuracy intrasubject comparison, echo=FALSE}
 names(ADT36_A_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(ADT36_A_acc[,c(2,13)],lm=TRUE)
 
@@ -1421,9 +1182,9 @@ round(ADT36_Aicc,3) %>%
 
 #### AIM
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(AIM_acc)`)
 
-```{r, echo=FALSE}
+```{r AIM Accuracy intrasubject comparison, echo=FALSE}
 names(AIM_acc)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(AIM_acc[,c(2,11)],lm=TRUE)
 
@@ -1434,9 +1195,9 @@ round(AIMicc,3) %>%
 
 #### CPF B
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(CPF_B_acc)`)
 
-```{r, echo=FALSE}
+```{r CPF B Accuracy intrasubject comparison, echo=FALSE}
 names(CPF_B_acc)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(CPF_B_acc[,c(2,11)],lm=TRUE)
 
@@ -1447,9 +1208,9 @@ round(CPF_Bicc,3) %>%
 
 #### ER40 D
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(ER40_D_acc)`)
 
-```{r, echo=FALSE}
+```{r ER40 D Accuracy intrasubject comparison, echo=FALSE}
 names(ER40_D_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(ER40_D_acc[,c(2,13)],lm=TRUE)
 
@@ -1460,9 +1221,9 @@ round(ER40_Dicc,3) %>%
 
 #### GNG150
 
-The participants' Flash scores correlate **very poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate **very poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(GNG150_acc)`)
 
-```{r, echo=FALSE}
+```{r GNG150 Accuracy intrasubject comparison, echo=FALSE}
 names(GNG150_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(GNG150_acc[,c(2,13)],lm=TRUE)
 
@@ -1473,9 +1234,9 @@ round(GNG150icc,3) %>%
 
 #### KCPW A
 
-The participants' Flash scores correlate decently with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate decently with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(KCPW_A_acc)`)
 
-```{r, echo=FALSE}
+```{r KCPW A Accuracy intrasubject comparison, echo=FALSE}
 names(KCPW_A_acc)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(KCPW_A_acc[,c(2,15)],lm=TRUE)
 
@@ -1486,9 +1247,9 @@ round(KCPW_Aicc,3) %>%
 
 #### KSPVRT D
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(KSPVRT_D_acc)`)
 
-```{r, echo=FALSE}
+```{r KSPVRT D Accuracy intrasubject comparison, echo=FALSE}
 names(KSPVRT_D_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(KSPVRT_D_acc[,c(2,13)],lm=TRUE)
 
@@ -1499,9 +1260,9 @@ round(KSPVRT_Dicc,3) %>%
 
 #### MEDF36 A
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(MEDF36_A_acc)`)
 
-```{r, echo=FALSE}
+```{r MEDF36 A Accuracy intrasubject comparison, echo=FALSE}
 names(MEDF36_A_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(MEDF36_A_acc[,c(2,13)],lm=TRUE)
 
@@ -1512,9 +1273,9 @@ round(MEDF36_Aicc,3) %>%
 
 #### PCET A
 
-The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(PCET_A_acc)`)
 
-```{r, echo=FALSE}
+```{r PCET A Accuracy intrasubject comparison, echo=FALSE}
 names(PCET_A_acc)[c(2,5)] <- c("Flash", "Non-Flash")
 pairs.panels(PCET_A_acc[,c(2,5)],lm=TRUE)
 
@@ -1525,9 +1286,9 @@ round(PCET_Aicc,3) %>%
 
 #### PMAT24 A
 
-The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(PMAT24_A_acc)`)
 
-```{r, echo=FALSE}
+```{r PMAT24 A Accuracy intrasubject comparison, echo=FALSE}
 names(PMAT24_A_acc)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(PMAT24_A_acc[,c(2,11)],lm=TRUE)
 
@@ -1538,9 +1299,9 @@ round(PMAT24_Aicc,3) %>%
 
 #### SLNB2 90
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SLNB2_90_acc)`)
 
-```{r, echo=FALSE}
+```{r SLNB2 90 Accuracy intrasubject comparison, echo=FALSE}
 names(SLNB2_90_acc)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(SLNB2_90_acc[,c(2,15)],lm=TRUE)
 
@@ -1555,9 +1316,9 @@ Analysis omitted because there was data on only two participants who had taken t
 
 #### SPCPTNL
 
-The participants' Flash scores correlate **poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate **poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SPCPTNL_acc)`)
 
-```{r, echo=FALSE}
+```{r SPCPTNL Accuracy intrasubject comparison, echo=FALSE}
 names(SPCPTNL_acc)[c(2,17)] <- c("Flash", "Non-Flash")
 pairs.panels(SPCPTNL_acc[,c(2,17)],lm=TRUE)
 
@@ -1568,9 +1329,9 @@ round(SPCPTNLicc,3) %>%
 
 #### SVOLT A
 
-The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SVOLT_A_acc)`)
 
-```{r, echo=FALSE}
+```{r SVOLT A Accuracy intrasubject comparison, echo=FALSE}
 names(SVOLT_A_acc)[c(2,9)] <- c("Flash", "Non-Flash")
 pairs.panels(SVOLT_A_acc[,c(2,9)],lm=TRUE)
 
@@ -1580,9 +1341,9 @@ round(SVOLT_Aicc,3) %>%
 
 #### VSPLOT15
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(VSPLOT15_acc)`)
 
-```{r, echo=FALSE}
+```{r VSPLOT15 Accuracy intrasubject comparison, echo=FALSE}
 names(VSPLOT15_acc)[c(2,9)] <- c("Flash", "Non-Flash")
 pairs.panels(VSPLOT15_acc[,c(2,9)],lm=TRUE)
 
@@ -1594,7 +1355,7 @@ round(VSPLOT15icc,3) %>%
 
 ### Speed
 
-```{r, include=FALSE}
+```{r Speed intrasubject comparison, include=FALSE}
 for (j in 1:length(texts)){
   test <- tests[[j]]
   test <- test[!is.na(test$bblid) & !is.na(test$Speed),]
@@ -1749,9 +1510,7 @@ for (j in 1:length(texts)){
 }
 ```
 
-
-
-```{r, include=FALSE}
+```{r Remomving outliers, include=FALSE}
 wideflash <- ADT36_ASpwideflash
 widenflash <- ADT36_ASpwidenflash
 speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -2030,7 +1789,7 @@ spes <- mget(spetxt)
 ```
 
 
-```{r, include=FALSE}
+```{r ICC tables, include=FALSE}
 texts <- setdiff(texts, c("SPCPTN90"))
 tests <- mget(texts)   # 16 tests
 for (i in 1:length(spetxt)) {
@@ -2075,9 +1834,9 @@ for (i in 1:length(spetxt)) {
 
 #### ADT36 A
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(ADT36_A_spe)`)
 
-```{r, echo=FALSE}
+```{r ADT36 A Speed intrasubject comparison, echo=FALSE}
 names(ADT36_A_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(ADT36_A_spe[,c(2,13)],lm=TRUE)
 
@@ -2088,9 +1847,9 @@ round(ADT36_Aspe_icc,3) %>%
 
 #### AIM
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(AIM_spe)`)
 
-```{r, echo=FALSE}
+```{r AIM Speed intrasubject comparisonSpeed intrasubject comparison, echo=FALSE}
 names(AIM_spe)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(AIM_spe[,c(2,11)],lm=TRUE)
 
@@ -2101,9 +1860,9 @@ round(AIMspe_icc,3) %>%
 
 #### CPF B
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up pretty well with the ICC. (n=`r nrow(CPF_B_spe)`)
 
-```{r, echo=FALSE}
+```{r CPF B Speed intrasubject comparison, echo=FALSE}
 names(CPF_B_spe)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(CPF_B_spe[,c(2,11)],lm=TRUE)
 
@@ -2114,9 +1873,9 @@ round(CPF_Bspe_icc,3) %>%
 
 #### ER40 D
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(ER40_D_spe)`)
 
-```{r, echo=FALSE}
+```{r ER40 D Speed intrasubject comparison, echo=FALSE}
 names(ER40_D_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(ER40_D_spe[,c(2,13)],lm=TRUE)
 
@@ -2127,9 +1886,9 @@ round(ER40_Dspe_icc,3) %>%
 
 #### GNG150
 
-The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient does **not** match up with the ICC as well as it has in other tasks. This suggests that there is a difference in level/scale across Flash and non-Flash speeds.
+The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient does **not** match up with the ICC as well as it has in other tasks. This is explained by the lower range of Speed residuals in the non-Flash run compared to the Flash ones. (n=`r nrow(GNG150_spe)`)
 
-```{r, echo=FALSE}
+```{r GNG150 Speed intrasubject comparison, echo=FALSE}
 names(GNG150_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(GNG150_spe[,c(2,13)],lm=TRUE)
 
@@ -2140,9 +1899,9 @@ round(GNG150spe_icc,3) %>%
 
 #### KCPW A
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(KCPW_A_spe)`)
 
-```{r, echo=FALSE}
+```{r KCPW A Speed intrasubject comparison, echo=FALSE}
 names(KCPW_A_spe)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(KCPW_A_spe[,c(2,15)],lm=TRUE)
 
@@ -2153,9 +1912,9 @@ round(KCPW_Aspe_icc,3) %>%
 
 #### KSPVRT D
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(KSPVRT_D_spe)`)
 
-```{r, echo=FALSE}
+```{r KSPVRT D Speed intrasubject comparison, echo=FALSE}
 names(KSPVRT_D_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(KSPVRT_D_spe[,c(2,13)],lm=TRUE)
 
@@ -2166,9 +1925,9 @@ round(KSPVRT_Dspe_icc,3) %>%
 
 #### MEDF36 A
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(MEDF36_A_spe)`)
 
-```{r, echo=FALSE}
+```{r MEDF36 A Speed intrasubject comparison, echo=FALSE}
 names(MEDF36_A_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(MEDF36_A_spe[,c(2,13)],lm=TRUE)
 
@@ -2179,9 +1938,9 @@ round(MEDF36_Aspe_icc,3) %>%
 
 #### MPRACT
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(MPRACT_spe)`)
 
-```{r, echo=FALSE}
+```{r MPRACT Speed intrasubject comparison, echo=FALSE}
 names(MPRACT_spe)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(MPRACT_spe[,c(2,15)],lm=TRUE)
 
@@ -2192,9 +1951,9 @@ round(MPRACTspe_icc,3) %>%
 
 #### PCET A
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(PCET_A_spe)`)
 
-```{r, echo=FALSE}
+```{r PCET A Speed intrasubject comparison, echo=FALSE}
 names(PCET_A_spe)[c(2,5)] <- c("Flash", "Non-Flash")
 pairs.panels(PCET_A_spe[,c(2,5)],lm=TRUE)
 
@@ -2205,9 +1964,9 @@ round(PCET_Aspe_icc,3) %>%
 
 #### PMAT24 A
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(PMAT24_A_spe)`)
 
-```{r, echo=FALSE}
+```{r PMAT24 A Speed intrasubject comparison, echo=FALSE}
 names(PMAT24_A_spe)[c(2,11)] <- c("Flash", "Non-Flash")
 pairs.panels(PMAT24_A_spe[,c(2,11)],lm=TRUE)
 
@@ -2218,9 +1977,9 @@ round(PMAT24_Aspe_icc,3) %>%
 
 #### SCTAP
 
-The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SCTAP_spe)`)
 
-```{r, echo=FALSE}
+```{r SCTAP Speed intrasubject comparison, echo=FALSE}
 names(SCTAP_spe)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(SCTAP_spe[,c(2,15)],lm=TRUE)
 
@@ -2231,9 +1990,9 @@ round(SCTAPspe_icc,3) %>%
 
 #### SLNB2 90
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SLNB2_90_spe)`)
 
-```{r, echo=FALSE}
+```{r SLNB2 90 Speed intrasubject comparison, echo=FALSE}
 names(SLNB2_90_spe)[c(2,15)] <- c("Flash", "Non-Flash")
 pairs.panels(SLNB2_90_spe[,c(2,15)],lm=TRUE)
 
@@ -2248,9 +2007,9 @@ Analysis omitted because there was data on only two participants who had taken t
 
 #### SPCPTNL
 
-The participants' Flash scores correlate decently with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate decently with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SPCPTNL_spe)`)
 
-```{r, echo=FALSE}
+```{r SPCPTNL Speed intrasubject comparison, echo=FALSE}
 names(SPCPTNL_spe)[c(2,17)] <- c("Flash", "Non-Flash")
 pairs.panels(SPCPTNL_spe[,c(2,17)],lm=TRUE)
 
@@ -2261,9 +2020,9 @@ round(SPCPTNLspe_icc,3) %>%
 
 #### SVOLT A
 
-The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate well with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(SVOLT_A_spe)`)
 
-```{r, echo=FALSE}
+```{r SVOLT A Speed intrasubject comparison, echo=FALSE}
 names(SVOLT_A_spe)[c(2,9)] <- c("Flash", "Non-Flash")
 pairs.panels(SVOLT_A_spe[,c(2,9)],lm=TRUE)
 
@@ -2273,15 +2032,16 @@ round(SVOLT_Aspe_icc,3) %>%
 
 #### VSPLOT15
 
-The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
+The participants' Flash scores correlate fairly ok with their non-Flash scores, and the correlation coefficient matches up well with the ICC. (n=`r nrow(VSPLOT15_spe)`)
 
-```{r, echo=FALSE}
+```{r VSPLOT15 Speed intrasubject comparison, echo=FALSE}
 names(VSPLOT15_spe)[c(2,9)] <- c("Flash", "Non-Flash")
 pairs.panels(VSPLOT15_spe[,c(2,9)],lm=TRUE)
 
 round(VSPLOT15spe_icc,3) %>% 
   kbl() %>% kable_classic(full_width = F, html_font = "Cambria")
 ```
+
 
 
 
