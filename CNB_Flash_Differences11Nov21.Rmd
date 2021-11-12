@@ -1,9 +1,17 @@
-# new script for flash vs non-flash project
-#
-# 09.10.21 Akira Di Sandro
+---
+title: "CNB Flash Differences"
+author: "Akira Di Sandro"
+date: "11/11/2021"
+output: 
+  html_document:
+    toc: yes
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-# Load Packages ----
+```{r packages, include=FALSE}
 library(ggplot2)
 library(psych)
 library(dplyr)
@@ -16,165 +24,68 @@ library(reshape2)
 library(irr)
 library(plotly)
 library(tidyverse)
+library(kableExtra)
+library(tibble)
+```
 
+```{r data, include=FALSE}
+bigcnb <- read.csv("bigcnb_9Nov21.csv")
 
-# Load and reorganize data ----
-bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))  # 241,797 rows 9.28.21
-names(bigcnb)[2:3] <- c("datasetid", "bblid")
-demos <- read.csv("subjectdemosall_v.csv")
-
-pcpt <- read.csv("cnb_pivot_spctn.csv")
-pcpt <- pcpt[!is.na(pcpt$TP),c(15,17,16,2,7,12,8:9,20,18,19,20,21,23,23,22,6)]
-names(pcpt)[1:16] <- names(bigcnb)
-pcpt$bblid <- as.numeric(pcpt$bblid)
-pcpt$dotest <- as.Date(pcpt$dotest)
-pcpt$dob <- as.Date(pcpt$dob)
-pcpt$Accuracy <- as.numeric(pcpt$Accuracy)
-pcpt$age <- as.numeric(pcpt$age)
-pcpt <- pcpt[pcpt$bblid>=10000,] # 64272 x 17
-
-bigcnb$bblid <- as.numeric(bigcnb$bblid)                   # getting rid of fake bblids
-bigcnb <- bigcnb[bigcnb$bblid>=10000 & !is.na(bigcnb$bblid),]   # left with 173,556 rows
-
-bigcnb$dotest <- as.Date(bigcnb$dotest, "%m/%d/%y")
-bigcnb$dob <- as.Date(bigcnb$dob, "%m/%d/%y")              # anything with Dob > 2013 should be 100 years earlier
-bigcnb <- bigcnb[order(bigcnb$dob, decreasing = T),]
-
-newdemos <- demos[!duplicated(demos$BBLID),c(1,21)] # from 23356 -> 19367 rows
-x <- left_join(bigcnb,newdemos,by=c("bblid"="BBLID")) # 173,556 rows!
-x$DOBIRTH <- as.Date(x$DOBIRTH, "%d-%b-%y")
-x$newDOB <- if_else(is.na(x$dob),x$DOBIRTH,x$dob)
-x <- x[,c(1:6,18,8:16)]
-names(x)[7]<- "dob"
-bigcnb <- x
-
-temp <- bigcnb[bigcnb$dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$dob),]$dob
-temp <- temp %m-% years(100) 
-bigcnb[bigcnb$dob > as.Date("01/01/13", "%m/%d/%y") & !is.na(bigcnb$dob),]$dob <- temp
-bigcnb[which(bigcnb$bblid==12344),7] <- bigcnb[which(bigcnb$bblid==12344),7] %m-% years(100)
-
-bigcnb$age <- floor(as.numeric(bigcnb$dotest - bigcnb$dob, units = "weeks")/52.25)
-# fixing the 106 and 107 year olds
-temp <- bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$dob
-temp <- temp %m+% years(100) 
-bigcnb[bigcnb$age > 103 & !is.na(bigcnb$age),]$dob <- temp
-bigcnb$age <- floor(as.numeric(bigcnb$dotest - bigcnb$dob, units = "weeks")/52.25)
-
-bigcnb <- rbind(bigcnb,pcpt)    # now 237,828
-bigcnb$flash <- 0
-bigcnb$flash[which(bigcnb$dotest <= as.Date("2020-12-31"))] <- 1
-bigcnb$Speed <- ifelse(log(bigcnb$Speed)!= -Inf, log(bigcnb$Speed),0)
-
-bigcnb <- bigcnb[order(bigcnb$bblid),]
-
-bigcnb <- bigcnb[!is.na(bigcnb$Version),] # 210,509
-
-write.csv(bigcnb, "bigcnb_9Nov21.csv", row.names = F)
-
-# * Separate into test versions ----
-# check if BART, DIGSYM, TRAIL exist
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N" & bigcnb$code != "F" & bigcnb$code != "V3",]
-ADT60_A <- bigcnb[bigcnb$Version == "ADT60_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 AIM <- bigcnb[bigcnb$Version == "AIM" & !is.na(bigcnb$Accuracy),]
-
-CPF_A <- bigcnb[bigcnb$Version == "CPF_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
 CPF_B <- bigcnb[bigcnb$Version == "CPF_B" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-CPFD_A <- bigcnb[bigcnb$Version == "CPFD_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-CPFD_B <- bigcnb[bigcnb$Version == "CPFD_B" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
-ER40_A <- bigcnb[bigcnb$Version == "ER40_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-ER40_C <- bigcnb[bigcnb$Version == "ER40_C" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
 ER40_D <- bigcnb[bigcnb$Version == "ER40_D" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 GNG150 <- bigcnb[bigcnb$Version == "GNG150" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 KCPW_A <- bigcnb[bigcnb$Version == "KCPW_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-KCPWD_A <- bigcnb[bigcnb$Version == "KCPWD_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
-KSPVRT_A <- bigcnb[bigcnb$Version == "KSPVRT_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-KSPVRT_B <- bigcnb[bigcnb$Version == "KSPVRT_B" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
 KSPVRT_D <- bigcnb[bigcnb$Version == "KSPVRT_D" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 MEDF36_A <- bigcnb[bigcnb$Version == "MEDF36_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-MEDF60_A <- bigcnb[bigcnb$Version == "MEDF60_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 MPRACT <- bigcnb[bigcnb$Version == "MPRACT" & !is.na(bigcnb$Speed) & bigcnb$code != "N",]
-
 PCET_A <- bigcnb[bigcnb$Version == "PCET_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-SPCET_A <- bigcnb[bigcnb$Version == "SPCET_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
-PMAT18_B <- bigcnb[bigcnb$Version == "PMAT18_B" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
 PMAT24_A <- bigcnb[bigcnb$Version == "PMAT24_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-PMAT24_B <- bigcnb[bigcnb$Version == "PMAT24_B" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 SCTAP <- bigcnb[bigcnb$Version == "SCTAP" & !is.na(bigcnb$Speed) & bigcnb$code != "N",]
-
 SLNB2_90 <- bigcnb[bigcnb$Version == "SLNB2_90" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 SPCPTNL <- bigcnb[bigcnb$Version == "SPCPTNL" & bigcnb$Sub_version == "SCPT" & !is.na(bigcnb$Accuracy),]
 SPCPTN90 <- bigcnb[bigcnb$Version == "SPCPTN90" & !is.na(bigcnb$Accuracy),]
-
-SPLOT12 <- bigcnb[bigcnb$Version == "SPLOT12" & !is.na(bigcnb$Accuracy),]
-VSPLOT15 <- bigcnb[bigcnb$Version == "VSPLOT15" & !is.na(bigcnb$Accuracy),]
-VSPLOT24 <- bigcnb[bigcnb$Version == "VSPLOT24" & !is.na(bigcnb$Accuracy),]
-
-SPVRT_A <- bigcnb[bigcnb$Version == "SPVRT_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-
 SVOLT_A <- bigcnb[bigcnb$Version == "SVOLT_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
-SVOLTD_A <- bigcnb[bigcnb$Version == "SVOLTD_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N",]
+VSPLOT15 <- bigcnb[bigcnb$Version == "VSPLOT15" & !is.na(bigcnb$Accuracy),]
+```
 
 
-texts <- sort(unique(bigcnb$Version))
-tests <- mget(texts)
-# what tests don't have any flash==0 babies
-notthese <- c()
-for (i in 1:length(texts)){
-  test <- tests[[i]]
-  if (length(unique(test$flash))!=2){
-    notthese <- c(notthese,texts[i])
-  }
-}
+## Data
 
-notthese <- c()
-for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
-  test <- tests[[i]]
-  newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
-  if (length(unique(newtest$flash))!=2) {
-    notthese <- c(notthese,texts[i])
-  } else if (nrow(newtest[newtest$flash==0,])<5) {
-    notthese <- c(notthese,texts[i])
-  }
-}
+The data used for this project comes from Tableau. It is comprised of over 10,000 participants' data on 34 tasks. For the purpose of comparing Flash and non-Flash administration on these tasks, the 17 tasks listed below (which had enough data for Flash and non-Flash) were used.
 
-nottheseSp <- c()
-for (i in 1:length(texts)){   # catch the tests that don't have enough f==0 
-  test <- tests[[i]]
-  newtest <- test[!is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
-  if (length(unique(newtest$flash))!=2) {
-    nottheseSp <- c(nottheseSp,texts[i])
-  } else if (nrow(newtest[newtest$flash==0,])<5) {
-    nottheseSp <- c(nottheseSp,texts[i])             # these ended up being the same as notthese other than MPRACT and SCTAP obviously
-  }
-}
+*CNB tasks used for Flash vs non-Flash:*
 
-notthese <- nottheseSp
-texts <- setdiff(texts, notthese) # getting rid of the tests that only have flash, no non-flash subjects after correcting for the existence of age and sex
+* ADT36 A
+* AIM
+* CPF B
+* ER40 D
+* GNG150
+* KCPW A
+* KSPVRT D
+* MEDF36 A
+* MPRACT (Speed analysis only)
+* PCET A
+* PMAT24 A
+* SCTAP (Speed analysis only)
+* SLNB2 90
+* SPCPTN90
+* SPCPTNL
+* SVOLT A
+* VSPLOT15
+
+## Differences in Accuracy Means
+
+These are the results from t-tests for each task looking for differences between mean accuracy in the flash and non-flash groups. Age and sex were regressed out prior to the t-test. There are two results for each task: one comparison uses all available data for both Flash and non-Flash (all dates, AD), and the other compares all non-Flash data with only the last year's worth of available Flash data with all non-Flash data (last year, LY).
+
+```{r accuracy means, include=FALSE}
+texts <- c("ADT36_A","AIM","CPF_B","ER40_D","GNG150","KCPW_A","KSPVRT_D","MEDF36_A","MPRACT","PCET_A","PMAT24_A","SCTAP","SLNB2_90", "SPCPTNL","SPCPTN90","SVOLT_A","VSPLOT15")
 tests <- mget(texts)
 
-
-
-
-# Models and Plotting ----
-
-# * two-factor FA, waiting itemwise data for this ----
-
-
-# * t-tests ----
-
-# ** difference in accuracy means ----
+# difference in accuracy means
 textsAcc <- setdiff(texts, c("MPRACT","SCTAP"))
-testsAcc <- mget(textsAcc)   # 15 tests
+testsAcc <- mget(textsAcc)   # 16 tests
 cutoff <- as.Date("2019-12-31")
 for (i in 1:length(textsAcc)) {
   test <- testsAcc[[i]]
@@ -278,16 +189,168 @@ for (i in 1:length(textsAcc)) {
     summarise(mean=mean(residuals),median=median(residuals),n=n())
   sumAcc <- c(sumAcc,"nLY")
   
-  # use newtest to figure out proportion of participants included in both Flash and non-Flash groups
-  f_sub <- unique(newtest[newtest$flash==1,3])               # subjects in the flash group
-  both_sub <- intersect(f_sub, newtest[newtest$flash==0,3])  # subjects included in both groups
-  sumAcc <- c(sumAcc,"both_sub")
-  
   sumAcc <- c(sumAcc[1],mget(sumAcc[-1]))
   assign(name,sumAcc)
 }
+```
 
-# ** difference in speed means ----
+
+### ADT36 A
+
+The mean accuracy on the ADT36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ADT36_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+ADT36_AsumAcc$ttestAD
+ADT36_AsumAcc$boxAD
+```
+
+Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+ADT36_AsumAcc$ttestLY
+ADT36_AsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+
+
+
+
+
+### CPF B
+
+The mean accuracy on the CPF B of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r CPF_BsumAcc$effsizeAD`. On the other hand, the mean accuracy on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+
+```{r, echo=FALSE}
+CPF_BsumAcc$ttestAD
+CPF_BsumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+CPF_BsumAcc$ttestLY
+CPF_BsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(ADT36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumAcc$nAD[1,4])`)
+
+
+### GNG150
+
+The mean accuracy on the GNG150 of the Flash group is not significantly different from that of the non-Flash group in both the AD and LY analyses.
+
+```{r, echo=FALSE}
+GNG150sumAcc$ttestAD
+GNG150sumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(GNG150sumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(GNG150sumAcc$nAD[1,4])`)
+
+```{r, echo=FALSE}
+GNG150sumAcc$ttestLY
+GNG150sumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(GNG150sumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumAcc$nAD[1,4])`)
+
+
+### KCPW A
+
+The mean accuracy on the KCPW A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r KCPW_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the KCPW A of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+
+```{r, echo=FALSE}
+KCPW_AsumAcc$ttestAD
+KCPW_AsumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+KCPW_AsumAcc$ttestLY
+KCPW_AsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(KCPW_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KCPW_AsumAcc$nAD[1,4])`)
+
+
+### KSPVRT D
+
+The mean accuracy on the KSPVRT D of the Flash group is not significantly different from that of the non-Flash group in the AD analysis. On the other hand, the mean accuracy on the KSPVRT D of the Flash group is statistically **significantly different** from that of the non-Flash group in the LY analysis with an effect size of `r KSPVRT_DsumAcc$effsizeLY`.
+
+```{r, echo=FALSE}
+KSPVRT_DsumAcc$ttestAD
+KSPVRT_DsumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[1,4])`)
+
+```{r, echo=FALSE}
+KSPVRT_DsumAcc$ttestLY
+KSPVRT_DsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(KSPVRT_DsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(KSPVRT_DsumAcc$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+
+### MEDF36 A
+
+The mean accuracy on the MEDF36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r MEDF36_AsumAcc$effsizeAD`. On the other hand, the mean accuracy on the MEDF36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis.
+
+```{r, echo=FALSE}
+MEDF36_AsumAcc$ttestAD
+MEDF36_AsumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+MEDF36_AsumAcc$ttestLY
+MEDF36_AsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(MEDF36_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(MEDF36_AsumAcc$nAD[1,4])`)
+
+
+### PCET A
+
+The mean accuracy on the PCET A of the Flash group is not significantly different from that of the non-Flash group in the AD analysis. On the other hand, the mean accuracy on the PCET A of the Flash group is statistically **significantly different** from that of the non-Flash group in the LY analysis with an effect size of `r PCET_AsumAcc$effsizeLY`.
+
+```{r, echo=FALSE}
+PCET_AsumAcc$ttestAD
+PCET_AsumAcc$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(PCET_AsumAcc$nAD[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumAcc$nAD[1,4])`)
+
+```{r, echo=FALSE}
+PCET_AsumAcc$ttestLY
+PCET_AsumAcc$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(PCET_AsumAcc$nLY[2,4])`), non-Flash (n=`r as.numeric(PCET_AsumAcc$nAD[1,4])`)
+
+The box plots look **different** enough that warrant more testing. One thing to note here is that the non-Flash group consists of `r as.numeric(PCET_AsumAcc$nAD[1,4])` (on the smaller side) participants for both AD and LY.
+
+
+
+
+
+## Differences in Speed Means
+
+These are the results from t-tests for each task looking for differences between mean speed in the flash and non-flash groups. Age and sex were regressed out prior to the t-test. There are two results for each task: one comparison uses all available data for both Flash and non-Flash (all dates, AD), and the other compares all non-Flash data with only the last year's worth of available Flash data with all non-Flash data (last year, LY).
+
+```{r speed means, include=FALSE}
 for (i in 1:length(texts)) {
   test <- tests[[i]]
   name <- paste0(texts[i],"sumSp")
@@ -388,98 +451,176 @@ for (i in 1:length(texts)) {
     sumSp <- c(sumSp,"nLY")
   }
   
-  # use newtest to figure out proportion of participants included in both Flash and non-Flash groups
-  f_sub <- unique(newtest[newtest$flash==1,3])               # subjects in the flash group
-  both_sub <- intersect(f_sub, newtest[newtest$flash==0,3])  # subjects included in both groups
-  sumAcc <- c(sumAcc,"both_sub")
-  
   sumSp <- c(sumSp[1],mget(sumSp[-1]))
   assign(name,sumSp)
 }
-
-# ** check that there's enough N's and low effect sizes ----
-tocheck <- as.data.frame(matrix(NA,length(textsAcc),5))
-rownames(tocheck) <- textsAcc
-names(tocheck) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
-
-sumAcc <- paste0(textsAcc,"sumAcc")
-sumAcc <- mget(sumAcc)
-
-for (i in 1:length(sumAcc)) {
-  dat <- sumAcc[[i]]
-  
-  nAD <- dat$nAD$n
-  nLY <- dat$nLY$n
-
-  if (any(nAD<20)) {
-    tocheck$nAD[i] <- min(nAD)
-  }
-  if (any(nLY<20)) {
-    tocheck$nLY[i] <- min(nLY)
-  }
-  
-  effectAD <- dat$effsizeAD
-  effectLY <- dat$effsizeLY
-  
-  if (effectAD >= 0.15) {
-    tocheck$effsizeAD[i] <- effectAD
-  }
-  if (effectLY >= 0.15) {
-    tocheck$effsizeLY[i] <- effectLY
-  }
-}
-tocheck$problematic <- ifelse(!is.na(tocheck$nAD),1,
-                              ifelse(!is.na(tocheck$effsizeAD),1,
-                                     ifelse(!is.na(tocheck$nLY),1,
-                                            ifelse(!is.na(tocheck$effsizeLY),1,0))))
-problematic <- tocheck[tocheck$problematic==1,]
-allgood <- rownames(tocheck[tocheck$problematic==0,])
+```
 
 
-# checking the same thing for speed 
-tochecksp <- as.data.frame(matrix(NA,length(texts),5))
-rownames(tochecksp) <- texts
-names(tochecksp) <- c("nAD", "effsizeAD", "nLY", "effsizeLY", "problematic")
+### ADT36 A
 
-sumSp <- paste0(texts,"sumSp")
-sumSp <- mget(sumSp)
+The mean speed on the ADT36 A of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ADT36_AsumSp$effsizeAD`. On the other hand, the mean speed on the ADT36 A of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
 
-for (i in 1:length(sumSp)) {
-  dat <- sumSp[[i]]
-  
-  nAD <- dat$nAD$n
-  nLY <- dat$nLY$n
-  
-  if (any(nAD<20)) {
-    tochecksp$nAD[i] <- min(nAD)
-  }
-  if (any(nLY<20)) {
-    tochecksp$nLY[i] <- min(nLY)
-  }
-  
-  effectAD <- dat$effsizeAD
-  effectLY <- dat$effsizeLY
-  
-  if (effectAD >= 0.15) {
-    tochecksp$effsizeAD[i] <- effectAD
-  }
-  if (effectLY >= 0.15) {
-    tochecksp$effsizeLY[i] <- effectLY
-  }
-}
-tochecksp$problematic <- ifelse(!is.na(tochecksp$nAD),1,
-                              ifelse(!is.na(tochecksp$effsizeAD),1,
-                                     ifelse(!is.na(tochecksp$nLY),1,
-                                            ifelse(!is.na(tochecksp$effsizeLY),1,0))))
-problematicsp <- tochecksp[tochecksp$problematic==1,]
-allgoodsp <- rownames(tochecksp[tochecksp$problematic==0,])
+```{r, echo=FALSE}
+ADT36_AsumSp$ttestAD
+ADT36_AsumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(ADT36_AsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+ADT36_AsumSp$ttestLY
+ADT36_AsumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(ADT36_AsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ADT36_AsumSp$nAD[1,4])`)
 
 
 
+### CPF B
 
-# * flash/non-flash intra-subject correlations ----
-textsAcc <- setdiff(textsAcc, c("CPF_A"))
-testsAcc <- mget(textsAcc)   # 15 tests
+The mean speed on the CPF B of the Flash group is statistically **significantly different** from that of that of the non-Flash group in the AD analysis with an effect size of `r CPF_BsumSp$effsizeAD`. On the other hand, the mean speed on the CPF B of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+CPF_BsumSp$ttestAD
+CPF_BsumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(CPF_BsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(CPF_BsumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+CPF_BsumSp$ttestLY
+CPF_BsumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(CPF_BsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(CPF_BsumSp$nAD[1,4])`)
+
+
+### ER40 D
+
+The mean speed on the ER40 D of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r ER40_DsumSp$effsizeAD`. On the other hand, the mean speed on the ER40 D of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+ER40_DsumSp$ttestAD
+ER40_DsumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(ER40_DsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+ER40_DsumSp$ttestLY
+ER40_DsumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(ER40_DsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(ER40_DsumSp$nAD[1,4])`)
+
+
+### GNG150
+
+The mean speed on the GNG150 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r GNG150sumSp$effsizeAD`. On the other hand, the mean speed on the GNG150 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+GNG150sumSp$ttestAD
+GNG150sumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(GNG150sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(GNG150sumSp$nAD[1,4])`)
+
+The box plots show a **difference** between the two groups, big enough to warrant futher investigation.
+
+```{r, echo=FALSE}
+GNG150sumSp$ttestLY
+GNG150sumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(GNG150sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(GNG150sumSp$nAD[1,4])`)
+
+
+### SLNB2 90
+
+The mean speed on the SLNB2 90 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r SLNB2_90sumSp$effsizeAD`. On the other hand, the mean speed on the SLNB2 90 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+SLNB2_90sumSp$ttestAD
+SLNB2_90sumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+SLNB2_90sumSp$ttestLY
+SLNB2_90sumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(SLNB2_90sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SLNB2_90sumSp$nAD[1,4])`)
+
+
+### SPCPTNL
+
+The mean speed on the SPCPTNL of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r SPCPTNLsumSp$effsizeAD`. On the other hand, the mean speed on the SPCPTNL of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+SPCPTNLsumSp$ttestAD
+SPCPTNLsumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+SPCPTNLsumSp$ttestLY
+SPCPTNLsumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(SPCPTNLsumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(SPCPTNLsumSp$nAD[1,4])`)
+
+
+### VSPLOT15
+
+The mean speed on the VSPLOT15 of the Flash group is statistically **significantly different** from that of the non-Flash group in the AD analysis with an effect size of `r VSPLOT15sumSp$effsizeAD`. On the other hand, the mean speed on the VSPLOT15 of the Flash group is not significantly different from the non-Flash group in the LY analysis. 
+
+```{r, echo=FALSE}
+VSPLOT15sumSp$ttestAD
+VSPLOT15sumSp$boxAD
+```
+
+All dates of Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[1,4])`)
+
+Though the means are significantly different, the box plots show that the two groups are not too different from one another.
+
+```{r, echo=FALSE}
+VSPLOT15sumSp$ttestLY
+VSPLOT15sumSp$boxLY
+```
+
+Last year of Flash (n=`r as.numeric(VSPLOT15sumSp$nLY[2,4])`), non-Flash (n=`r as.numeric(VSPLOT15sumSp$nAD[1,4])`)
+
+
+
+
+
+## Intrasubject Comparisons
+
+In this analysis, we look at participants who have taken tasks with both Flash and non-Flash administration. We look at the correlation coefficient between the first score they get with Flash and non-Flash administration. Then, we also look at the Intraclass correlation coefficient (ICC) of the first score they get with Flash and non-Flash administration along with up to the four most recent timepoints of Flash and non-Flash scores. Any accuracy score from a test that a participant already took previously has been corrected for practice effects in two different methods. 
+
+Practice Effect Method 1 (PEM1) consists of taking each score past time point 1 and using the difference between that score and that of the time point immediately before it. We then use the time difference between those two time points (in days) to predict the change in score as a linear model. The newly adjusted scores are calculated by adding the residuals from that linear model to the original scores.
+
+In Practice Effect Method 2 (PEM 2), we take the difference in means of the scores of each time point past time point 1 and the scores from the preceding time point. Then we add that difference in means to the scores of the time point past time point 1. 
+
+The same analysis was done for Speed as well. 
+
+### Accuracy
+
+```{r, include=FALSE}
 for (j in 1:length(textsAcc)){
   test <- testsAcc[[j]]
   test <- test[!is.na(test$bblid) & !is.na(test$Accuracy),]
@@ -630,8 +771,9 @@ for (j in 1:length(textsAcc)){
   assign(paste0(textsAcc[j],"wideflash"),wideflash)
   assign(paste0(textsAcc[j],"widenflash"),widenflash)
 }
+```
 
-# ** getting rid of outliers, test by test ----
+```{r acc_outliers, include=FALSE}
 wideflash <- ADT36_Awideflash
 widenflash <- ADT36_Awidenflash
 accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -713,6 +855,8 @@ acc <- acc[abs(acc$f_acc_res.1-acc$n_acc_res.1)<2,]
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 acc$f_acc_res.1 <- winsor(acc$f_acc_res.1,trim=0.01)
 acc$n_acc_res.1 <- winsor(acc$n_acc_res.1,trim=0.01)
+# getting rid of outliers
+acc <- acc[acc$bblid!=105634,]
 pairs.panels(acc[,c(2,13)],lm=TRUE)
 GNG150_acc <- acc  
 acctxt <- c(acctxt,"GNG150_acc")
@@ -819,21 +963,6 @@ pairs.panels(acc[,c(2,15)],lm=TRUE)
 SLNB2_90_acc <- acc  
 acctxt <- c(acctxt,"SLNB2_90_acc")
 
-# wideflash <- SPCPTN90wideflash                   # SPCPTN90 only has two participants that have taken both flash and non-flash
-# widenflash <- SPCPTN90widenflash
-# accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-# names(accflash)[-1] <- paste0("f_",names(accflash)[-1])
-# accnflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("acc_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-# names(accnflash)[-1] <- paste0("n_",names(accnflash)[-1])
-# acc <- merge(accflash,accnflash, by=1)
-# acc_cor <- cor(acc[,-1], use="pairwise")
-# pairs.panels(acc[,c(2,3)],lm=TRUE)    # looking at t1 flash vs nflash
-# acc$rm <- ifelse(abs(acc$f_acc_res.1-acc$n_acc_res.1)>=2,1,0)
-# acc <- acc[acc$rm == 0,-which(names(acc) %in% "rm")]
-# pairs.panels(acc[,c(2,15)],lm=TRUE)
-# SPCPTN90_acc <- acc
-# acctxt <- c(acctxt,"SLNB2_90_acc")
-
 wideflash <- SPCPTNLwideflash
 widenflash <- SPCPTNLwidenflash
 accflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("acc_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -886,8 +1015,9 @@ VSPLOT15_acc <- acc
 acctxt <- c(acctxt,"VSPLOT15_acc")
 
 accs <- mget(acctxt)
+```
 
-# ** acc_cor and icc for each test ----
+```{r, include=FALSE}
 textsAcc <- setdiff(textsAcc, c("SPCPTN90"))
 testsAcc <- mget(textsAcc)    # 14 tests
 for (i in 1:length(acctxt)) {
@@ -911,7 +1041,8 @@ for (i in 1:length(acctxt)) {
   try(icc_n14_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc)) | grepl("n_t3newscore2",colnames(acc)) | grepl("n_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
   
   icc <- data.frame(matrix(c(icc_fnf,rep(NA,13)),nrow=2))
-  names(icc) <- c("icc_fnf","icc_f12_1","icc_f13_1","icc_f14_1","icc_f12_2","icc_f13_2","icc_f14_2")
+  rownames(icc) <- c("Flash", "Non-Flash")
+  names(icc) <- c("Timepoint 1 Flash vs Non-Flash", "Timepoint 1-2 PEM1", "Timepoint 1-3 PEM1", "Timepoint 1-4 PEM1", "Timepoint 1-2 PEM2", "Timepoint 1-3 PEM2", "Timepoint 1-4 PEM2")
   try(if (icc_f12_1) {icc[1,2] <- icc_f12_1})
   try(if (icc_f13_1) {icc[1,3] <- icc_f13_1})
   try(if (icc_f14_1) {icc[1,4] <- icc_f14_1})
@@ -927,217 +1058,85 @@ for (i in 1:length(acctxt)) {
   
   assign(paste0(textsAcc[i],"icc"),icc)
 }
-
-write.csv(ADT36_Aacc_cor, "myresults/instrasubject_corr/acc/ADT36_Aacc_cor.csv")
-write.csv(AIMacc_cor,     "myresults/instrasubject_corr/acc/AIMacc_cor.csv")
-write.csv(CPF_Bacc_cor,   "myresults/instrasubject_corr/acc/CPF_Bacc_cor.csv")
-write.csv(ER40_Dacc_cor,  "myresults/instrasubject_corr/acc/ER40_Dacc_cor.csv")
-write.csv(GNG150acc_cor,  "myresults/instrasubject_corr/acc/GNG150acc_cor.csv")
-write.csv(KCPW_Aacc_cor,  "myresults/instrasubject_corr/acc/KCPW_Aacc_cor.csv")
-write.csv(KSPVRT_Dacc_cor,"myresults/instrasubject_corr/acc/KSPVRT_Dacc_cor.csv")
-write.csv(MEDF36_Aacc_cor,"myresults/instrasubject_corr/acc/MEDF36_Aacc_cor.csv")
-write.csv(PCET_Aacc_cor,  "myresults/instrasubject_corr/acc/PCET_Aacc_cor.csv")
-write.csv(PMAT24_Aacc_cor,"myresults/instrasubject_corr/acc/PMAT24_Aacc_cor.csv")
-write.csv(SLNB2_90acc_cor,"myresults/instrasubject_corr/acc/SLNB2_90acc_cor.csv")
-write.csv(SPCPTNLacc_cor, "myresults/instrasubject_corr/acc/SPCPTNLacc_cor.csv")
-write.csv(SVOLT_Aacc_cor, "myresults/instrasubject_corr/acc/SVOLT_Aacc_cor.csv")
-write.csv(VSPLOT15acc_cor,"myresults/instrasubject_corr/acc/VSPLOT15acc_cor.csv")
-
-write.csv( ADT36_Aicc,"myresults/instrasubject_corr/acc/ADT36_Aicc.csv")
-write.csv(     AIMicc,"myresults/instrasubject_corr/acc/AIMicc.csv")
-write.csv(   CPF_Bicc,"myresults/instrasubject_corr/acc/CPF_Bicc.csv")
-write.csv(  ER40_Dicc,"myresults/instrasubject_corr/acc/ER40_Dicc.csv")
-write.csv(  GNG150icc,"myresults/instrasubject_corr/acc/GNG150icc.csv")
-write.csv(  KCPW_Aicc,"myresults/instrasubject_corr/acc/KCPW_Aicc.csv")
-write.csv(KSPVRT_Dicc,"myresults/instrasubject_corr/acc/KSPVRT_Dicc.csv")
-write.csv(MEDF36_Aicc,"myresults/instrasubject_corr/acc/MEDF36_Aicc.csv")
-write.csv(  PCET_Aicc,"myresults/instrasubject_corr/acc/PCET_Aicc.csv")
-write.csv(PMAT24_Aicc,"myresults/instrasubject_corr/acc/PMAT24_Aicc.csv")
-write.csv(SLNB2_90icc,"myresults/instrasubject_corr/acc/SLNB2_90icc.csv")
-write.csv( SPCPTNLicc,"myresults/instrasubject_corr/acc/SPCPTNLicc.csv")
-write.csv( SVOLT_Aicc,"myresults/instrasubject_corr/acc/SVOLT_Aicc.csv")
-write.csv(VSPLOT15icc,"myresults/instrasubject_corr/acc/VSPLOT15icc.csv")
+```
 
 
-# site differences ----
-pairs.panels(ADT36_A_acc[,c(2,13)],lm=TRUE)
-ADT36_A_acc <- left_join(ADT36_A_acc,ADT36_Asiteid,by="bblid")
+#### GNG150
 
-adtsites <- ggplot(data=ADT36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-adtsites
-adtsitepanels <- adtsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="ADT36 Accuracy site differences")
-adtsitepanels
+The participants' Flash scores correlate **very poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
 
-# using face wrap instead to adjust coordinates + only show plots with real data
-adtsites + facet_wrap(vars(fsiteid, nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-
-
-pairs.panels(AIM_acc[,c(2,11)],lm=TRUE)
-AIM_acc <- left_join(AIM_acc,AIMsiteid,by="bblid")
-
-aimsites <- ggplot(data=AIM_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-aimsites
-aimsitepanels <- aimsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="AIM Accuracy site differences")
-aimsitepanels
-
-
-pairs.panels(CPF_B_acc[,c(2,11)],lm=TRUE)
-CPF_B_acc <- left_join(CPF_B_acc,CPF_Bsiteid,by="bblid")
-
-cpfsites <- ggplot(data=CPF_B_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-cpfsites
-cpfsitepanels <- cpfsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="CPF Accuracy site differences")
-cpfsitepanels
-
-
-pairs.panels(ER40_D_acc[,c(2,13)],lm=TRUE)
-ER40_D_acc <- left_join(ER40_D_acc,ER40_Dsiteid,by="bblid")
-
-er40sites <- ggplot(data=ER40_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-er40sites
-er40sitepanels <- er40sites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="ER40 Accuracy site differences")
-er40sitepanels
-
-
+```{r, echo=FALSE}
+names(GNG150_acc)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(GNG150_acc[,c(2,13)],lm=TRUE)
-GNG150_acc <- left_join(GNG150_acc,GNG150siteid,by="bblid")
 
-gngsites <- ggplot(data=GNG150_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-gngsites
-gngsitepanels <- gngsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="GNG150 Accuracy site differences")
-gngsitepanels
+round(GNG150icc,3) %>% 
+  kbl() %>% kable_classic(full_width = F, html_font = "Cambria")
+```
 
 
-pairs.panels(KCPW_A_acc[,c(2,15)],lm=TRUE)
-KCPW_A_acc <- left_join(KCPW_A_acc,KCPW_Asiteid,by="bblid")
+#### SPCPTNL
 
-kcpwsites <- ggplot(data=KCPW_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-kcpwsites
-kcpwsitepanels <- kcpwsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="KCPW Accuracy site differences")
-kcpwsitepanels
+The participants' Flash scores correlate **poorly** with their non-Flash scores, and the correlation coefficient matches up well with the ICC. 
 
-
-pairs.panels(KSPVRT_D_acc[,c(2,13)],lm=TRUE)
-KSPVRT_D_acc <- left_join(KSPVRT_D_acc,KSPVRT_Dsiteid,by="bblid")
-
-pvrtsites <- ggplot(data=KSPVRT_D_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pvrtsites
-pvrtsitepanels <- pvrtsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2.5)) +
-  labs(title="PVRT Accuracy site differences")
-pvrtsitepanels
-
-
-pairs.panels(MEDF36_A_acc[,c(2,13)],lm=TRUE)
-MEDF36_A_acc <- left_join(MEDF36_A_acc,MEDF36_Asiteid,by="bblid")
-
-medfsites <- ggplot(data=MEDF36_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-medfsites
-medfsitepanels <- medfsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2)) +
-  labs(title="MEDF Accuracy site differences")
-medfsitepanels
-
-
-pairs.panels(PCET_A_acc[,c(2,5)],lm=TRUE)
-PCET_A_acc <- left_join(PCET_A_acc,PCET_Asiteid,by="bblid")
-
-pcetsites <- ggplot(data=PCET_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pcetsites
-pcetsitepanels <- pcetsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="PCET Accuracy site differences")
-pcetsitepanels
-
-
-pairs.panels(PMAT24_A_acc[,c(2,11)],lm=TRUE)
-PMAT24_A_acc <- left_join(PMAT24_A_acc,PMAT24_Asiteid,by="bblid")
-
-pmatsites <- ggplot(data=PMAT24_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pmatsites
-pmatsitepanels <- pmatsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-3, 2.5),xlim = c(-2.5, 2.5)) +
-  labs(title="PMAT Accuracy site differences")
-pmatsitepanels
-
-
-pairs.panels(SLNB2_90_acc[,c(2,15)],lm=TRUE)
-SLNB2_90_acc <- left_join(SLNB2_90_acc,SLNB2_90siteid,by="bblid")
-
-slnbsites <- ggplot(data=SLNB2_90_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-slnbsites
-slnbsitepanels <- slnbsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.5, 2)) +
-  labs(title="SLNB2 90 Accuracy site differences")
-slnbsitepanels
-
-
+```{r, echo=FALSE}
+names(SPCPTNL_acc)[c(2,17)] <- c("Flash", "Non-Flash")
 pairs.panels(SPCPTNL_acc[,c(2,17)],lm=TRUE)
-SPCPTNL_acc <- left_join(SPCPTNL_acc,SPCPTNLsiteid,by="bblid")
 
-cptsites <- ggplot(data=SPCPTNL_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-cptsites
-cptsitepanels <- cptsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="SPCPTNL Accuracy site differences")
-cptsitepanels
+round(SPCPTNLicc,3) %>% 
+  kbl() %>% kable_classic(full_width = F, html_font = "Cambria")
+```
+
+There seems to be a cluster of participants whose non-Flash scores are < -0.70 that look like outliers. This is what the correlation and ICC looks like upon removing these eight participants.
+
+```{r, echo=FALSE}
+newSPCPTNL_acc <- SPCPTNL_acc[order(SPCPTNL_acc$`Non-Flash`),]
+newSPCPTNL_acc <- newSPCPTNL_acc[newSPCPTNL_acc$`Non-Flash` > (-0.7),]
+
+names(newSPCPTNL_acc)[c(2,17)] <- c("Flash", "Non-Flash")
+pairs.panels(newSPCPTNL_acc[,c(2,17)],lm=TRUE)
+
+names(newSPCPTNL_acc)[c(2,17)] <- c("f_acc_res.1", "n_acc_res.1")
+acc <- newSPCPTNL_acc
+icc_fnf <- icc(acc[,grepl("acc_res",colnames(acc))],type="agreement",model="twoway")$value
+try(icc_f12_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_f13_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc)) | grepl("f_t3newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_f14_1 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore1",colnames(acc)) | grepl("f_t3newscore1",colnames(acc)) | grepl("f_t4newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_f12_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_f13_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_f14_2 <- icc(acc[,grepl("f_acc_res",colnames(acc)) | grepl("f_t2newscore2",colnames(acc)) | grepl("f_t3newscore2",colnames(acc)) | grepl("f_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n12_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n13_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc)) | grepl("n_t3newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n14_1 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore1",colnames(acc)) | grepl("n_t3newscore1",colnames(acc)) | grepl("n_t4newscore1",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n12_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n13_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc)) | grepl("n_t3newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+try(icc_n14_2 <- icc(acc[,grepl("n_acc_res",colnames(acc)) | grepl("n_t2newscore2",colnames(acc)) | grepl("n_t3newscore2",colnames(acc)) | grepl("n_t4newscore2",colnames(acc))],type="agreement",model="twoway")$value)
+  
+icc <- data.frame(matrix(c(icc_fnf,rep(NA,13)),nrow=2))
+rownames(icc) <- c("Flash", "Non-Flash")
+names(icc) <- c("Timepoint 1 Flash vs Non-Flash", "Timepoint 1-2 PEM1", "Timepoint 1-3 PEM1", "Timepoint 1-4 PEM1", "Timepoint 1-2 PEM2", "Timepoint 1-3 PEM2", "Timepoint 1-4 PEM2")
+try(if (icc_f12_1) {icc[1,2] <- icc_f12_1})
+try(if (icc_f13_1) {icc[1,3] <- icc_f13_1})
+try(if (icc_f14_1) {icc[1,4] <- icc_f14_1})
+try(if (icc_f12_2) {icc[1,5] <- icc_f12_2})
+try(if (icc_f13_2) {icc[1,6] <- icc_f13_2})
+try(if (icc_f14_2) {icc[1,7] <- icc_f14_2})
+try(if (icc_n12_1) {icc[2,2] <- icc_n12_1})
+try(if (icc_n13_1) {icc[2,3] <- icc_n13_1})
+try(if (icc_n14_1) {icc[2,4] <- icc_n14_1})
+try(if (icc_n12_2) {icc[2,5] <- icc_n12_2})
+try(if (icc_n13_2) {icc[2,6] <- icc_n13_2})
+try(if (icc_n14_2) {icc[2,7] <- icc_n14_2})
+  
+newSPCPTNLicc <- icc
+
+round(newSPCPTNLicc,3) %>% 
+  kbl() %>% kable_classic(full_width = F, html_font = "Cambria")
+```
 
 
-pairs.panels(SVOLT_A_acc[,c(2,9)],lm=TRUE)
-SVOLT_A_acc <- left_join(SVOLT_A_acc,SVOLT_Asiteid,by="bblid")
+### Speed
 
-votsites <- ggplot(data=SVOLT_A_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-votsites
-voltsitepanels <- votsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2),xlim = c(-2.5, 2)) +
-  labs(title="VOLT Accuracy site differences")
-voltsitepanels
-
-
-pairs.panels(VSPLOT15_acc[,c(2,9)],lm=TRUE)
-VSPLOT15_acc <- left_join(VSPLOT15_acc,VSPLOT15siteid,by="bblid")
-
-plotsites <- ggplot(data=VSPLOT15_acc, aes(x=f_acc_res.1,y=n_acc_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-plotsites
-plotsitepanels <- plotsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="PLOT Accuracy site differences")
-plotsitepanels
-
-
-
-
-
-# * flash/non-flash intrasubject speed comparison ----
-texts <- setdiff(texts,"CPF_A")    # CPF_A only has one non-flash data point, should have 17 tests left
-tests <- mget(texts) # 17 tests
+```{r, include=FALSE}
 for (j in 1:length(texts)){
   test <- tests[[j]]
   test <- test[!is.na(test$bblid) & !is.na(test$Speed),]
@@ -1290,8 +1289,11 @@ for (j in 1:length(texts)){
   assign(paste0(texts[j],"Spwideflash"),wideflash)
   assign(paste0(texts[j],"Spwidenflash"),widenflash)
 }
+```
 
-# ** getting rid of outliers, test by test ----
+
+
+```{r speed_outliers, include=FALSE}
 wideflash <- ADT36_ASpwideflash
 widenflash <- ADT36_ASpwidenflash
 speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -1513,21 +1515,6 @@ pairs.panels(spe[,c(2,15)],lm=TRUE)
 SLNB2_90_spe <- spe  
 spetxt <- c(spetxt,"SLNB2_90_spe")
 
-# wideflash <-  SPCPTN90Spwideflash                   # SPCPTN90 only has two participants that have taken both flash and non-flash
-# widenflash <- SPCPTN90Spwidenflash
-# speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
-# names(speflash)[-1] <- paste0("f_",names(speflash)[-1])
-# spenflash <- widenflash[,grepl("bblid", colnames(widenflash)) | grepl("spe_res.1", colnames(widenflash)) | grepl("newscore", colnames(widenflash))]
-# names(spenflash)[-1] <- paste0("n_",names(spenflash)[-1])
-# spe <- merge(speflash,spenflash, by=1)
-# spe_cor <- cor(spe[,-1], use="pairwise")
-# pairs.panels(spe[,c(2,11)],lm=TRUE)    # looking at t1 flash vs nflash
-# spe$rm <- ifelse(abs(spe$f_spe_res.1-spe$n_spe_res.1)>=2,1,0)
-# spe <- spe[spe$rm == 0,-which(names(spe) %in% "rm")]
-# pairs.panels(spe[,c(2,11)],lm=TRUE)
-# SLNB2_90_spe <- spe
-# spetxt <- c(spetxt,"SLNB2_90_spe")
-
 wideflash <-  SPCPTNLSpwideflash
 widenflash <- SPCPTNLSpwidenflash
 speflash <- wideflash[,grepl("bblid", colnames(wideflash)) | grepl("spe_res.1", colnames(wideflash)) | grepl("newscore", colnames(wideflash))]
@@ -1558,6 +1545,8 @@ spe <- spe[abs(spe$f_spe_res.1-spe$n_spe_res.1)<2,]
 pairs.panels(spe[,c(2,9)],lm=TRUE)
 spe$f_spe_res.1 <- winsor(spe$f_spe_res.1,trim=0.01)
 spe$n_spe_res.1 <- winsor(spe$n_spe_res.1,trim=0.01)
+# getting rid of bblid 20712 because it throws off the correlation
+spe <- spe[spe$bblid != 20712,]
 pairs.panels(spe[,c(2,9)],lm=TRUE)
 SVOLT_A_spe <- spe  
 spetxt <- c(spetxt,"SVOLT_A_spe")
@@ -1580,8 +1569,10 @@ VSPLOT15_spe <- spe
 spetxt <- c(spetxt,"VSPLOT15_spe")
 
 spes <- mget(spetxt)
+```
 
-# ** spe_cor and icc for each test ----
+
+```{r, include=FALSE}
 texts <- setdiff(texts, c("SPCPTN90"))
 tests <- mget(texts)   # 16 tests
 for (i in 1:length(spetxt)) {
@@ -1593,7 +1584,7 @@ for (i in 1:length(spetxt)) {
   icc_fnf <- icc(spe[,grepl("spe_res",colnames(spe))],type="agreement",model="twoway")$value
   try(icc_f12_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe))],type="agreement",model="twoway")$value)
   try(icc_f13_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe)) | grepl("f_t3newscore1",colnames(spe))],type="agreement",model="twoway")$value)
-  try(icc_f14_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe)) | grepl("f_t3newscore1",colnames(spe)) | grepl("f_t4newscore1",colnames(spe))],type="agreement",model="twoway")$value)
+  try(icc_f14_1 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore1",colnames(spe)) | grepl("f_t3newscore1",colnames(spe)) | grepl("f_t4newscore1",colnames(spe))], type="agreement", model="twoway")$value)
   try(icc_f12_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe))],type="agreement",model="twoway")$value)
   try(icc_f13_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe)) | grepl("f_t3newscore2",colnames(spe))],type="agreement",model="twoway")$value)
   try(icc_f14_2 <- icc(spe[,grepl("f_spe_res",colnames(spe)) | grepl("f_t2newscore2",colnames(spe)) | grepl("f_t3newscore2",colnames(spe)) | grepl("f_t4newscore2",colnames(spe))],type="agreement",model="twoway")$value)
@@ -1605,7 +1596,8 @@ for (i in 1:length(spetxt)) {
   try(icc_n14_2 <- icc(spe[,grepl("n_spe_res",colnames(spe)) | grepl("n_t2newscore2",colnames(spe)) | grepl("n_t3newscore2",colnames(spe)) | grepl("n_t4newscore2",colnames(spe))],type="agreement",model="twoway")$value)
   
   icc <- data.frame(matrix(c(icc_fnf,rep(NA,13)),nrow=2))
-  names(icc) <- c("icc_fnf","icc_f12_1","icc_f13_1","icc_f14_1","icc_f12_2","icc_f13_2","icc_f14_2")
+  rownames(icc) <- c("Flash", "Non-Flash")
+  names(icc) <- c("Timepoint 1 Flash vs Non-Flash", "Timepoint 1-2 PEM1", "Timepoint 1-3 PEM1", "Timepoint 1-4 PEM1", "Timepoint 1-2 PEM2", "Timepoint 1-3 PEM2", "Timepoint 1-4 PEM2")
   try(if (icc_f12_1) {icc[1,2] <- icc_f12_1})
   try(if (icc_f13_1) {icc[1,3] <- icc_f13_1})
   try(if (icc_f14_1) {icc[1,4] <- icc_f14_1})
@@ -1620,468 +1612,21 @@ for (i in 1:length(spetxt)) {
   try(if (icc_n14_2) {icc[2,7] <- icc_n14_2})
   assign(paste0(texts[i],"spe_icc"),icc)
 }
-
-write.csv( ADT36_Aspe_cor,"myresults/instrasubject_corr/spe/ADT36_Aspe_cor.csv")
-write.csv(     AIMspe_cor,"myresults/instrasubject_corr/spe/AIMspe_cor.csv")
-write.csv(   CPF_Bspe_cor,"myresults/instrasubject_corr/spe/CPF_Bspe_cor.csv")
-write.csv(  ER40_Dspe_cor,"myresults/instrasubject_corr/spe/ER40_Dspe_cor.csv")
-write.csv(  GNG150spe_cor,"myresults/instrasubject_corr/spe/GNG150spe_cor.csv")
-write.csv(  KCPW_Aspe_cor,"myresults/instrasubject_corr/spe/KCPW_Aspe_cor.csv")
-write.csv(KSPVRT_Dspe_cor,"myresults/instrasubject_corr/spe/KSPVRT_Dspe_cor.csv")
-write.csv(MEDF36_Aspe_cor,"myresults/instrasubject_corr/spe/MEDF36_Aspe_cor.csv")
-write.csv(  MPRACTspe_cor,"myresults/instrasubject_corr/spe/MPRACTspe_cor.csv")
-write.csv(  PCET_Aspe_cor,"myresults/instrasubject_corr/spe/PCET_Aspe_cor.csv")
-write.csv(PMAT24_Aspe_cor,"myresults/instrasubject_corr/spe/PMAT24_Aspe_cor.csv")
-write.csv(   SCTAPspe_cor,"myresults/instrasubject_corr/spe/SCTAPspe_cor.csv")
-write.csv(SLNB2_90spe_cor,"myresults/instrasubject_corr/spe/SLNB2_90spe_cor.csv")
-write.csv( SPCPTNLspe_cor,"myresults/instrasubject_corr/spe/SPCPTNLspe_cor.csv")
-write.csv( SVOLT_Aspe_cor,"myresults/instrasubject_corr/spe/SVOLT_Aspe_cor.csv")
-write.csv(VSPLOT15spe_cor,"myresults/instrasubject_corr/spe/VSPLOT15spe_cor.csv")
-
-write.csv( ADT36_Aspe_icc,"myresults/instrasubject_corr/spe/ADT36_Aspe_icc.csv")
-write.csv(     AIMspe_icc,"myresults/instrasubject_corr/spe/AIMspe_icc.csv")
-write.csv(   CPF_Bspe_icc,"myresults/instrasubject_corr/spe/CPF_Bspe_icc.csv")
-write.csv(  ER40_Dspe_icc,"myresults/instrasubject_corr/spe/ER40_Dspe_icc.csv")
-write.csv(  GNG150spe_icc,"myresults/instrasubject_corr/spe/GNG150spe_icc.csv")
-write.csv(  KCPW_Aspe_icc,"myresults/instrasubject_corr/spe/KCPW_Aspe_icc.csv")
-write.csv(KSPVRT_Dspe_icc,"myresults/instrasubject_corr/spe/KSPVRT_Dspe_icc.csv")
-write.csv(MEDF36_Aspe_icc,"myresults/instrasubject_corr/spe/MEDF36_Aspe_icc.csv")
-write.csv(  MPRACTspe_icc,"myresults/instrasubject_corr/spe/MPRACTspe_icc.csv")
-write.csv(  PCET_Aspe_icc,"myresults/instrasubject_corr/spe/PCET_Aspe_icc.csv")
-write.csv(PMAT24_Aspe_icc,"myresults/instrasubject_corr/spe/PMAT24_Aspe_icc.csv")
-write.csv(   SCTAPspe_icc,"myresults/instrasubject_corr/spe/SCTAPspe_icc.csv")
-write.csv(SLNB2_90spe_icc,"myresults/instrasubject_corr/spe/SLNB2_90spe_icc.csv")
-write.csv( SPCPTNLspe_icc,"myresults/instrasubject_corr/spe/SPCPTNLspe_icc.csv")
-write.csv( SVOLT_Aspe_icc,"myresults/instrasubject_corr/spe/SVOLT_Aspe_icc.csv")
-write.csv(VSPLOT15spe_icc,"myresults/instrasubject_corr/spe/VSPLOT15spe_icc.csv")
+```
 
 
+#### GNG150
 
+The participants' Flash scores correlate very well with their non-Flash scores, and the correlation coefficient does **not** match up with the ICC as well as it has in other tasks. This suggests that there is a difference in level/scale across Flash and non-Flash speeds.
 
-
-
-
-
-# site differences ----
-
-# Tests of interests are: CPF A (40), ER40 D (40), SPCPTNL (60), GNG150 (150), SCTAP, PMAT24 A, 
-#                         SVOLT A, MPRACT, MEDF36 A, SLNB2 90
-
-pairs.panels(ADT36_A_spe[,c(2,13)],lm=TRUE)
-ADT36_A_spe <- left_join(ADT36_A_spe,ADT36_ASpsiteid,by="bblid")
-
-adtspsites <- ggplot(data=ADT36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-adtspsites
-adtspsitepanels <- adtspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2)) +
-  labs(title="ADT Speed site differences")
-adtspsitepanels
-
-# using face wrap instead to adjust coordinates + only show plots with real data
-sites + facet_wrap(vars(fsiteid, nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2))
-
-
-pairs.panels(AIM_spe[,c(2,13)],lm=TRUE)
-AIM_spe <- left_join(AIM_spe,AIMSpsiteid,by="bblid")
-
-aimspsites <- ggplot(data=AIM_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-aimspsites
-aimspsitepanels <- aimspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="AIM Speed site differences")
-aimspsitepanels
-
-
-pairs.panels(CPF_B_spe[,c(2,11)],lm=TRUE)
-CPF_B_spe <- left_join(CPF_B_spe,CPF_BSpsiteid,by="bblid")
-
-cpfspsites <- ggplot(data=CPF_B_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-cpfspsites
-cpfspsitepanels <- cpfspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="CPF Speed site differences")
-cpfspsitepanels
-
-
-pairs.panels(ER40_D_spe[,c(2,13)],lm=TRUE)
-ER40_D_spe <- left_join(ER40_D_spe,ER40_DSpsiteid,by="bblid")
-
-ersspsites <- ggplot(data=ER40_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-ersspsites
-erspsitepanels <- ersspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.2, 2),xlim = c(-2, 2)) +
-  labs(title="ER40 Speed site differences")
-erspsitepanels
-
-
+```{r, echo=FALSE}
+names(GNG150_spe)[c(2,13)] <- c("Flash", "Non-Flash")
 pairs.panels(GNG150_spe[,c(2,13)],lm=TRUE)
-GNG150_spe <- left_join(GNG150_spe,GNG150Spsiteid,by="bblid")
 
-gngspsites <- ggplot(data=GNG150_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-gngspsites
-gngspsitepanels <- gngspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-3, 2),xlim = c(-2, 2)) +
-  labs(title="GNG150 Speed site differences")
-gngspsitepanels
+round(GNG150spe_icc,3) %>% 
+  kbl() %>% kable_classic(full_width = F, html_font = "Cambria")
+```
 
-
-pairs.panels(KCPW_A_spe[,c(2,15)],lm=TRUE)
-KCPW_A_spe <- left_join(KCPW_A_spe,KCPW_ASpsiteid,by="bblid")
-
-cpwspsites <- ggplot(data=KCPW_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-cpwspsites
-cpwspsitepanels <- cpwspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.5, 2.2),xlim = c(-2, 3)) +
-  labs(title="KCPW Speed site differences")
-cpwspsitepanels
-
-
-pairs.panels(KSPVRT_D_spe[,c(2,13)],lm=TRUE)
-KSPVRT_D_spe <- left_join(KSPVRT_D_spe,KSPVRT_DSpsiteid,by="bblid")
-
-pvrtspsites <- ggplot(data=KSPVRT_D_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pvrtspsites
-pvrtspsitepanels <- pvrtspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2.2),xlim = c(-2, 2.5)) +
-  labs(title="KSPVRT Speed site differences")
-pvrtspsitepanels
-
-
-pairs.panels(MEDF36_A_spe[,c(2,13)],lm=TRUE)
-MEDF36_A_spe <- left_join(MEDF36_A_spe,MEDF36_ASpsiteid,by="bblid")
-
-medfspsites <- ggplot(data=MEDF36_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-medfspsites
-medfspsitepanels <- medfspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2.1, 2),xlim = c(-2, 2)) +
-  labs(title="MEDF36 Speed site differences")
-medfspsitepanels
-
-
-pairs.panels(MPRACT_spe[,c(2,15)],lm=TRUE)
-MPRACT_spe <- left_join(MPRACT_spe,MPRACTSpsiteid,by="bblid")
-
-mpractsites <- ggplot(data=MPRACT_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-mpractsites
-mpractsitepanels <- mpractsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="MPRACT Speed site differences")
-mpractsitepanels
-
-
-pairs.panels(PCET_A_spe[,c(2,5)],lm=TRUE)
-PCET_A_spe <- left_join(PCET_A_spe,PCET_ASpsiteid,by="bblid")
-
-pcetspsites <- ggplot(data=PCET_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pcetspsites
-pcetspsitepanels <- pcetspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="PCET Speed site differences")
-pcetspsitepanels
-
-
-pairs.panels(PMAT24_A_spe[,c(2,11)],lm=TRUE)
-PMAT24_A_spe <- left_join(PMAT24_A_spe,PMAT24_ASpsiteid,by="bblid")
-
-pmatspsites <- ggplot(data=PMAT24_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-pmatspsites
-pmatspsitepanels <- pmatspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2.7),xlim = c(-2, 2)) +
-  labs(title="PMAT24 Speed site differences")
-pmatspsitepanels
-
-
-pairs.panels(SCTAP_spe[,c(2,15)],lm=TRUE)
-SCTAP_spe <- left_join(SCTAP_spe,SCTAPSpsiteid,by="bblid")
-
-sctapsites <- ggplot(data=SCTAP_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-sctapsites
-sctapsitepanels <- sctapsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.5)) +
-  labs(title="SCTAP Speed site differences")
-sctapsitepanels
-
-
-pairs.panels(SLNB2_90_spe[,c(2,15)],lm=TRUE)
-SLNB2_90_spe <- left_join(SLNB2_90_spe,SLNB2_90Spsiteid,by="bblid")
-
-slnbspsites <- ggplot(data=SLNB2_90_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-slnbspsites
-slnbspsitepanels <- slnbspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2.2)) +
-  labs(title="SLNB2 90 Speed site differences")
-slnbspsitepanels
-
-
-pairs.panels(SPCPTNL_spe[,c(2,17)],lm=TRUE)
-SPCPTNL_spe <- left_join(SPCPTNL_spe,SPCPTNLSpsiteid,by="bblid")
-
-cptspsites <- ggplot(data=SPCPTNL_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-cptspsites
-cptspsitepanels <- cptspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2.2, 2.7)) +
-  labs(title="SPCPTNL Speed site differences")
-cptspsitepanels
-
-
-pairs.panels(SVOLT_A_spe[,c(2,9)],lm=TRUE)
-SVOLT_A_spe <- left_join(SVOLT_A_spe,SVOLT_ASpsiteid,by="bblid")
-
-voltspsites <- ggplot(data=SVOLT_A_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-voltspsites
-voltspsitepanels <- voltspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="SVOLT Speed site differences")
-voltspsitepanels
-
-
-pairs.panels(VSPLOT15_spe[,c(2,9)],lm=TRUE)
-VSPLOT15_spe <- left_join(VSPLOT15_spe,VSPLOT15Spsiteid,by="bblid")
-
-plotspsites <- ggplot(data=VSPLOT15_spe, aes(x=f_spe_res.1,y=n_spe_res.1)) + 
-  geom_point() + geom_smooth(method = lm)
-plotspsites
-plotspsitepanels <- plotspsites + facet_grid(rows=vars(fsiteid), cols=vars(nfsiteid)) +
-  coord_cartesian(ylim = c(-2, 2),xlim = c(-2, 2)) +
-  labs(title="VSPLOT15 Speed site differences")
-plotspsitepanels
-
-
-
-
-
-
-
-
-
-
-
-gg <- ggplot(data=ADT36_A,aes(x=dotest, y=Accuracy, color=siteid, shape=factor(flash))) +
-  geom_point(alpha=0.5)
-
-
-
-# trying stuff
-
-for (j in 1:length(textsAcc)){
-  test <- testsAcc[[j]]
-  test <- test[!is.na(test$bblid) & !is.na(test$Accuracy),]
-  
-  hist <- ggplot(test,aes(x=Accuracy)) + geom_histogram()    # histogram to look at item acc frequency
-  hist
-  
-  test <- test[!is.na(test$age),]
-  fit <- gam(Accuracy ~ s(age), data = test)  # regress out age first
-  visreg(fit)
-  test$acc_res <- scale(resid(fit))
-  test$spe_res <- 0 # spe_res doesn't matter here
-  
-  test <- test[abs(test$acc_res)<3,]
-  
-  flash <- unique(test[test$flash==1 & !is.na(test$unique_id),])
-  nflash <- unique(test[test$flash==0 & !is.na(test$unique_id),])
-  
-  both <- intersect(flash$bblid, nflash$bblid)
-  both <- test[test$bblid %in% both,]
-  both <- both[order(both$bblid),]
-  
-  flash <- both[both$flash==1,]
-  flash <- flash[order(flash$bblid,flash$dotest),]
-  nflash <- both[both$flash==0,]
-  nflash <- nflash[order(nflash$bblid,nflash$dotest),]
-  
-  flashcount <- flash %>%          
-    group_by(bblid) %>%
-    summarise(n=n())
-  nflashcount <- nflash %>%
-    group_by(bblid) %>%
-    summarise(n=n())
-  flashcount <- flashcount[order(flashcount$n, decreasing = T),]
-  nflashcount <- nflashcount[order(nflashcount$n, decreasing = T),]
-  
-  maxflash <- na.omit(flashcount)$n[1]
-  maxnflash <- na.omit(nflashcount)$n[1]
-  
-  tpflash <- flash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [flash]
-  tpflash$timepoint <- 1
-  for (i in 1:(nrow(tpflash)-1)) {
-    if (tpflash$bblid[i+1] == tpflash$bblid[i]) {
-      tpflash$timepoint[i+1] <- tpflash$timepoint[i] + 1
-    }
-  }
-  tpnflash <- nflash[,c(1:3,8,17,19:20)]    #[t]ime [p]oint [n]on-[flash] used to be columns 1,4,6:7
-  tpnflash$timepoint <- 1
-  for (i in 1:(nrow(tpnflash)-1)) {
-    if (tpnflash$bblid[i+1] == tpnflash$bblid[i]) {
-      tpnflash$timepoint[i+1] <- tpnflash$timepoint[i] + 1
-    }
-  }
-  
-  wideflash <- reshape(tpflash[,3:8],
-                       idvar = "bblid",
-                       timevar = "timepoint",
-                       direction = "wide")
-  widenflash <- reshape(tpnflash[,3:8],
-                        idvar = "bblid",
-                        timevar = "timepoint",
-                        direction = "wide")
-  
-  
-  if (maxflash > 1){
-    widediff <- c()
-    widetime <- c()
-    for (i in 2:maxflash) {
-      diff <- ifelse(!is.na(wideflash[,(4*i)]),wideflash[,(4*i)] - wideflash[,(4*(i-1))],NA)
-      time <- ifelse(!is.na(wideflash[,(4*i)]),difftime(wideflash[,(4*i-2)],wideflash[,(4*i-6)],units = "days"),NA)
-      
-      widediff <- data.frame(cbind(widediff,diff))
-      widetime <- data.frame(cbind(widetime,time))
-      
-      names(widediff)[i-1] <- paste0("t",i,"_",i-1,"diff")
-      names(widetime)[i-1] <- paste0("t",i,"_",i-1,"time")
-    }
-    
-    wideflash <- cbind(wideflash,widediff,widetime)
-    for (i in 1:(maxflash-1)) {
-      wideflash <- wideflash[order(wideflash[,(1+4*maxflash + i)]),]
-    }
-    
-    new1 <- c()
-    new2 <- c()
-    for (i in 2:maxflash-1) {
-      diff <- lm(widediff[,i]~widetime[,i])$residuals
-      newscore1 <- c(wideflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(wideflash) - length(diff)))
-      meandif <- mean(wideflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(wideflash[,paste0("acc_res.",i)],na.rm=T)
-      newscore2 <- wideflash[,paste0("acc_res.",i+1)] + meandif
-      
-      new1 <- data.frame(cbind(new1,newscore1))
-      new2 <- data.frame(cbind(new2,newscore2))
-      
-      names(new1)[i] <- paste0("t",i+1,"newscore1")
-      names(new2)[i] <- paste0("t",i+1,"newscore2")
-    }
-    
-    wideflash <- cbind(wideflash,new1,new2)
-  }
-  
-  
-  if (maxnflash > 1) {
-    widendiff <- c()
-    widentime <- c()
-    for (i in 2:maxnflash) {
-      diff <- ifelse(!is.na(widenflash[,(4*i)]),widenflash[,(4*i)] - widenflash[,(4*(i-1))],NA)
-      time <- ifelse(!is.na(widenflash[,(4*i)]),difftime(widenflash[,(4*i-2)],widenflash[,(4*i-6)],units = "days"),NA)
-      
-      widendiff <- data.frame(cbind(widendiff,diff))
-      widentime <- data.frame(cbind(widentime,time))
-      
-      names(widendiff)[i-1] <- paste0("t",i,"_",i-1,"diff")
-      names(widentime)[i-1] <- paste0("t",i,"_",i-1,"time")
-    }
-    
-    widenflash <- cbind(widenflash,widendiff,widentime)
-    for (i in 1:(maxnflash-1)) {
-      widenflash <- widenflash[order(widenflash[,(1+4*maxnflash + i)]),]
-    }
-    
-    newn1 <- c()
-    newn2 <- c()
-    for (i in 2:maxnflash-1) {
-      diff <- lm(widendiff[,i]~widentime[,i])$residuals
-      newscore1 <- c(widenflash[1:length(diff),paste0("acc_res.",i+1)] + diff, rep(NA,nrow(widenflash) - length(diff)))
-      meandif <- mean(widenflash[,paste0("acc_res.",i+1)],na.rm=T) - mean(widenflash[,paste0("acc_res.",i)],na.rm=T)
-      newscore2 <- widenflash[,paste0("acc_res.",i+1)] + meandif
-      
-      newn1 <- data.frame(cbind(newn1,newscore1))
-      newn2 <- data.frame(cbind(newn2,newscore2))
-      
-      names(newn1)[i] <- paste0("t",i+1,"newscore1")
-      names(newn2)[i] <- paste0("t",i+1,"newscore2")
-    }
-    
-    widenflash <- cbind(widenflash,newn1,newn2)
-  }
-  assign(paste0(textsAcc[j],"wideflash"),wideflash)
-  assign(paste0(textsAcc[j],"widenflash"),widenflash)
-}
-
-
-
-# new site difference plot that Kosha wanted ----
-
-# GNG150 speed
-test <- GNG150[GNG150$dotest>cutoff,]
-fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
-summary(fit)
-visreg(fit,"age", by="gender", main="GNG150 Speed AD")
-
-res <- scale(resid(fit))   # scaled residuals
-newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
-nflash <- newtest[newtest$flash==0,]
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-names <- data.frame(matrix(rownames(test),ncol = 1))
-res <- cbind(names,res)
-names(res) <- c("row","Residuals")
-gng <- cbind(names,test)
-names(gng)[1] <- "row"
-gng <- left_join(gng,res)
-gng <- gng[abs(gng$Residuals)<5,]
-
-gng_site <- ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_jitter()
-
-ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_point()
-
-ggplot(gng, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_boxplot(outlier.shape=NA) +
-  geom_point(position=position_jitterdodge())
-
-# spcptnl acc
-
-test <- SPCPTNL[SPCPTNL$dotest>cutoff,]
-fit <- gam(Accuracy ~ s(age,k=3) + gender, data = test)
-summary(fit)
-visreg(fit,"age", by="gender", main="SPCPTNL Accuracy AD")
-
-res <- scale(resid(fit))   # scaled residuals
-newtest <- test[!is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
-nflash <- newtest[newtest$flash==0,]
-nfrownames <- row.names(nflash)
-
-res <- as.data.frame(res)
-names <- data.frame(matrix(rownames(test),ncol = 1))
-res <- cbind(names,res)
-names(res) <- c("row","Residuals")
-cpt <- cbind(names,test)
-names(cpt)[1] <- "row"
-cpt <- left_join(cpt,res)
-cpt <- cpt[abs(cpt$Residuals)<5,]
-
-cpt_site <- ggplot(cpt, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_jitter()
-
-ggplot(cpt, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-  geom_boxplot(outlier.shape=NA) +
-  geom_point(position=position_jitterdodge())
 
 
 
