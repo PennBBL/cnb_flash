@@ -184,11 +184,12 @@ for (i in 1:length(textsAcc)) {
   sumAcc <- c(sumAcc,"effsizeLY")
   
   # box plot
-  boxLY <- ggplot(res, aes(x=factor(flash),y=residuals, group=flash)) +
-    geom_boxplot() +
+  boxLY <- ggplot(res, aes(x=factor(flash),y=residuals, color=factor(flash))) +
+    geom_boxplot() + 
     labs(title = paste("Accuracy Difference in",textsAcc[i],"(Last year)")) +
-    ylab("Residuals") +
+    ylab("Residuals") + theme_bw() +
     scale_x_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
+    scale_color_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
     ylim(-5,5)
   sumAcc <- c(sumAcc,"boxLY")
   nLY <- res %>%
@@ -489,11 +490,12 @@ for (i in 1:length(texts)) {
     sumSp <- c(sumSp,"effsizeLY")
     
     # box plot
-    boxLY <- ggplot(res, aes(x=factor(flash),y=residuals, group=flash)) +
+    boxLY <- ggplot(res, aes(x=factor(flash),y=residuals, color=factor(flash))) +
       geom_boxplot() +
       labs(title = paste("Speed Differences in",texts[i],"(Last year)")) +
       ylab("Residuals") +
       scale_x_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
+      scale_color_discrete("Flash",breaks=0:1,labels=c("Non-Flash", "Flash")) +
       ylim(-5,5)
     sumSp <- c(sumSp,"boxLY")
     nLY <- res %>%
@@ -2050,9 +2052,139 @@ round(VSPLOT15spe_icc,3) %>%
 
 We also looked at test accuracy and speed comparison across the different administration sites. This was done to see if some sites in particular showed big differences between Flash and non-Flash groups. At the same time, we checked for any sites that drove the mean up or down in each group.
 
-```{r site diff primer, include=FALSE}
-sitetexts <- 
+```{r site diff acc, include=FALSE}
+sitetextsAcc <- sort(c("KSPVRT_D","PCET_A","SPCPTNL","GNG150"))
+sitetestsAcc <- mget(sitetextsAcc)
+
+for (i in 1:length(sitetextsAcc)){
+  test <- sitetestsAcc[[i]]
+  test <- test[test$dotest>cutoff & !is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
+  
+  fit <- gam(Accuracy ~ s(age,k=3) + gender, data = test)
+  res <- data.frame(scale(resid(fit)))
+  
+  names <- data.frame(matrix(rownames(test),ncol = 1))
+  res <- cbind(names,res)
+  names(res) <- c("row","Residuals")
+  
+  test <- cbind(names,test)
+  names(test)[1] <- "row"
+  test <- left_join(test,res)
+  test <- test[abs(test$Residuals)<5,]
+  
+  gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
+    geom_boxplot(outlier.shape=NA) +
+    geom_point(position=position_jitterdodge()) +
+    theme_bw() + xlab("Site ID") +
+    scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+    scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
+    labs(title = paste("Flash difference of", sitetextsAcc[i], "Accuracy Residuals at different sites"))
+  
+  assign(paste0(sitetextsAcc[i],"_sitedif"),gg)
+}
 ```
+
+
+
+### GNG150 Accuracy
+
+No site stands out in particular.
+
+```{r GNG150 site dif, echo=FALSE}
+GNG150_sitedif
+```
+
+
+### KSPVRT D Accuracy
+
+LiBI and EXECTS show some differences between Flash and Non-Flash, but EXECTS does not have enough Flash data and LiBI might look different when combined with LIBI and libi_family. There are more negative Flash residuals (removing LIBI might help).
+
+```{r KSPVRT D site dif, echo=FALSE}
+KSPVRT_D_sitedif
+```
+
+
+### PCET A Accuracy
+
+RCNVPENN brings the Flash average down. EXECTS shows some differences between Flash and Non-Flash, but again, it does not have enough Flash data. (removing RCNVPENN might help) 
+
+```{r PCET A site dif, echo=FALSE}
+PCET_A_sitedif
+```
+
+
+### SPCPTNL Accuracy
+
+LiBI looks like it shows some differences between Flash and non-Flash, but might look different when combined with LIBI and libi_family. There are more negative non-Flash residuals.
+
+```{r SPCPTNL site dif, echo=FALSE}
+SPCPTNL_sitedif
+```
+
+
+
+```{r site diff spe, include=FALSE}
+sitetexts <- sort(c("MPRACT","SPCPTNL","GNG150"))
+sitetests <- mget(sitetexts)
+
+for (i in 1:length(sitetexts)){
+  test <- sitetests[[i]]
+  test <- test[test$dotest>cutoff & !is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
+  
+  fit <- gam(Speed ~ s(age,k=3) + gender, data = test)
+  res <- data.frame(scale(resid(fit)))
+  
+  names <- data.frame(matrix(rownames(test),ncol = 1))
+  res <- cbind(names,res)
+  names(res) <- c("row","Residuals")
+  
+  test <- cbind(names,test)
+  names(test)[1] <- "row"
+  test <- left_join(test,res)
+  test <- test[abs(test$Residuals)<5,]
+  
+  gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
+    geom_boxplot(outlier.shape=NA) +
+    geom_point(position=position_jitterdodge()) +
+    theme_bw() + xlab("Site ID") +
+    scale_x_discrete(guide = guide_axis(n.dodge=2)) +
+    scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
+    labs(title = paste("Flash difference of", sitetexts[i], "Speed Residuals at different sites"))
+  
+  assign(paste0(sitetexts[i],"_sitedifSp"),gg)
+}
+```
+
+
+
+### GNG150 Speed
+
+MOTIVE shows some differences between Flash and non-Flash. 
+
+```{r GNG150 site dif sp, echo=FALSE}
+GNG150_sitedifSp
+```
+
+
+### MPRACT Speed
+
+MOTIVE shows some differences that Flash is generally more positive non-Flash. 
+
+```{r MPRACT site dif sp, echo=FALSE}
+MPRACT_sitedifSp
+```
+
+
+### SPCPTNL Speed
+
+EVOLPSY and LiBI show that Flash response times are a little bit higher than non-Flash. LIBI also looks like it might be driving up the Flash average.
+
+```{r SPCPTNL site dif sp, echo=FALSE}
+SPCPTNL_sitedifSp
+```
+
+
+
 
 
 

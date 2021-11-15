@@ -2028,7 +2028,7 @@ for (j in 1:length(textsAcc)){
 sitetextsAcc <- sort(c("KSPVRT_D","PCET_A","SPCPTNL","GNG150"))
 sitetestsAcc <- mget(sitetextsAcc)
 
-for (i in length(sitetextsAcc)){
+for (i in 1:length(sitetextsAcc)){
   test <- sitetestsAcc[[i]]
   test <- test[test$dotest>cutoff & !is.na(test$Accuracy) & !is.na(test$age) & !is.na(test$gender),]
   
@@ -2060,7 +2060,7 @@ for (i in length(sitetextsAcc)){
 sitetexts <- sort(c("MPRACT","SPCPTNL","GNG150"))
 sitetests <- mget(sitetexts)
 
-for (i in length(sitetexts)){
+for (i in 1:length(sitetexts)){
   test <- sitetests[[i]]
   test <- test[test$dotest>cutoff & !is.na(test$Speed) & !is.na(test$age) & !is.na(test$gender),]
   
@@ -2076,16 +2076,16 @@ for (i in length(sitetexts)){
   test <- left_join(test,res)
   test <- test[abs(test$Residuals)<5,]
   
-  gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
-    geom_boxplot(outlier.shape=NA) +
-    geom_point(position=position_jitterdodge()) +
-    theme_bw() + xlab("Site ID") +
-    scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
-    labs(title = paste("Flash difference of", sitetextsAcc[i], "Speed Residuals at different sites"))
-  
-  assign(paste0(sitetexts[i],"_sitedifSp"),gg)
+  # gg <- ggplot(test, aes(x=factor(siteid),y=Residuals, color=factor(flash))) + 
+  #   geom_boxplot(outlier.shape=NA) +
+  #   geom_point(position=position_jitterdodge()) +
+  #   theme_bw() + xlab("Site ID") +
+  #   scale_color_discrete(name = "Test Administration", labels = c("Non-Flash", "Flash")) +
+  #   labs(title = paste("Flash difference of", sitetexts[i], "Speed Residuals at different sites"))
+  # 
+  print("yo")
+  # assign(paste0(sitetexts[i],"_sitedifSp"),gg)
 }
-
 
 
 
