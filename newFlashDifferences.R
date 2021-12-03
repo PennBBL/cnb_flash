@@ -16,6 +16,7 @@ library(reshape2)
 library(irr)
 library(plotly)
 library(tidyverse)
+library(mirt)
 
 
 # Load and reorganize data ----
@@ -168,6 +169,171 @@ tests <- mget(texts)
 # Models and Plotting ----
 
 # * two-factor FA, waiting itemwise data for this ----
+
+# downloading itemwise data
+cpt_iw <- read.csv("cpt_itemlevel/athena_3360_2080.csv")    # CPT [i]tem[w]ise
+cpt_iw$test_sessions_v.dotest <- as.Date(cpt_iw$test_sessions_v.dotest)
+cpt_iw$flash <- ifelse(cpt_iw$test_sessions_v.dotest <= as.Date("2020-12-31"),1,0)
+# cpt_iw$sum <- rowSums(!is.na(cpt_iw[,grepl("CORR", colnames(cpt_iw))]))
+# tc <- unique(cpt_iw$sum)
+cpt_f <- cpt_iw[cpt_iw$flash==1,]
+cpt_n <- cpt_iw[cpt_iw$flash==0,]
+
+CPT_f <- cpt_f[,c(1,5,7,5257)]
+CPT_f <- cbind(CPT_f,cpt_f[,grepl("CORR", colnames(cpt_f))])
+CPT_f <- CPT_f[rowSums(is.na(CPT_f)) <= 985, colSums(is.na(CPT_f)) < (nrow(CPT_f)-20)]
+
+CPT_n <- cpt_n[,c(1,5,7,5257)]
+CPT_n <- cbind(CPT_n,cpt_n[,grepl("CORR", colnames(cpt_n))])
+CPT_n <- CPT_n[rowSums(is.na(CPT_n)) <= 985, colSums(is.na(CPT_n)) < (nrow(CPT_n)-20)]
+
+x <- CPT_f[,grepl("CORR", colnames(CPT_f))]
+xcor <- polychoric(x)$rho
+# getting rid of items without enough responses
+temp <- data.frame(xcor)
+temp <- temp[!is.na(temp$PCPTNL.CPT_QID000001_0_CORR),!is.na(temp[1,])]
+fa.parallel(temp,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  119  and the number of components =  86 
+nfactors(temp,n.obs=nrow(x))       # 2, 6, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+loadings_o <- data.frame(round(oblimin_loadings$loadings,3)[1:20,1:2])
+
+x <- CPT_n[,grepl("CORR", colnames(CPT_n))]
+xcor <- polychoric(x)$rho
+temp <- data.frame(xcor)
+temp <- temp[!is.na(temp$SPCPTNL.SCPT_QID000001_0_CORR),!is.na(temp[1,])]
+fa.parallel(temp,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  62  and the number of components =  46
+nfactors(temp,n.obs=nrow(x))       # 2, 3, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+loadings_o <- data.frame(round(oblimin_loadings$loadings,3)[1:20,1:2])
+loadings_p <- data.frame(round(promax_loadings$loadings,3)[1:20,1:2])
+oblimin_sum <- summary(mod)
+promax_sum <- summary(mod,rotate="promax")
+
+
+
+
+
+
+
+# effing around to figure this data out
+id <- cpt_iw[,c(1,5,7,5257)]
+pcptnl <- cpt_iw[,grepl("PCPTNL.CPT_Q", colnames(cpt_iw))]
+pcptn360 <- cpt_iw[,grepl("PCPTN360.CPT_Q", colnames(cpt_iw))]
+spcptnl <- cpt_iw[,grepl("SPCPTNL.SCPT_Q", colnames(cpt_iw))]
+spcptn90 <- cpt_iw[,grepl("SPCPTN90.SCPT_Q", colnames(cpt_iw))]
+
+pcptnl <- pcptnl[,grepl("CORR", colnames(pcptnl))]
+pcptn360 <- pcptn360[,grepl("CORR", colnames(pcptn360))]
+spcptnl <- spcptnl[,grepl("CORR", colnames(spcptnl))]
+spcptn90 <- spcptn90[,grepl("CORR", colnames(spcptn90))]
+
+pcptnl <- cbind(id, pcptnl)
+pcptn360 <- cbind(id, pcptn360)
+spcptnl <- cbind(id, spcptnl)
+spcptn90 <- cbind(id, spcptn90)
+
+# now keep the ones that don't have NA
+noNA_NL <- pcptnl[rowSums(is.na(pcptnl)) <5,]        # pcpt[nl]     flash
+noNA_N <- pcptn360[rowSums(is.na(pcptn360)) <5,]     # pcpt[n]360   flash
+noNA_sNL <- spcptnl[rowSums(is.na(spcptnl)) <5,]     # spcpt[nl]    both
+noNA_sN <- spcptn90[rowSums(is.na(spcptn90)) <5,]    # spcpt[n]90   both
+
+sNL_f <- noNA_sNL[noNA_sNL$flash ==1,grepl("CORR",colnames(noNA_sNL))]  # noNA_sNL flash group
+sNL_n <- noNA_sNL[noNA_sNL$flash ==0,grepl("CORR",colnames(noNA_sNL))]  # noNA_sNL non-flash group
+sN_f <- noNA_sN[noNA_sN$flash ==1,grepl("CORR",colnames(noNA_sN))]  # noNA_sN flash group
+sN_n <- noNA_sN[noNA_sN$flash ==0,grepl("CORR",colnames(noNA_sN))]  # noNA_sN non-flash group
+
+# sNL flash
+x <- sNL_f
+xcor <- polychoric(x)$rho
+fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  41  and the number of components =  18
+nfactors(xcor,n.obs=nrow(x))       # 2, 17, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sNL_f <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:2])
+pro_exp_sNL_f <- data.frame(round(promax_loadings$loadings,3)[1:180,1:2])
+obli_sum_sNL_f <- summary(mod)
+pro_sum_sNL_f <- summary(mod,rotate="promax")
+
+# sNL non-flash
+x <- sNL_n
+xcor <- polychoric(x)$rho
+fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  50  and the number of components =  39 
+nfactors(xcor,n.obs=nrow(x))       # 2, 6, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sNL_n <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:2])
+pro_exp_sNL_n <- data.frame(round(promax_loadings$loadings,3)[1:180,1:2])
+obli_sum_sNL_n <- summary(mod)
+pro_sum_sNL_n <- summary(mod,rotate="promax")
+
+mod <- mirt(x,6)
+oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sNL_f6 <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:6])
+pro_exp_sNL_f6 <- data.frame(round(promax_loadings$loadings,3)[1:180,1:6])
+obli_sum_sNL_f6 <- summary(mod)
+pro_sum_sNL_f6 <- summary(mod,rotate="promax")
+
+# sN flash
+x <- sN_f
+xcor <- polychoric(x)$rho
+fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  17  and the number of components =  12
+nfactors(xcor,n.obs=nrow(x))       # 2, 3, 15, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sN_f <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:2])
+pro_exp_sN_f <- data.frame(round(promax_loadings$loadings,3)[1:90,1:2])
+obli_sum_sN_f <- summary(mod)
+pro_sum_sN_f <- summary(mod,rotate="promax")
+
+mod <- mirt(x,3)
+oblimin_loadings <- fa.sort(irt.fa(x,3)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,3,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sN_f <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:3])
+pro_exp_sN_f <- data.frame(round(promax_loadings$loadings,3)[1:90,1:3])
+obli_sum_sN_f <- summary(mod)
+pro_sum_sN_f <- summary(mod,rotate="promax")
+
+# sN non-flash
+x <- sNL_n
+xcor <- polychoric(x)$rho
+fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  50  and the number of components =  38 
+nfactors(xcor,n.obs=nrow(x))       # 2, 6, 20 factors
+
+mod <- mirt(x,2)
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sN_n <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:2])
+pro_exp_sN_n <- data.frame(round(promax_loadings$loadings,3)[1:90,1:2])
+obli_sum_sN_n <- summary(mod)
+pro_sum_sN_n <- summary(mod,rotate="promax")
+
+mod <- mirt(x,6)
+oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    # need the line under because of th extra plot
+promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
+obli_exp_sN_n6 <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:6])
+pro_exp_sN_n6 <- data.frame(round(promax_loadings$loadings,3)[1:90,1:6])
+obli_sum_sN_n6 <- summary(mod)
+pro_sum_sN_n6 <- summary(mod,rotate="promax")
+
+
+
+
+
+
 
 
 # * t-tests ----
