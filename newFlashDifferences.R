@@ -17,6 +17,7 @@ library(irr)
 library(plotly)
 library(tidyverse)
 library(mirt)
+library(kableExtra)
 
 
 # Load and reorganize data ----
@@ -204,133 +205,191 @@ sNL_n <- noNA_sNL[noNA_sNL$flash ==0,grepl("CORR",colnames(noNA_sNL))]  # noNA_s
 sN_f <- noNA_sN[noNA_sN$flash ==1,grepl("CORR",colnames(noNA_sN))]  # noNA_sN flash group
 sN_n <- noNA_sN[noNA_sN$flash ==0,grepl("CORR",colnames(noNA_sN))]  # noNA_sN non-flash group
 
+sNL_f$PC <- rowSums(sNL_f)/180   # percent correct
+qu <- quantile(sNL_f$PC,0.05,na.rm=TRUE)
+sNL_f <- sNL_f[sNL_f$PC > qu,1:180]
 
+sNL_n$PC <- rowSums(sNL_n)/180
+qu <- quantile(sNL_n$PC,0.05,na.rm=TRUE)
+sNL_n <- sNL_n[sNL_n$PC > qu,1:180]
+
+sN_f$PC <- rowSums(sN_f)/90   # percent correct
+qu <- quantile(sN_f$PC,0.05,na.rm=TRUE)
+sN_f <- sN_f[sN_f$PC > qu,1:90]
+
+sN_n$PC <- rowSums(sN_n)/90
+qu <- quantile(sN_n$PC,0.05,na.rm=TRUE)
+sN_n <- sN_n[sN_n$PC > qu,1:90]
 
 # sNL flash
 x <- sNL_f
+alpha_snlf <- alpha(x)$total$std.alpha
 xcor <- polychoric(x)$rho
 fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  41  and the number of components =  18
 nfactors(xcor,n.obs=nrow(x))       # 2, 17, 20 factors
 
-mod <- mirt(x,2)
-oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sNL_f <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:2])
-pro_exp_sNL_f <- data.frame(round(promax_loadings$loadings,3)[1:180,1:2])
+sNLf_mod <- mirt(x,2)
+mod <- sNLf_mod
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax",plot = F)$fa) 
+obli_exp_sNL_f <- data.frame(oblimin_loadings$loadings[1:180,1:2])
+pro_exp_sNL_f <-  data.frame(promax_loadings$loadings[1:180,1:2])
 obli_sum_sNL_f <- data.frame(summary(mod)$rotF)
 pro_sum_sNL_f <-  data.frame(summary(mod,rotate="promax")$rotF[1:180,1:2])
+ifc_oesNL_f <- oblimin_loadings$Phi                # 0.265  # obli_exp_sNL_f [i]nter[f]actor[c]orrelation
+ifc_pesNL_f <- promax_loadings$Phi                 # 0.273 used to be 0.300
+ifc_ossNL_f <- summary(mod)$fcor                   # 0.441
+ifc_pssNL_f <- summary(mod,rotate="promax")$fcor   # 0.435
 
 # sNL non-flash
 x <- sNL_n
+alpha_snln <- alpha(x,check.keys=TRUE)$total$std.alpha
 xcor <- polychoric(x)$rho
 fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  50  and the number of components =  39 
-nfactors(xcor,n.obs=nrow(x))       # 2, 6, 20 factors
+nfactors(xcor,n.obs=nrow(x))       # 2, 3, 5, 20 factors
 
-mod <- mirt(x,2)
-oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sNL_n <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:2])
-pro_exp_sNL_n <- data.frame(round(promax_loadings$loadings,3)[1:180,1:2])
+sNLn_mod <- mirt(x,2)
+mod <- sNLn_mod
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax",plot = F)$fa) 
+obli_exp_sNL_n <- data.frame(oblimin_loadings$loadings[1:180,1:2])
+pro_exp_sNL_n <-  data.frame(promax_loadings$loadings[1:180,1:2])
 obli_sum_sNL_n <- data.frame(summary(mod)$rotF)
 pro_sum_sNL_n <-  data.frame(summary(mod,rotate="promax")$rotF[1:180,1:2])
+ifc_oesNL_n <- oblimin_loadings$Phi                # 0.190
+ifc_pesNL_n <- promax_loadings$Phi                 # 0.288
+ifc_ossNL_n <- summary(mod)$fcor                   # 0.324
+ifc_pssNL_n <- summary(mod,rotate="promax")$fcor   # 0.470
 
 mod <- mirt(x,6)
-oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sNL_f6 <- data.frame(round(oblimin_loadings$loadings,3)[1:180,1:6])
-pro_exp_sNL_f6 <- data.frame(round(promax_loadings$loadings,3)[1:180,1:6])
+oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa)  
+obli_exp_sNL_f6 <- data.frame(oblimin_loadings$loadings[1:180,1:6])
+pro_exp_sNL_f6 <-  data.frame(promax_loadings$loadings[1:180,1:6])
 obli_sum_sNL_f6 <- data.frame(summary(mod)$rotF)
-pro_sum_sNL_f6 <-  data.frame(summary(mod,rotate="promax")$rotF[1:180,1:2])
+pro_sum_sNL_f6 <-  data.frame(summary(mod,rotate="promax")$rotF[1:180,1:6])
 
 # (a) CPT (SPCPTNL) flash vs non-flash comparison ----
 names(obli_exp_sNL_f) <- c("FlashF1","FlashF2")
 names(obli_exp_sNL_n) <- c("NFlashF1","NFlashF2")
 obli_exp_sNL <- left_join(rownames_to_column(obli_exp_sNL_f),rownames_to_column(obli_exp_sNL_n),by="rowname")
-obli_exp_sNLcorr <- cor(obli_exp_sNL[,c(2,4)])   # 0.949
+obli_exp_sNLcorr1 <- cor(obli_exp_sNL[,c(2,4)])   # 0.861, was 0.949 before removing outliers
+obli_exp_sNLcorr2 <- cor(obli_exp_sNL[,c(3,5)])   # 0.827
 
 names(pro_exp_sNL_f) <- c("FlashF1","FlashF2")
 names(pro_exp_sNL_n) <- c("NFlashF1","NFlashF2")
 pro_exp_sNL <- left_join(rownames_to_column(pro_exp_sNL_f),rownames_to_column(pro_exp_sNL_n),by="rowname")
-pro_exp_sNLcorr <- cor(pro_exp_sNL[,c(2,4)])    # 1.000
+pro_exp_sNLcorr1 <- cor(pro_exp_sNL[,c(2,4)])    # 0.865 used to be 1.000 before adding plot=F in irt.fa()
+pro_exp_sNLcorr2 <- cor(pro_exp_sNL[,c(3,5)])    # 0.850 used to be 1.000 before adding plot=F in irt.fa()
 
 names(obli_sum_sNL_f) <- c("FlashF1","FlashF2")
 names(obli_sum_sNL_n) <- c("NFlashF1","NFlashF2")
 obli_sum_sNL <- left_join(rownames_to_column(obli_sum_sNL_f),rownames_to_column(obli_sum_sNL_n),by="rowname")
-obli_sum_sNLcorr <- cor(obli_sum_sNL[,c(2,4)])   # 0.939
+obli_sum_sNLcorr1 <- cor(obli_sum_sNL[,c(2,4)])   # 0.850, was 0.939 before removing outliers
+obli_sum_sNLcorr2 <- cor(obli_sum_sNL[,c(3,5)])   # 0.920
 
 names(pro_sum_sNL_f) <- c("FlashF1","FlashF2")
 names(pro_sum_sNL_n) <- c("NFlashF1","NFlashF2")
 pro_sum_sNL <- left_join(rownames_to_column(pro_sum_sNL_f),rownames_to_column(pro_sum_sNL_n),by="rowname")
-pro_sum_sNLcorr <- cor(pro_sum_sNL[,c(2,4)])     # 0.943
-
+pro_sum_sNLcorr1 <- cor(pro_sum_sNL[,c(2,4)])     # 0.875, was 0.943 before removing outliers
+pro_sum_sNLcorr2 <- cor(pro_sum_sNL[,c(3,5)])     # 0.920
 
 # sN flash
 x <- sN_f
+alpha_snf <- alpha(x)$total$std.alpha
 xcor <- polychoric(x)$rho
 fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  17  and the number of components =  12
 nfactors(xcor,n.obs=nrow(x))       # 2, 3, 15, 20 factors
 
-mod <- mirt(x,2)
-oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sN_f <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:2])
-pro_exp_sN_f <- data.frame(round(promax_loadings$loadings,3)[1:90,1:2])
+sNf_mod <- mirt(x,2)
+mod <- sNf_mod
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)   
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax",plot = F)$fa)  
+obli_exp_sN_f <- data.frame(oblimin_loadings$loadings[1:90,1:2])
+pro_exp_sN_f <-  data.frame(promax_loadings$loadings[1:90,1:2])
 obli_sum_sN_f <- data.frame(summary(mod)$rotF)
 pro_sum_sN_f <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:2])
+ifc_oesN_f <- oblimin_loadings$Phi                # 0.210
+ifc_pesN_f <- promax_loadings$Phi                 # 0.307
+ifc_ossN_f <- summary(mod)$fcor                   # 0.300
+ifc_pssN_f <- summary(mod,rotate="promax")$fcor   # 0.480
 
 mod <- mirt(x,3)
-oblimin_loadings <- fa.sort(irt.fa(x,3)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,3,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sN_f3 <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:3])
-pro_exp_sN_f3 <- data.frame(round(promax_loadings$loadings,3)[1:90,1:3])
+oblimin_loadings <- fa.sort(irt.fa(x,3)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,3,rotate="promax")$fa,plot = F) 
+obli_exp_sN_f3 <- data.frame(oblimin_loadings$loadings[1:90,1:3])
+pro_exp_sN_f3 <-  data.frame(promax_loadings$loadings[1:90,1:3])
 obli_sum_sN_f3 <- data.frame(summary(mod)$rotF)
-pro_sum_sN_f3 <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:2])
+pro_sum_sN_f3 <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:3])
 
 # sN non-flash
 x <- sN_n
+alpha_snn <- alpha(x)$total$std.alpha
 xcor <- polychoric(x)$rho
-fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  50  and the number of components =  38 
-nfactors(xcor,n.obs=nrow(x))       # 2, 6, 20 factors
+fa.parallel(xcor,n.obs=nrow(x))    # Parallel analysis suggests that the number of factors =  13  and the number of components =  12 
+nfactors(xcor,n.obs=nrow(x))       # 2, 3, 12, 20 factors
 
-mod <- mirt(x,2)
-oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sN_n <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:2])
-pro_exp_sN_n <- data.frame(round(promax_loadings$loadings,3)[1:90,1:2])
+sNn_mod <- mirt(x,2)
+mod <- sNn_mod
+oblimin_loadings <- fa.sort(irt.fa(x,2)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,2,rotate="promax",plot = F)$fa)
+obli_exp_sN_n <- data.frame(oblimin_loadings$loadings[1:90,1:2])
+pro_exp_sN_n <-  data.frame(promax_loadings$loadings[1:90,1:2])
 obli_sum_sN_n <- data.frame(summary(mod)$rotF)
 pro_sum_sN_n <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:2])
+ifc_oesN_n <- oblimin_loadings$Phi                # 0.207
+ifc_pesN_n <- promax_loadings$Phi                 # 0.298
+ifc_ossN_n <- summary(mod)$fcor                   # 0.360
+ifc_pssN_n <- summary(mod,rotate="promax")$fcor   # 0.467
 
 mod <- mirt(x,6)
-oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    # need the line under because of th extra plot
-promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa)  # loadings has factor loadings, phi has interfactor correlations
-obli_exp_sN_n6 <- data.frame(round(oblimin_loadings$loadings,3)[1:90,1:6])
-pro_exp_sN_n6 <- data.frame(round(promax_loadings$loadings,3)[1:90,1:6])
+oblimin_loadings <- fa.sort(irt.fa(x,6)$fa)    
+promax_loadings <- fa.sort(irt.fa(x,6,rotate="promax")$fa,plot = F) 
+obli_exp_sN_n6 <- data.frame(oblimin_loadings$loadings[1:90,1:6])
+pro_exp_sN_n6 <-  data.frame(promax_loadings$loadings[1:90,1:6])
 obli_sum_sN_n6 <- data.frame(summary(mod)$rotF)
-pro_sum_sN_n6 <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:2])
+pro_sum_sN_n6 <-  data.frame(summary(mod,rotate="promax")$rotF[1:90,1:6])
 
 # (b) CPT (SPCPTN90) flash vs non-flash comparison ----
 names(obli_exp_sN_f) <- c("FlashF1","FlashF2")
 names(obli_exp_sN_n) <- c("NFlashF1","NFlashF2")
 obli_exp_sN <- left_join(rownames_to_column(obli_exp_sN_f),rownames_to_column(obli_exp_sN_n),by="rowname")
-obli_exp_sNcorr <- cor(obli_exp_sN[,c(2,4)])   # 0.826
+obli_exp_sNcorr1 <- cor(obli_exp_sN[,c(2,4)])   # 0.826
+obli_exp_sNcorr2 <- cor(obli_exp_sN[,c(3,5)])   # 0.901
 
 names(pro_exp_sN_f) <- c("FlashF1","FlashF2")
 names(pro_exp_sN_n) <- c("NFlashF1","NFlashF2")
 pro_exp_sN <- left_join(rownames_to_column(pro_exp_sN_f),rownames_to_column(pro_exp_sN_n),by="rowname")
-pro_exp_sNcorr <- cor(pro_exp_sN[,c(2,4)])    # 1.000
+pro_exp_sNcorr1 <- cor(pro_exp_sN[,c(2,4)])    # 0.841
+pro_exp_sNcorr2 <- cor(pro_exp_sN[,c(3,5)])    # 0.902
 
 names(obli_sum_sN_f) <- c("FlashF1","FlashF2")
 names(obli_sum_sN_n) <- c("NFlashF1","NFlashF2")
 obli_sum_sN <- left_join(rownames_to_column(obli_sum_sN_f),rownames_to_column(obli_sum_sN_n),by="rowname")
-obli_sum_sNcorr <- cor(obli_sum_sN[,c(2,4)])   # 0.800
+obli_sum_sNcorr1 <- cor(obli_sum_sN[,c(2,4)])   # 0.800
+obli_sum_sNcorr2 <- cor(obli_sum_sN[,c(3,5)])   # 0.837
 
 names(pro_sum_sN_f) <- c("FlashF1","FlashF2")
 names(pro_sum_sN_n) <- c("NFlashF1","NFlashF2")
 pro_sum_sN <- left_join(rownames_to_column(pro_sum_sN_f),rownames_to_column(pro_sum_sN_n),by="rowname")
-pro_sum_sNcorr <- cor(pro_sum_sN[,c(2,4)])     # 0.815
+pro_sum_sNcorr1 <- cor(pro_sum_sN[,c(2,4)])     # 0.815
+pro_sum_sNcorr2 <- cor(pro_sum_sN[,c(3,5)])     # 0.841
 
 
-
+# summary table
+summary <- data.frame(matrix(NA,nrow=4,ncol = 5))
+names(summary) <- c("Exp_oblimin","Exp_promax","MIRT_oblimin","MIRT_promax","Alpha")
+rownames(summary) <- c("SPCPTNL_flash","SPCPTNL_nonflash","SPCPTN90_flash","SPCPTN90_nonflash")
+summary[1,] <- c(ifc_oesNL_f[1,2],ifc_pesNL_f[1,2],ifc_ossNL_f[1,2],ifc_pssNL_f[1,2],alpha_snlf)
+summary[2,] <- c(ifc_oesNL_n[1,2],ifc_pesNL_n[1,2],ifc_ossNL_n[1,2],ifc_pssNL_n[1,2],alpha_snln)
+summary[3,] <- c(ifc_oesN_f[1,2],ifc_pesN_f[1,2],ifc_ossN_f[1,2],ifc_pssN_f[1,2],alpha_snf)
+summary[4,] <- c(ifc_oesN_n[1,2],ifc_pesN_n[1,2],ifc_ossN_n[1,2],ifc_pssN_n[1,2],alpha_snn)
+summary <- round(summary,3)
+# summary %>% 
+#   kbl(caption="Inter-factor correlations of Exploratory Item-Factor and MIRT analylses for SPCPTNL and SPCPTN90") %>% 
+#   kable_classic(full_width = F, html_font = "Cambria") %>%
+#   save_kable(file = "SPCPT_flashdif_interfactorcorr.html", self_contained = T)
+write.csv(summary,"SPCPT_flashdif_interfactorcorr.csv")
 
 
 
