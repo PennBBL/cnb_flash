@@ -21,7 +21,7 @@ library(kableExtra)
 
 
 # II Load and reorganize data ----
-bigcnb <- read.csv("bigcnb_28Sep21.csv", na=c("",".","NA",NA))  # 241,797 rows 9.28.21
+bigcnb <- read.csv("bigcnb_9Nov21.csv", na=c("",".","NA",NA))  # 241,797 rows 9.28.21
 names(bigcnb)[2:3] <- c("datasetid", "bblid")
 demos <- read.csv("subjectdemosall_v.csv")
 
@@ -71,7 +71,7 @@ bigcnb <- bigcnb[order(bigcnb$bblid),]
 
 bigcnb <- bigcnb[!is.na(bigcnb$Version),] # 210,509
 
-write.csv(bigcnb, "bigcnb_9Nov21.csv", row.names = F)
+# write.csv(bigcnb, "bigcnb_9Nov21.csv", row.names = F)
 
 # * (a) Separate into test versions ----
 ADT36_A <- bigcnb[bigcnb$Version == "ADT36_A" & !is.na(bigcnb$Accuracy) & bigcnb$code != "N" & bigcnb$code != "F" & bigcnb$code != "V3",]
